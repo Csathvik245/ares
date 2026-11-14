@@ -55,9 +55,14 @@ export type SearchResult = {
 };
 
 export type Leg = {
-  /** Cell centers along the leg, from its start to its end. Empty if unreachable. */
+  /**
+   * Smoothed line to draw, from the exact start coordinates (habitat or stop) to
+   * the exact end coordinates. Crosses passable cells only. Empty if unreachable.
+   */
   path: LatLng[];
+  /** Walking time along the grid path, seconds. */
   walkSec: number;
+  /** Length of the grid path, meters (a little longer than the smoothed line). */
   distM: number;
   /** Seconds since the start of the EVA when the astronaut arrives at the end of this leg. */
   arriveSec: number;

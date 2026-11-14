@@ -1,14 +1,18 @@
 import { STORM_EXTRA_RESERVE_MIN, WALK_BURN, WORK_BURN } from "./constants";
 import { isLowMargin, oxygenBudget } from "./oxygen";
+import { smoothPath } from "./geom";
 import { aStar, pathLengthM, pathTo } from "./search";
-import { cellCenter, cellIndexOf } from "./site";
+import { cellIndexOf } from "./site";
 import type { CostGrid, LatLng, Leg, Plan, Site, Status, Stop } from "./types";
 
 const minutes = (sec: number) => Math.round(sec / 60);
 
 /**
  * Plan the EVA: habitat → stop 1 → … → last stop → habitat.
- * Each leg is the fastest safe path (A*). Dwell time is added at each stop, then
+ * Each leg is the fastest safe path (A*), smoothed for drawing: it starts and ends
+ * at the exact habitat/stop coordinates and only crosses passable cells. walkSec
+ * and distM come from the grid path (the same numbers the Dijkstra fields use).
+ * Dwell time is added at each stop, then
  * oxygen, margin and status are worked out from Contracts 2 and 3.
  *
  * Storm and SPE are read from cost.conditions (the conditions the grid was built for).
@@ -18,10 +22,11 @@ const minutes = (sec: number) => Math.round(sec / 60);
  */
 export function planRoute(site: Site, cost: CostGrid, habitat: LatLng, stops: Stop[]): Plan {
   const { storm, spe } = cost.conditions;
-  const waypoints: { label: string; cell: number }[] = [
-    { label: "the habitat", cell: cellIndexOf(site, habitat) },
-    ...stops.map((s) => ({ label: `stop "${s.label}"`, cell: cellIndexOf(site, s) })),
+  const waypoints: { label: string; at: LatLng; cell: number }[] = [
+    { label: "the habitat", at: habitat, cell: cellIndexOf(site, habitat) },
+    ...stops.map((s) => ({ label: `stop "${s.label}"`, at: { lat: s.lat, lng: s.lng }, cell: cellIndexOf(site, s) })),
   ];
+  const passable = (cell: number) => cost.secPerM[cell] !== Infinity;
   if (stops.length > 0) waypoints.push(waypoints[0]);
 
   const legs: Leg[] = [];
@@ -53,7 +58,7 @@ export function planRoute(site: Site, cost: CostGrid, habitat: LatLng, stops: St
       walkSec += legWalk;
       distM += legDist;
       legs.push({
-        path: cells.map((c) => cellCenter(site, c)),
+        path: smoothPath(site, passable, cells, from.at, to.at),
         walkSec: legWalk,
         distM: legDist,
         arriveSec: clock,

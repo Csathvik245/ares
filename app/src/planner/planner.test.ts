@@ -16,7 +16,7 @@ import {
   pathTo,
   planRoute,
 } from "./index";
-import type { Conditions, Site, Stop } from "./index";
+import type { Conditions, CostGrid, LatLng, Plan, Site, Stop } from "./index";
 
 const CALM: Conditions = { storm: false, spe: false, startLmst: 10 };
 const CELL_M = 25;
@@ -47,6 +47,34 @@ function makeSite(width: number, height: number, slopeAt: (row: number, col: num
 }
 
 const idx = (site: Site, row: number, col: number) => row * site.width + col;
+
+/**
+ * Points every ~1/20 of a cell along a polyline, so tests can check the whole
+ * drawn line (not just its corners) without using the planner's own cell walk.
+ */
+function densify(site: Site, path: LatLng[]): LatLng[] {
+  const out: LatLng[] = path.length ? [path[0]] : [];
+  const dLat = (site.bounds.north - site.bounds.south) / site.height / 20;
+  const dLng = (site.bounds.east - site.bounds.west) / site.width / 20;
+  for (let i = 1; i < path.length; i++) {
+    const a = path[i - 1];
+    const b = path[i];
+    const n = Math.max(1, Math.ceil(Math.max(Math.abs(b.lat - a.lat) / dLat, Math.abs(b.lng - a.lng) / dLng)));
+    for (let k = 1; k <= n; k++) out.push({ lat: a.lat + ((b.lat - a.lat) * k) / n, lng: a.lng + ((b.lng - a.lng) * k) / n });
+  }
+  return out;
+}
+
+/** Every sampled point of every leg lies on a passable cell. */
+function expectLegsPassable(site: Site, cost: CostGrid, plan: Plan) {
+  for (const leg of plan.legs) {
+    for (const p of densify(site, leg.path)) {
+      const cell = cellIndexOf(site, p);
+      expect(cell).toBeGreaterThanOrEqual(0);
+      expect(cost.secPerM[cell], `no-go cell crossed at ${p.lat}, ${p.lng}`).not.toBe(Infinity);
+    }
+  }
+}
 const stopAt = (site: Site, row: number, col: number, dwellMin = 0): Stop => ({
   id: `s-${row}-${col}`,
   label: `Stop ${row},${col}`,
@@ -189,6 +217,65 @@ describe("no-go walls", () => {
   });
 });
 
+describe("path smoothing", () => {
+  it("starts and ends each leg at the exact habitat and stop coordinates", () => {
+    const site = makeSite(40, 30);
+    const cost = buildCostGrid(site, CALM);
+    // Off-center points inside their cells.
+    const habitat = { lat: cellCenter(site, idx(site, 25, 10)).lat + 0.0003, lng: cellCenter(site, idx(site, 25, 10)).lng - 0.0002 };
+    const stop: Stop = { id: "a", label: "A", dwellMin: 5, lat: cellCenter(site, idx(site, 3, 33)).lat - 0.0004, lng: cellCenter(site, idx(site, 3, 33)).lng + 0.0001 };
+    const plan = planRoute(site, cost, habitat, [stop]);
+    const [out, back] = plan.legs;
+    expect(out.path[0]).toEqual(habitat);
+    expect(out.path[out.path.length - 1]).toEqual({ lat: stop.lat, lng: stop.lng });
+    expect(back.path[0]).toEqual({ lat: stop.lat, lng: stop.lng });
+    expect(back.path[back.path.length - 1]).toEqual(habitat);
+    // Open flat ground: the smoothed leg is a single straight line.
+    expect(out.path).toHaveLength(2);
+  });
+
+  it("a stop in the habitat's own cell gives a two-point leg", () => {
+    const site = makeSite(10, 10);
+    const cost = buildCostGrid(site, CALM);
+    const habitat = cellCenter(site, idx(site, 5, 5));
+    const stop: Stop = { id: "a", label: "A", dwellMin: 0, lat: habitat.lat + 0.0002, lng: habitat.lng };
+    const plan = planRoute(site, cost, habitat, [stop]);
+    expect(plan.legs[0].path).toEqual([habitat, { lat: stop.lat, lng: stop.lng }]);
+  });
+
+  it("smoothed paths never cross a no-go cell", () => {
+    // Wall with a gap, a diagonal cliff and a boulder blob, so the line has to bend.
+    const site = makeSite(60, 50, (r, c) =>
+      (c === 20 && r !== 4) || (r + c === 70 && r > 15) || Math.hypot(r - 30, c - 45) < 5 ? 60 : 0,
+    );
+    const cost = buildCostGrid(site, CALM);
+    const habitat = cellCenter(site, idx(site, 40, 5));
+    const stops = [stopAt(site, 45, 55, 10), stopAt(site, 10, 50, 10), stopAt(site, 2, 30, 10)];
+    const plan = planRoute(site, cost, habitat, stops);
+    expect(plan.ok).toBe(true);
+    expectLegsPassable(site, cost, plan);
+    // Smoothing removes most of the grid waypoints.
+    const gridCells = plan.legs.reduce((n, leg) => n + leg.distM / CELL_M, 0);
+    const drawn = plan.legs.reduce((n, leg) => n + leg.path.length, 0);
+    expect(drawn).toBeLessThan(gridCells / 5);
+  });
+
+  it("does not squeeze diagonally between two no-go cells", () => {
+    // Two no-go cells touching at a corner, on the straight line between start and end.
+    const site = makeSite(20, 20, (r, c) => ((r === 9 && c === 9) || (r === 10 && c === 10) ? 60 : 0));
+    const cost = buildCostGrid(site, CALM);
+    const plan = planRoute(site, cost, cellCenter(site, idx(site, 4, 15)), [stopAt(site, 15, 4)]);
+    expectLegsPassable(site, cost, plan);
+    // The line from (4,15) to (15,4) passes exactly through the shared corner of (9,10) and (10,9),
+    // which are passable — but it must not touch (9,9) or (10,10).
+    for (const leg of plan.legs) {
+      for (const p of densify(site, leg.path)) {
+        expect([idx(site, 9, 9), idx(site, 10, 10)]).not.toContain(cellIndexOf(site, p));
+      }
+    }
+  });
+});
+
 describe("impossible plans return NO-GO", () => {
   it("when a stop is walled in", () => {
     // A closed ring of cliff around cell (10, 10).
@@ -291,8 +378,8 @@ describe("fake Jezero site.json", () => {
     const plan = planRoute(site, cost, site.habitat, [stop]);
     expect(plan.ok).toBe(true);
 
-    const out = plan.legs[0].path;
-    // Every cell on the path is walkable.
+    const out = densify(site, plan.legs[0].path);
+    // Every point along the drawn (smoothed) path is on walkable ground.
     for (const p of out) {
       const cell = cellIndexOf(site, p);
       expect(site.layers.slope[cell]).toBeLessThanOrEqual(MAX_SLOPE_DEG);
