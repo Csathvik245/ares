@@ -46,8 +46,7 @@ Soft sand (TI < 175): 9893 cells
 ```
 
 (The "299" counts unrounded values. After rounding to 2 decimals, 293 cells are
-strictly above 0.75 in the file — that's expected. `TASK_fake_site.md` still says
-211; that was before the crater-floor boulder field was added.)
+strictly above 0.75 in the file — that's expected.)
 
 What the fake terrain contains: a delta scarp cliff (no-go wall) with two gentle
 ramps near 18.435 N and 18.472 N, a boulder apron at the cliff foot, soft-sand

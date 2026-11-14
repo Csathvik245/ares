@@ -147,7 +147,7 @@ pois = [
         "photo": "photos/carb-1.jpg", "photoCredit": "NASA/JPL-Caltech, Perseverance Mastcam-Z",
     },
     {
-        "id": "clay-1", "name": "Upper delta clay beds", "lat": 18.434, "lng": 77.436,
+        "id": "clay-1", "name": "Crater floor clay beds", "lat": 18.434, "lng": 77.436,
         "kind": "science", "note": "Clay minerals can trap and preserve organic molecules",
         "photo": "photos/clay-1.jpg", "photoCredit": "NASA/JPL-Caltech, Perseverance Mastcam-Z",
     },
