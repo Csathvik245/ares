@@ -19,6 +19,7 @@ import {
   type Stop,
   type Conditions,
   type LatLng,
+  SOL_HOURS,
 } from "./planner";
 export type DemoStop = Stop & {
   why?: string;
@@ -140,7 +141,7 @@ function useMissionState() {
         : null,
     [site, cost, emergency],
   );
-  const env = envAt(conditions.startLmst + elapsed / 3600, conditions.spe);
+  const env = envAt(conditions.startLmst + elapsed / 3600 * 24 / SOL_HOURS, conditions.spe);
   const dose =
     (envAt(0, false).doseRateMsvPerHr * (emergency ? emergency.at : elapsed)) /
       3600 +

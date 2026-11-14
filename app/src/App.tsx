@@ -144,7 +144,7 @@ function Console() {
       </header>
       <div className="assumptions">
         {m.fake ? "SYNTHETIC TERRAIN · " : ""}Demonstration · Terrain-aware
-        planner · Fixed sun 45°, −23°C pending Mars24/MEDA · {TREK_LAYER}
+        planner · Mars24 sun (Ls 0°) · Temperature model pending MEDA · {TREK_LAYER}
       </div>
       {emergency && (
         <aside className="emergency" role="alert">
@@ -479,7 +479,7 @@ function Console() {
       >
         <h2>Conditions</h2>
         <span>
-          Sun {m.env.sunElevationDeg}° · {m.env.tempC}°C ·{" "}
+          Sun {m.env.sunElevationDeg.toFixed(1)}° · {m.env.tempC.toFixed(0)}°C ·{" "}
           {m.env.doseRateMsvPerHr.toFixed(3)} mSv/h (model)
         </span>
         <button disabled={!!emergency} onClick={() => m.trigger("storm")}>
@@ -517,12 +517,11 @@ function Console() {
               Radiation: surface baseline measured by Curiosity RAD at Gale,
               applied to Jezero. 0.64 mSv/sol; SPE ×30 illustrative. Suit,
               walking and reserve constants are demonstration assumptions in
-              CLAUDE.md. Temperature and sun are fixed placeholders, not live
-              weather.
+              CLAUDE.md. Temperature is a placeholder curve; sun uses Mars24 at Ls 0°. These are not live weather observations.
             </p>
             <p>
               Safe-zone, position, abort and segment explanations use the real
-              planner. The environment model remains a fixed frontend stand-in.
+              planner. Sun uses the planner’s Mars24 model at a fixed Ls of 0°. Temperature uses a placeholder curve awaiting MEDA.
               AI assistant is unavailable until its component and backend land.
             </p>
           </section>
