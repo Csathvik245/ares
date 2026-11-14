@@ -36,6 +36,7 @@ function useMissionState() {
     [fake, setFake] = useState(false),
     [error, setError] = useState("");
   const [basemap, setBasemap] = useState<Basemap | null>(null);
+  const [viewRequest, setViewRequest] = useState(0);
   const [stops, setStops] = useState<DemoStop[]>([]),
     [demo, setDemo] = useState<DemoStop[]>([]),
     [selected, setSelected] = useState("");
@@ -108,6 +109,17 @@ function useMissionState() {
         ? planRoute(site, normalCost, site.habitat, stops)
         : null,
     [site, normalCost, stops],
+  );
+  // Emergency EVA status is computed by the real planner on the active grid.
+  // The calm plan remains the immutable playback route for walked/cancelled portions.
+  const evaPlan = useMemo(
+    () =>
+      site && cost && plan
+        ? emergency
+          ? planRoute(site, cost, site.habitat, stops)
+          : plan
+        : null,
+    [site, cost, plan, stops, emergency],
   );
   const plannedPosition = useMemo(() => {
     const p = plan?.legs.length ? positionAt(plan, elapsed) : null;
@@ -219,6 +231,11 @@ function useMissionState() {
     setStops(next);
     reset();
   };
+  const loadDemo = () => {
+    edit(demo.map((stop) => ({ ...stop })));
+    setSelected("");
+    setViewRequest((n) => n + 1);
+  };
   const add = (p: LatLng) => {
     if (emergency) return;
     const poi = site?.pois.find(
@@ -282,6 +299,8 @@ function useMissionState() {
     error,
     stops,
     demo,
+    loadDemo,
+    viewRequest,
     selected,
     setSelected,
     edit,
@@ -303,6 +322,7 @@ function useMissionState() {
     reset,
     cost,
     plan,
+    evaPlan,
     position,
     zone,
     home,

@@ -23,7 +23,7 @@ export const layers = [
   },
   {
     id: "rock",
-    name: "Boulders",
+    name: "Ground roughness",
     type: "Optical / terrain",
     source: "rock",
     legend: "0–1 · > 0.75 blocked",
@@ -64,9 +64,25 @@ export function raster(
         (2 * site.cellSizeM.y);
       const shade = Math.max(30, Math.min(200, 120 + (-dx + dy) * 90));
       color = [shade, shade * 0.8, shade * 0.67, 255];
-    } else if (kind === "zone")
-      color = zone?.[i] ? [79, 209, 255, 75] : [0, 0, 0, 0];
-    else if (kind === "science")
+    } else if (kind === "zone") {
+      const x = i % site.width,
+        y = Math.floor(i / site.width);
+      const edge =
+        zone?.[i] &&
+        (x === 0 ||
+          y === 0 ||
+          x === site.width - 1 ||
+          y === site.height - 1 ||
+          !zone[i - 1] ||
+          !zone[i + 1] ||
+          !zone[i - site.width] ||
+          !zone[i + site.width]);
+      color = edge
+        ? [79, 209, 255, 220]
+        : zone?.[i]
+          ? [0, 0, 0, 0]
+          : [8, 9, 11, 155];
+    } else if (kind === "science")
       color = [167, 139, 250, Math.round(site.layers.science[i] * 180)];
     else if (kind === "sand")
       color = [255, 176, 32, site.layers.thermalInertia[i] < 175 ? 150 : 0];

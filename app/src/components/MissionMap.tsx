@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import {
@@ -9,6 +9,8 @@ import {
   type Plan,
   type CostGrid,
 } from "../lib/planner";
+import { distanceM } from "../geo";
+import { routeParts, shortStop } from "../lib/presentation";
 import type { Basemap } from "../lib/basemap";
 import { raster, type OverlayName } from "../lib/layers";
 export const TREK_LAYER = "Mars_Viking_MDIM21_ClrMosaic_global_232m";
@@ -26,7 +28,15 @@ export function MissionMap({
   onMove,
   onSelect,
   onProbe,
+  emergency = false,
+  incidentAt = 0,
+  viewRequest = 0,
+  children,
 }: {
+  emergency?: boolean;
+  incidentAt?: number;
+  viewRequest?: number;
+  children?: ReactNode;
   site: Site;
   basemap: Basemap | null;
   cost: CostGrid;
@@ -45,6 +55,7 @@ export function MissionMap({
     map = useRef<L.Map | null>(null),
     callbacks = useRef({ onAdd, onMove, onSelect, onProbe });
   callbacks.current = { onAdd, onMove, onSelect, onProbe };
+  const [scaleWidth, setScaleWidth] = useState(80);
   const [baseLabel, setBaseLabel] = useState("Elevation hillshade");
   const cache = useRef(new Map<string, string>());
   useEffect(() => {
@@ -62,7 +73,32 @@ export function MissionMap({
       [site.bounds.south, site.bounds.west],
       [site.bounds.north, site.bounds.east],
     );
-    m.fitBounds(b);
+    m.fitBounds(
+      L.latLngBounds(
+        [site.habitat, ...(stops.length ? stops : site.pois.slice(0, 3))].map(
+          (p) => [p.lat, p.lng] as [number, number],
+        ),
+      ),
+      { padding: [60, 70], maxZoom: 14 },
+    );
+    m.attributionControl.setPrefix(false);
+    for (const [name, z] of [
+      ["routes", 450],
+      ["pois", 600],
+      ["stops", 620],
+      ["astronaut", 640],
+    ] as const)
+      m.createPane(name).style.zIndex = String(z);
+    const updateScale = () => {
+      const h = m.getSize().y;
+      const d = distanceM(
+        m.containerPointToLatLng([0, h - 30]),
+        m.containerPointToLatLng([100, h - 30]),
+      );
+      setScaleWidth((500 / d) * 100);
+    };
+    m.on("zoomend moveend resize", updateScale);
+    updateScale();
     m.setMaxBounds(b.pad(0.3));
     m.createPane("fallback").style.zIndex = "150";
     m.createPane("localBasemap").style.zIndex = "250";
@@ -97,7 +133,7 @@ export function MissionMap({
     if (basemap) {
       const image = L.imageOverlay(basemap.url, b, {
         pane: "localBasemap",
-        attribution: basemap.credit,
+        attribution: "NASA/JPL-Caltech/UArizona/USGS",
         interactive: false,
       });
       image.on("load", () => {
@@ -130,6 +166,18 @@ export function MissionMap({
   useEffect(() => {
     const m = map.current;
     if (!m) return;
+    m.fitBounds(
+      L.latLngBounds(
+        [site.habitat, ...(stops.length ? stops : site.pois.slice(0, 3))].map(
+          (p) => [p.lat, p.lng] as [number, number],
+        ),
+      ),
+      { padding: [60, 70], maxZoom: 14 },
+    );
+  }, [site, basemap, viewRequest]);
+  useEffect(() => {
+    const m = map.current;
+    if (!m) return;
     const group = L.layerGroup().addTo(m);
     const bounds: L.LatLngBoundsExpression = [
       [site.bounds.south, site.bounds.west],
@@ -143,13 +191,14 @@ export function MissionMap({
       }
       L.imageOverlay(url, bounds, { opacity: 0.8 }).addTo(group);
     });
-    L.imageOverlay(raster(site, cost, "zone", zone), bounds, {
-      className: "safe-zone",
-    }).addTo(group);
+    if (!emergency)
+      L.imageOverlay(raster(site, cost, "zone", zone), bounds, {
+        className: "safe-zone",
+      }).addTo(group);
     return () => {
       group.remove();
     };
-  }, [site, basemap, cost, active, zone]);
+  }, [site, basemap, cost, active, zone, emergency]);
   useEffect(() => {
     const m = map.current;
     if (!m) return;
@@ -162,18 +211,42 @@ export function MissionMap({
           iconSize: [28, 28],
           iconAnchor: [14, 14],
         }),
+        pane: cls === "poi" ? "pois" : "stops",
         keyboard: true,
       });
     marker(site.habitat, "H", "habitat")
-      .bindTooltip(site.habitat.name)
+      .bindTooltip(
+        Object.assign(document.createElement("span"), {
+          textContent: site.habitat.name,
+        }),
+      )
       .addTo(g);
     site.pois.forEach((p) => {
-      const mk = marker(p, "+", "poi").bindTooltip(p.name).addTo(g);
+      const mk = marker(p, "", "poi")
+        .bindTooltip(
+          Object.assign(document.createElement("span"), {
+            textContent: p.name,
+          }),
+        )
+        .addTo(g);
       mk.on("click", () => callbacks.current.onAdd(p));
     });
     stops.forEach((s, i) => {
       const mk = marker(s, String(i + 1), "stop").addTo(g);
-      mk.dragging?.enable();
+      mk.bindTooltip(
+        Object.assign(document.createElement("span"), {
+          textContent:
+            shortStop(s.id, s.label) +
+            (s.id === "delta-toe" ? " · new clay target" : ""),
+        }),
+        {
+          permanent: true,
+          direction: s.lng > site.habitat.lng - 0.005 ? "left" : "right",
+          offset: [s.lng > site.habitat.lng - 0.005 ? -14 : 14, 0],
+          className: "stop-label",
+        },
+      );
+      if (!emergency) mk.dragging?.enable();
       mk.on("dragend", () => {
         const point = mk.getLatLng();
         if (cellIndexOf(site, point) < 0) mk.setLatLng([s.lat, s.lng]);
@@ -181,45 +254,76 @@ export function MissionMap({
       });
       mk.on("click", () => callbacks.current.onSelect(s.id));
     });
-    plan.legs.forEach((leg) => {
-      if (leg.path.length) {
-        const line = L.polyline(
-          leg.path.map((p) => [p.lat, p.lng] as [number, number]),
-          { color: "#ff6b35", weight: 3, className: "route-line" },
-        ).addTo(g);
-        line.getElement()?.setAttribute("pathLength", "1");
-      }
-    });
+    const draw = (
+      path: LatLng[],
+      color: string,
+      weight: number,
+      opacity = 1,
+      dashArray?: string,
+    ) => {
+      if (!path.length) return;
+      const points = path.map((p) => [p.lat, p.lng] as [number, number]);
+      L.polyline(points, {
+        pane: "routes",
+        color: "#08090b",
+        weight: weight + 2,
+        opacity,
+        interactive: false,
+      }).addTo(g);
+      const line = L.polyline(points, {
+        pane: "routes",
+        color,
+        weight,
+        opacity,
+        dashArray,
+        interactive: false,
+        className: dashArray ? "" : "route-line",
+      }).addTo(g);
+      if (!dashArray) line.getElement()?.setAttribute("pathLength", "1");
+    };
+    if (emergency) {
+      const parts = routeParts(plan, incidentAt);
+      parts.walked.forEach((p) => draw(p, "#ff6b35", 3, 0.35));
+      parts.cancelled.forEach((p) => draw(p, "#8a919e", 2, 0.65, "6 6"));
+      draw(abort, "#ff4d5a", 5);
+    } else plan.legs.forEach((l) => draw(l.path, "#ff6b35", 3));
     return () => {
       g.remove();
     };
-  }, [site, basemap, stops, plan]);
+  }, [site, basemap, stops, plan, emergency, incidentAt, abort]);
   useEffect(() => {
     const m = map.current;
     if (!m) return;
     const g = L.layerGroup().addTo(m);
     L.circleMarker([position.lat, position.lng], {
-      color: "#4fd1ff",
+      pane: "astronaut",
+      color: "#08090b",
+      fillColor: "#4fd1ff",
+      weight: 2,
       fillOpacity: 1,
       radius: 7,
     }).addTo(g);
-    if (abort.length)
-      L.polyline(
-        abort.map((p) => [p.lat, p.lng] as [number, number]),
-        { color: "#ff4d5a", weight: 5 },
-      ).addTo(g);
     return () => {
       g.remove();
     };
   }, [basemap, position, abort]);
   return (
-    <div className="map-shell">
+    <div className={`map-shell ${emergency ? "is-emergency" : ""}`}>
       <div
         ref={root}
         className="mission-map"
         aria-label="Jezero map. Click to add stops."
       />
-      <span className="map-caption">{baseLabel} · Click map to add a stop</span>
+      <div className="map-legend">
+        <span>― Planned route</span>
+        <span>― Edge of safe return</span>
+        <span>● Rover sample site</span>
+      </div>
+      {children}
+      <div className="mars-scale" style={{ width: scaleWidth }}>
+        500 m
+      </div>
+      <span className="map-caption">{baseLabel}</span>
     </div>
   );
 }
