@@ -23,7 +23,7 @@ Credit images "NASA/JPL-Caltech" (+ instrument team). Model assumptions are in [
 | Atmospheric | MEDA weather data | Perseverance MEDA | ⬜ (PDS Atmospheres Node) | ⬜ | Will replace the placeholder temperature curve | Planned |
 | Radiation | RAD surface dose | Curiosity RAD (Gale Crater) | See Hassler et al. 2014 below | ✅ (record) | Baseline dose rate, applied to Jezero | Used (`DOSE_MSV_PER_SOL`) |
 | Basemap tiles | NASA Mars Trek (JPL) | Several | https://trek.nasa.gov/mars/ | ✅ | Equirectangular basemap tiles in Leaflet | Used / testing |
-| Rover photos | Perseverance raw images (Mastcam-Z, Navcam) | Perseverance | ⬜ | ⬜ | Ground-view photo at each stop. Raw images are tagged by site/drive, not coordinates, so we place them by hand. | Planned |
+| Rover photos | Perseverance raw images (front Hazcam, Navcam), NASA Mars 2020 raw image gallery | Perseverance | https://mars.nasa.gov/mars2020/multimedia/raw-images/ | ✅ (seven images downloaded; see "Rover photos" below) | Ground-view photo at each rover sampling stop, `app/public/photos/`. Credit: NASA/JPL-Caltech | **Used** |
 | Rover traverse | NASA "Where is Perseverance" waypoints file | Perseverance | https://mars.nasa.gov/mmgis-maps/M20/Layers/json/M20_waypoints.json | ✅ | Landing-site coordinates for HAB-1 (first waypoint: 18.44462715 N, 77.45088572 E) | **Used** |
 | Rover samples | Mars 2020 Initial Reports, Volume 1 (Crater Floor Campaign), Farley, K. & Stack, K. (2022), doi:10.17189/68tf-re13; Volume 2 (Delta Front Campaign), Farley, K. & Stack, K. (2023), doi:10.17189/49zd-2k55. NASA PDS Sample Dossier | Perseverance | https://pds-geosciences.wustl.edu/m2020/urn-nasa-pds-mars2020_sample_dossier/initial_reports/ | ✅ (both PDFs opened; coordinates and rock descriptions extracted) | Coordinates and descriptions of the seven rover sampling sites used as POIs | **Used** |
 | Space weather | NASA DONKI space weather database | Several | ⬜ | ⬜ | Real solar particle event examples for the story | Planned |
@@ -62,6 +62,24 @@ Credit images "NASA/JPL-Caltech" (+ instrument team). Model assumptions are in [
 - **Landing-site coordinates.** The often-quoted 18.4447 N, 77.4508 E appeared only on Wikipedia in our searches. NASA's own waypoints file gives 18.44462715 N, 77.45088572 E, so HAB-1 uses 18.4446 N, 77.4509 E (about 6 m different).
 - **"Octavia E. Butler Landing"** is an informal NASA name; it is not in the IAU/USGS Gazetteer of Planetary Nomenclature.
 - **Zenodo downloads.** The thermal inertia file downloads with a normal request; no account is needed.
+
+## Rover photos
+
+One real Perseverance raw image per rover sampling stop, in `app/public/photos/`. All are credited **NASA/JPL-Caltech** by NASA's raw image gallery. The only change we made is saving the PNG as a JPEG.
+
+**How each photo was matched to its stop.** Raw images carry a site/drive tag, not coordinates. NASA's waypoints file gives the lat/lng of each site/drive. For every stop, the waypoint with the photo's site/drive tag is within about 3 m of the stop's coordinates (0.2 m to 2.5 m), and the photo was taken on a sol when the rover was sampling there. Six photos show the rover's arm on the sampled rock.
+
+| File | Stop | Camera | Sol (Earth date) | Site / drive | NASA image ID (link) |
+|---|---|---|---|---|---|
+| `seitah-brac.jpg` | Séítah outcrop (Brac) | Front Left Hazcam | 262 (15 Nov 2021) | 8 / 0 | [FLF_0262_0690210688_738ECM_N0080000FHAZ00206_01_295J](https://mars.nasa.gov/mars2020/multimedia/raw-images/FLF_0262_0690210688_738ECM_N0080000FHAZ00206_01_295J) |
+| `maaz-sid.jpg` | Máaz lava rock (Sid) | Front Left Hazcam | 371 (7 Mar 2022) | 11 / 108 | [FLF_0371_0699884867_862ECM_N0110108FHAZ00206_01_295J](https://mars.nasa.gov/mars2020/multimedia/raw-images/FLF_0371_0699884867_862ECM_N0110108FHAZ00206_01_295J) |
+| `maaz-rochette.jpg` | Rochette (Artuby ridge) | Left Navcam | 190 (1 Sep 2021) | 7 / 0 | [NLF_0190_0683808901_487ECM_N0070000NCAM00209_01_295J](https://mars.nasa.gov/mars2020/multimedia/raw-images/NLF_0190_0683808901_487ECM_N0070000NCAM00209_01_295J) |
+| `seitah-issole.jpg` | Séítah outcrop (Issole) | Front Left Hazcam | 337 (31 Jan 2022) | 9 / 276 | [FLF_0337_0696864692_347ECM_N0090276FHAZ00206_01_295J](https://mars.nasa.gov/mars2020/multimedia/raw-images/FLF_0337_0696864692_347ECM_N0090276FHAZ00206_01_295J) |
+| `delta-wildcat-ridge.jpg` | Wildcat Ridge (Hawksbill Gap) | Front Left Hazcam | 509 (26 Jul 2022) | 26 / 1222 | [FLF_0509_0712138514_736ECM_N0261222FHAZ00206_01_295J](https://mars.nasa.gov/mars2020/multimedia/raw-images/FLF_0509_0712138514_736ECM_N0261222FHAZ00206_01_295J) |
+| `delta-amalik.jpg` | Amalik (Cape Nukshak) | Front Left Hazcam | 575 (2 Oct 2022) | 29 / 0 | [FLF_0575_0717995745_942ECM_N0290000FHAZ00206_01_295J](https://mars.nasa.gov/mars2020/multimedia/raw-images/FLF_0575_0717995745_942ECM_N0290000FHAZ00206_01_295J) |
+| `delta-hidden-harbor.jpg` | Hidden Harbor (Yori Pass) | Front Left Hazcam | 623 (20 Nov 2022) | 30 / 1172 | [FLF_0623_0722254512_006ECM_N0301172FHAZ00216_01_295J](https://mars.nasa.gov/mars2020/multimedia/raw-images/FLF_0623_0722254512_006ECM_N0301172FHAZ00216_01_295J) |
+
+The delta front toe has no photo: Perseverance never went there.
 
 ## To do
 
