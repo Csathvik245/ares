@@ -186,8 +186,8 @@ Needs nothing from anyone. Figma is separate. Code components take **props with 
 
 Needs nothing from anyone. Research and docs stand alone. Use Mars Trek screenshots and the Figma frames for slides until the app is live.
 
-- [ ] 🟥 Verify the Perseverance landing-site coordinates for the habitat; post them in the group chat
-- [ ] 🟥 Jezero science case paragraph (lake, delta, carbonates, clays, biosignatures)
+- [x] 🟥 Verify the Perseverance landing-site coordinates for the habitat; post them in the group chat (18.44462715 N, 77.45088572 E: first point in NASA's waypoints file, sol 13, before the first drive; re-checked 14 Nov; HAB-1 = 18.4446 N, 77.4509 E)
+- [x] 🟥 Jezero science case paragraph (lake, delta, carbonates, clays, biosignatures) → `docs/science-case.md` (lake age left out until a NASA source is opened)
 - [x] 🟥 `docs/sources.md`: every dataset + paper with links
 - [x] 🟥 `docs/assumptions.md`: every Contract 2 constant with a source or "assumption", incl. Tobler's hiking function, Curiosity RAD 0.64 mSv/sol (Hassler et al. 2014), Mars24, SPE ×30 marked illustrative, dust-storm slowdown = visibility not wind
 - [x] 🟥 Confirm Space Apps 2026 rules, required fields, video length, **deadline** → `docs/submission.md` (video ≤ 30 s or ≤ 7 slides; closes Sun 15 Nov 23:59 Local Event time)
