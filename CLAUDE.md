@@ -20,6 +20,7 @@
 5. **No secrets in the repo or the frontend.** API keys live only in environment variables on the backend.
 6. Keep the planner free of UI code so tests and the AI backend can reuse it.
 7. Explain things simply — the team is learning as it builds.
+8. Never add Co-Authored-By lines, 'Generated with Claude Code', or any AI attribution to commits or pull requests.
 
 ---
 
