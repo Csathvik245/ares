@@ -3,7 +3,7 @@
 
 import { MARS_RADIUS_M } from "./constants";
 import { cellCenter } from "./site";
-import type { LatLng, Site } from "./types";
+import type { CostGrid, LatLng, Site } from "./types";
 
 type GridGeometry = Pick<Site, "bounds" | "width" | "height">;
 
@@ -22,15 +22,16 @@ const clamp = (v: number, lo: number, hi: number) => (v < lo ? lo : v > hi ? hi 
 
 /**
  * Visit every cell the straight segment a → b touches, in order ("supercover").
+ * `share` is the fraction (0..1) of the segment's length that lies inside the cell.
  * When the segment passes exactly through a cell corner, BOTH cells beside the
- * corner are visited too, so a line can never slip diagonally between two cells.
- * Stops early (and returns false) as soon as `visit` returns false.
+ * corner are visited too (with share 0), so a line can never slip diagonally
+ * between two cells. Stops early (and returns false) as soon as `visit` returns false.
  */
 export function forEachCellOnSegment(
   site: GridGeometry,
   a: LatLng,
   b: LatLng,
-  visit: (cell: number) => boolean,
+  visit: (cell: number, share: number) => boolean,
 ): boolean {
   const { width, height } = site;
   const p0 = toGrid(site, a);
@@ -48,20 +49,24 @@ export function forEachCellOnSegment(
   // Fraction of the segment needed to cross one whole column / row.
   const tDeltaX = dx !== 0 ? 1 / Math.abs(dx) : Infinity;
   const tDeltaY = dy !== 0 ? 1 / Math.abs(dy) : Infinity;
-  // Fraction of the segment at which we first cross a column / row boundary.
+  // Fraction of the segment at which we next cross a column / row boundary.
   let tMaxX = dx > 0 ? (col + 1 - p0.x) / dx : dx < 0 ? (p0.x - col) / -dx : Infinity;
   let tMaxY = dy > 0 ? (row + 1 - p0.y) / dy : dy < 0 ? (p0.y - row) / -dy : Infinity;
 
-  if (!visit(row * width + col)) return false;
   // Never take more steps than the Manhattan distance between the two end cells.
   let steps = Math.abs(endCol - col) + Math.abs(endRow - row);
-  while (steps > 0 && (col !== endCol || row !== endRow)) {
+  let tCur = 0;
+  for (;;) {
+    const last = steps <= 0 || (col === endCol && row === endRow);
+    const tNext = last ? 1 : Math.min(tMaxX, tMaxY, 1);
+    if (!visit(row * width + col, Math.max(0, tNext - tCur))) return false;
+    if (last) return true;
+    tCur = tNext;
+
     if (Math.abs(tMaxX - tMaxY) < 1e-9) {
       // Through a corner: check the two side cells, then move diagonally.
-      const sideA = row * width + (col + stepCol);
-      const sideB = (row + stepRow) * width + col;
-      if (col + stepCol >= 0 && col + stepCol < width && !visit(sideA)) return false;
-      if (row + stepRow >= 0 && row + stepRow < height && !visit(sideB)) return false;
+      if (col + stepCol >= 0 && col + stepCol < width && !visit(row * width + (col + stepCol), 0)) return false;
+      if (row + stepRow >= 0 && row + stepRow < height && !visit((row + stepRow) * width + col, 0)) return false;
       col += stepCol;
       row += stepRow;
       tMaxX += tDeltaX;
@@ -76,10 +81,8 @@ export function forEachCellOnSegment(
       tMaxY += tDeltaY;
       steps -= 1;
     }
-    if (col < 0 || col >= width || row < 0 || row >= height) break;
-    if (!visit(row * width + col)) return false;
+    if (col < 0 || col >= width || row < 0 || row >= height) return true;
   }
-  return true;
 }
 
 /** True if every cell the straight segment a → b touches is passable. */
@@ -89,7 +92,27 @@ export function segmentIsClear(
   a: LatLng,
   b: LatLng,
 ): boolean {
-  return forEachCellOnSegment(site, a, b, passable);
+  return forEachCellOnSegment(site, a, b, (cell) => passable(cell));
+}
+
+/**
+ * Walking time in seconds along the straight segment a → b on a cost grid:
+ * each cell's share of the length × its seconds per meter. Lengths use the
+ * grid's cellSizeM, like the path search. Infinity if the segment touches a
+ * no-go cell (including the two cells beside a corner it passes through).
+ */
+export function segmentTimeSec(site: GridGeometry, cost: CostGrid, a: LatLng, b: LatLng): number {
+  const p0 = toGrid(site, a);
+  const p1 = toGrid(site, b);
+  const lengthM = Math.hypot((p1.x - p0.x) * cost.cellSizeM.x, (p1.y - p0.y) * cost.cellSizeM.y);
+  let sec = 0;
+  const clear = forEachCellOnSegment(site, a, b, (cell, share) => {
+    const secPerM = cost.secPerM[cell];
+    if (secPerM === Infinity) return false;
+    sec += share * lengthM * secPerM;
+    return true;
+  });
+  return clear ? sec : Infinity;
 }
 
 /**
@@ -97,16 +120,18 @@ export function segmentIsClear(
  *
  * - The first and last points are the exact `start` / `end` coordinates (habitat or
  *   stop), not cell centers. The cells in between are represented by their centers.
- * - A waypoint is dropped when the straight line from the last kept point to the
- *   next one crosses only passable cells, so the smoothed line never touches a
- *   no-go cell (it is checked with the same corner-safe cell walk as above).
+ * - A waypoint is dropped when the straight line that replaces it crosses only
+ *   passable cells (checked with the corner-safe cell walk above) AND is no slower
+ *   than the grid path it replaces. The second rule stops the line from cutting
+ *   back across soft sand or slopes the route went around, so the drawn line is
+ *   never slower than the leg's walkSec says.
  *
  * Greedy and deterministic: from each kept point, keep extending the straight
- * line forward until the next extension would cross a no-go cell.
+ * line forward until the next extension would break one of the rules.
  */
 export function smoothPath(
   site: GridGeometry,
-  passable: (cell: number) => boolean,
+  cost: CostGrid,
   cells: number[],
   start: LatLng,
   end: LatLng,
@@ -117,13 +142,35 @@ export function smoothPath(
   if (cells.length === 1) return [points[0], { lat: end.lat, lng: end.lng }];
   points[points.length - 1] = { lat: end.lat, lng: end.lng };
 
+  // Walking time along the grid path up to each cell (same edge rule as the search).
+  const { width, secPerM } = cost;
+  const { x, y } = cost.cellSizeM;
+  const diag = Math.hypot(x, y);
+  const gridSec = new Float64Array(cells.length);
+  for (let k = 1; k < cells.length; k++) {
+    const a = cells[k - 1];
+    const b = cells[k];
+    const straightRow = Math.floor(a / width) === Math.floor(b / width);
+    const straightCol = a % width === b % width;
+    const len = straightRow ? x : straightCol ? y : diag;
+    gridSec[k] = gridSec[k - 1] + len * 0.5 * (secPerM[a] + secPerM[b]);
+  }
+  // The exact start/end points are not at their cell centers: count the short walk
+  // between each and its center as part of the grid path.
+  const last = cells.length - 1;
+  const startOffsetSec = segmentTimeSec(site, cost, points[0], cellCenter(site, cells[0]));
+  const endOffsetSec = segmentTimeSec(site, cost, cellCenter(site, cells[last]), points[last]);
+  const TOLERANCE_SEC = 1e-6;
+  const canSkipTo = (i: number, j: number) => {
+    const viaGrid = gridSec[j] - gridSec[i] + (i === 0 ? startOffsetSec : 0) + (j === last ? endOffsetSec : 0);
+    return segmentTimeSec(site, cost, points[i], points[j]) <= viaGrid + TOLERANCE_SEC;
+  };
+
   const out: LatLng[] = [points[0]];
   let anchor = 0;
   while (anchor < points.length - 1) {
     let next = anchor + 1; // neighbouring cells on the grid path are always connected
-    while (next + 1 < points.length && segmentIsClear(site, passable, points[anchor], points[next + 1])) {
-      next++;
-    }
+    while (next + 1 < points.length && canSkipTo(anchor, next + 1)) next++;
     out.push(points[next]);
     anchor = next;
   }

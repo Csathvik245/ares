@@ -10,7 +10,8 @@ const minutes = (sec: number) => Math.round(sec / 60);
 /**
  * Plan the EVA: habitat → stop 1 → … → last stop → habitat.
  * Each leg is the fastest safe path (A*), smoothed for drawing: it starts and ends
- * at the exact habitat/stop coordinates and only crosses passable cells. walkSec
+ * at the exact habitat/stop coordinates, only crosses passable cells and is never
+ * slower than the grid path. walkSec
  * and distM come from the grid path (the same numbers the Dijkstra fields use).
  * Dwell time is added at each stop, then
  * oxygen, margin and status are worked out from Contracts 2 and 3.
@@ -26,7 +27,6 @@ export function planRoute(site: Site, cost: CostGrid, habitat: LatLng, stops: St
     { label: "the habitat", at: habitat, cell: cellIndexOf(site, habitat) },
     ...stops.map((s) => ({ label: `stop "${s.label}"`, at: { lat: s.lat, lng: s.lng }, cell: cellIndexOf(site, s) })),
   ];
-  const passable = (cell: number) => cost.secPerM[cell] !== Infinity;
   if (stops.length > 0) waypoints.push(waypoints[0]);
 
   const legs: Leg[] = [];
@@ -58,7 +58,7 @@ export function planRoute(site: Site, cost: CostGrid, habitat: LatLng, stops: St
       walkSec += legWalk;
       distM += legDist;
       legs.push({
-        path: smoothPath(site, passable, cells, from.at, to.at),
+        path: smoothPath(site, cost, cells, from.at, to.at),
         walkSec: legWalk,
         distM: legDist,
         arriveSec: clock,

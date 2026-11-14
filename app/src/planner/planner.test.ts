@@ -15,9 +15,11 @@ import {
   loadSite,
   pathTo,
   abortRoute,
+  explainSegment,
   planRoute,
   positionAt,
   safeZone,
+  segmentTimeSec,
 } from "./index";
 import type { Conditions, CostGrid, LatLng, Plan, Site, Stop } from "./index";
 
@@ -257,6 +259,11 @@ describe("path smoothing", () => {
     const plan = planRoute(site, cost, habitat, stops);
     expect(plan.ok).toBe(true);
     expectLegsPassable(site, cost, plan);
+    // The drawn line is never slower than the planned walking time.
+    for (const leg of plan.legs) {
+      const drawnSec = leg.path.slice(1).reduce((t, p, i) => t + segmentTimeSec(site, cost, leg.path[i], p), 0);
+      expect(drawnSec).toBeLessThanOrEqual(leg.walkSec + 1e-3);
+    }
     // Smoothing removes most of the grid waypoints.
     const gridCells = plan.legs.reduce((n, leg) => n + leg.distM / CELL_M, 0);
     const drawn = plan.legs.reduce((n, leg) => n + leg.path.length, 0);
@@ -416,6 +423,55 @@ describe("abortRoute", () => {
   });
 });
 
+describe("explainSegment", () => {
+  it("reports a nearly straight leg on flat firm ground", () => {
+    const site = makeSite(40, 30);
+    const cost = buildCostGrid(site, CALM);
+    const plan = planRoute(site, cost, cellCenter(site, idx(site, 15, 5)), [stopAt(site, 15, 35)]);
+    const e = explainSegment(site, plan, 0);
+    expect(e).toMatchObject({ maxSlopeDeg: 0, sandFraction: 0, rockMax: 0 });
+    expect(e.detourNote).toMatch(/nearly straight/i);
+  });
+
+  it("explains a detour around a cliff", () => {
+    const site = makeSite(40, 30, (r, c) => (c === 20 && r !== 2 ? 60 : 0));
+    site.layers.rock.fill(0.2);
+    const cost = buildCostGrid(site, CALM);
+    const plan = planRoute(site, cost, cellCenter(site, idx(site, 25, 10)), [stopAt(site, 25, 30)]);
+    const e = explainSegment(site, plan, 0);
+    expect(e.maxSlopeDeg).toBe(0); // the route never touches the cliff
+    expect(e.rockMax).toBeCloseTo(0.2, 6);
+    expect(e.detourNote).toMatch(/detour/i);
+    expect(e.detourNote).toMatch(/steeper than 25°/);
+  });
+
+  it("explains a detour around soft sand and counts sand on the route", () => {
+    // Sand blob on the straight line, firm ground around it.
+    const site = makeSite(60, 40);
+    for (let r = 0; r < 40; r++)
+      for (let c = 0; c < 60; c++) if (Math.hypot(r - 20, c - 30) < 10) site.layers.thermalInertia[idx(site, r, c)] = 100;
+    const cost = buildCostGrid(site, CALM);
+    const plan = planRoute(site, cost, cellCenter(site, idx(site, 20, 10)), [stopAt(site, 20, 50)]);
+    const e = explainSegment(site, plan, 0);
+    expect(e.detourNote).toMatch(/soft sand/i);
+    expect(e.sandFraction).toBeLessThan(0.1);
+    // The drawn line must not cut back across the sand the route went around.
+    const drawnSec = plan.legs[0].path.slice(1).reduce((t, p, i) => t + segmentTimeSec(site, cost, plan.legs[0].path[i], p), 0);
+    expect(drawnSec).toBeLessThanOrEqual(plan.legs[0].walkSec + 1e-3);
+
+    // Stop in the middle of the sand: the last part of the leg is sand.
+    const intoSand = planRoute(site, cost, cellCenter(site, idx(site, 20, 10)), [stopAt(site, 20, 30)]);
+    expect(explainSegment(site, intoSand, 0).sandFraction).toBeGreaterThan(0.1);
+  });
+
+  it("handles unreachable legs and bad indexes", () => {
+    const site = makeSite(20, 20, (r, c) => (Math.max(Math.abs(r - 10), Math.abs(c - 10)) === 2 ? 60 : 0));
+    const plan = planRoute(site, buildCostGrid(site, CALM), cellCenter(site, idx(site, 1, 1)), [stopAt(site, 10, 10)]);
+    expect(explainSegment(site, plan, 0).detourNote).toMatch(/no safe path/i);
+    expect(() => explainSegment(site, plan, 5)).toThrow(RangeError);
+  });
+});
+
 describe("impossible plans return NO-GO", () => {
   it("when a stop is walled in", () => {
     // A closed ring of cliff around cell (10, 10).
@@ -533,6 +589,7 @@ describe("fake Jezero site.json", () => {
       if (before > 0 !== after > 0) crossings.push((out[i - 1].lat + out[i].lat) / 2);
     }
     expect(crossings.length).toBeGreaterThanOrEqual(1);
+    console.log(`habitat → carb-1 drawn with ${plan.legs[0].path.length} points for ${Math.round(plan.legs[0].distM / 24.6)} grid steps`);
     for (const lat of crossings) expect(inRamp(lat), `crossed the scarp at ${lat.toFixed(4)} N`).toBe(true);
 
     console.log(

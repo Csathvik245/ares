@@ -59,8 +59,7 @@ export function abortRoute(site: Site, stormCost: CostGrid, from: LatLng, oxygen
 
   // The field starts at the habitat, so pathTo gives habitat → here; reverse it to walk home.
   const cells = pathTo(field, fromCell).reverse();
-  const passable = (cell: number) => stormCost.secPerM[cell] !== Infinity;
-  const path = smoothPath(site, passable, cells, from, { lat: habitat.lat, lng: habitat.lng });
+  const path = smoothPath(site, stormCost, cells, from, { lat: habitat.lat, lng: habitat.lng });
 
   const budget = oxygenBudget(storm);
   const marginSec = budget.usableSec - oxygenUsedSec - sec * WALK_BURN;
