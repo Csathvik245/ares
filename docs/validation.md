@@ -97,7 +97,7 @@ Image: NASA/JPL-Caltech/University of Arizona/USGS (HiRISE). Path: NASA/JPL-Calt
 
 **What it shows**
 
-- ARES does not block ground that is known to be crossable. 20.5 km of real driving, and we mark 42 m of it as no-go.
+- ARES does not block ground that is known to be crossable. 20.6 km of real driving, and we mark 42 m of it as no-go.
 - Our slope layer agrees with an independent measurement on the ground (the rover's tilt), and our map coordinates line up with NASA's.
 - The result holds across a reasonable range of slope and rock limits.
 
