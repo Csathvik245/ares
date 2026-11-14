@@ -12,3 +12,5 @@ export { fieldFrom, walkHomeSec } from "./fields";
 export { safeZone } from "./zone";
 export { positionAt } from "./timeline";
 export type { Position } from "./timeline";
+export { abortRoute } from "./abort";
+export type { AbortRoute } from "./abort";

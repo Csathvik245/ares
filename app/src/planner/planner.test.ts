@@ -14,6 +14,7 @@ import {
   dijkstraField,
   loadSite,
   pathTo,
+  abortRoute,
   planRoute,
   positionAt,
   safeZone,
@@ -372,6 +373,49 @@ describe("positionAt", () => {
   });
 });
 
+describe("abortRoute", () => {
+  // A cliff with one gap, so the way home is not a straight line.
+  const site = makeSite(60, 50, (r, c) => (c === 30 && r !== 5 ? 60 : 0));
+  site.habitat = { name: "HAB", ...cellCenter(site, idx(site, 40, 10)) };
+  const calm = buildCostGrid(site, CALM);
+  const storm = buildCostGrid(site, { ...CALM, storm: true });
+  const stops = [stopAt(site, 40, 50, 30), stopAt(site, 10, 45, 30), stopAt(site, 20, 15, 30)];
+  const plan = planRoute(site, calm, site.habitat, stops);
+  const leg2 = plan.legs[1];
+  const now = positionAt(plan, leg2.arriveSec - leg2.walkSec / 2); // middle of leg 2
+
+  it("returns a path home from the middle of leg 2", () => {
+    expect(now).toMatchObject({ phase: "walk", legIndex: 1 });
+    const abort = abortRoute(site, storm, now, now.oxygenUsedSec);
+    expect(abort.path[0]).toEqual({ lat: now.lat, lng: now.lng });
+    expect(abort.path[abort.path.length - 1]).toEqual({ lat: site.habitat.lat, lng: site.habitat.lng });
+    // Storm walking time = calm time / STORM_SPEED_FACTOR on every cell.
+    const calmHome = dijkstraField(calm, cellIndexOf(site, site.habitat)).cost[cellIndexOf(site, now)];
+    expect(abort.sec).toBeCloseTo(calmHome / 0.55, 3);
+    expect(abort.marginSec).toBeCloseTo(8 * 3600 - (45 + 30) * 60 - now.oxygenUsedSec - abort.sec * WALK_BURN, 3);
+    expect(abort.status).toBe("CAUTION"); // storm active, enough oxygen
+    expect(abort.reasons.join(" ")).toMatch(/storm/i);
+    expectLegsPassable(site, storm, { legs: [{ path: abort.path }] } as Plan);
+    // The abort leg goes back through the gap in the cliff.
+    expect(densify(site, abort.path).some((p) => cellIndexOf(site, p) === idx(site, 5, 30))).toBe(true);
+  });
+
+  it("is NO-GO when the oxygen left is not enough to get home", () => {
+    const abort = abortRoute(site, storm, now, 7 * 3600);
+    expect(abort.path.length).toBeGreaterThan(1); // still shows the way home
+    expect(abort.marginSec).toBeLessThan(0);
+    expect(abort.status).toBe("NO-GO");
+    expect(abort.reasons.join(" ")).toMatch(/not enough oxygen/i);
+  });
+
+  it("is NO-GO with no path when home cannot be reached", () => {
+    const walled = makeSite(20, 20, (r, c) => (Math.max(Math.abs(r - 10), Math.abs(c - 10)) === 3 ? 60 : 0));
+    walled.habitat = { name: "HAB", ...cellCenter(walled, idx(walled, 10, 10)) };
+    const abort = abortRoute(walled, buildCostGrid(walled, { ...CALM, storm: true }), cellCenter(walled, idx(walled, 1, 1)), 0);
+    expect(abort).toMatchObject({ path: [], sec: Infinity, status: "NO-GO" });
+  });
+});
+
 describe("impossible plans return NO-GO", () => {
   it("when a stop is walled in", () => {
     // A closed ring of cliff around cell (10, 10).
@@ -527,7 +571,7 @@ describe("fake Jezero site.json", () => {
     let inside = 0;
     for (let i = 0; i < 7; i++) {
       // Move the last stop a little each run so its field is never cached.
-      const lastStop = { ...poi("clay-1"), lat: 18.478 - i * 0.0005 };
+      const lastStop = { ...poi("clay-1"), lat: poi("clay-1").lat - i * 0.0005 };
       const p2 = planRoute(site, grid, site.habitat, [poi("carb-1"), lastStop]);
       expect(p2.marginSec).toBeGreaterThan(0); // otherwise safeZone returns early and the timing means nothing
       let t0 = performance.now();
@@ -553,6 +597,37 @@ describe("fake Jezero site.json", () => {
     expect(typical[3]).toBeLessThan(100);
     // Best-of-7 for the cold case: measures the work, not other apps competing for the CPU.
     expect(cold[0]).toBeLessThan(100);
+  });
+
+  it("abortRoute on the 320 × 240 grid runs in under 100 ms", () => {
+    const carb = site.pois.find((p) => p.id === "carb-1")!;
+    const plan = planRoute(site, cost, site.habitat, [
+      { id: carb.id, label: carb.name, lat: carb.lat, lng: carb.lng, dwellMin: 30 },
+    ]);
+    abortRoute(site, buildCostGrid(site, { ...CALM, storm: true }), site.habitat, 0); // JIT warm-up
+    const first: number[] = [];
+    const again: number[] = [];
+    let status = "";
+    for (let i = 0; i < 7; i++) {
+      const stormGrid = buildCostGrid(site, { ...CALM, storm: true }); // the storm just started
+      const at = positionAt(plan, plan.legs[0].walkSec * (0.2 + 0.1 * i));
+      let t0 = performance.now();
+      const abort = abortRoute(site, stormGrid, at, at.oxygenUsedSec); // builds the storm field
+      first.push(performance.now() - t0);
+      const later = positionAt(plan, plan.legs[0].arriveSec);
+      t0 = performance.now();
+      abortRoute(site, stormGrid, later, later.oxygenUsedSec); // storm field cached
+      again.push(performance.now() - t0);
+      expect(abort.path.length).toBeGreaterThan(1);
+      status = abort.status;
+    }
+    first.sort((a, b) => a - b);
+    again.sort((a, b) => a - b);
+    console.log(
+      `abortRoute (${status}): first call after storm starts median ${first[3].toFixed(1)} ms (best ${first[0].toFixed(1)}); ` +
+        `cached median ${again[3].toFixed(1)} ms`,
+    );
+    expect(first[3]).toBeLessThan(100);
   });
 
   it("full-field Dijkstra over 76,800 cells runs in under 100 ms", () => {
