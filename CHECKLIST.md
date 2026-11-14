@@ -67,6 +67,7 @@ Needs nothing from anyone. Your output is checked by your own `check_site.py`.
 - [ ] 🟧 Visual check in QGIS vs Mars Trek (cliffs = high slope, dunes = low TI)
 - [x] 🟧 Layer PNGs for slides via `preview_site.py` → `docs/images/`
 - [x] 🟧 `pipeline/README.md` documents the real-data steps
+- [x] 🟧 Independent check against Perseverance's real traverse: `pipeline/validate_traverse.py` → `docs/validation.md` (99.8% of the rover's 20.6 km rated passable)
 - [ ] 🟦 ML boulder map merged into `rock` (only if you build it yourself in `pipeline/`)
 
 ---
