@@ -10,3 +10,5 @@ export { oxygenBudget, isLowMargin, CAUTION_MARGIN_FRACTION } from "./oxygen";
 export type { OxygenBudget } from "./oxygen";
 export { fieldFrom, walkHomeSec } from "./fields";
 export { safeZone } from "./zone";
+export { positionAt } from "./timeline";
+export type { Position } from "./timeline";
