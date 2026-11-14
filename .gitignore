@@ -160,3 +160,6 @@ data/raw/
 *.tiff
 *.IMG
 *.zip
+
+# Regenerate with: python pipeline/preview_site.py
+pipeline/previews/
