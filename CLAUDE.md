@@ -229,8 +229,10 @@ Cells with slope > `MAX_SLOPE_DEG` or rock > `ROCK_NO_GO` are impassable.
 | Status | When | Shown as |
 |---|---|---|
 | NO-GO | Margin < 0, or any stop unreachable | Red, pulsing, with reason |
-| CAUTION | Margin < 25% of budget, sun < 10° during walk, or active storm/SPE | Amber, with reason |
+| CAUTION | Margin < 25% of the **usable budget**, sun < 10° during walk, or active storm/SPE | Amber, with reason |
 | GO | Everything else | Green |
+
+**Usable budget** = `CONSUMABLE_HOURS × 3600 − reserveSec`, where `reserveSec = RESERVE_MIN × 60`, plus `STORM_EXTRA_RESERVE_MIN × 60` when a storm is active. Example (calm): 28,800 − 2,700 = 26,100 s, so CAUTION below 6,525 s (≈109 min) of margin. Helpers: `oxygenBudget(storm)` and `isLowMargin(marginSec, budget)` in `oxygen.ts`.
 
 Status must never rely on color alone — always show the word and reason.
 
@@ -240,6 +242,13 @@ Status must never rely on color alone — always show the word and reason.
 type LatLng = { lat: number; lng: number };
 type Stop = { id: string; lat: number; lng: number; dwellMin: number; label: string };
 type Conditions = { storm: boolean; spe: boolean; startLmst: number };
+type CostGrid = {
+  width: number; height: number;
+  cellSizeM: { x: number; y: number };
+  secPerM: Float32Array;     // seconds to walk 1 m in each cell (1 / speed); Infinity = no-go
+  minSecPerM: number;        // fastest cell on the grid; used by the A* heuristic
+  conditions: Conditions;    // what the grid was built for; planRoute reads storm/spe from here
+};
 
 loadSite(json): Site
 buildCostGrid(site: Site, conditions: Conditions): CostGrid

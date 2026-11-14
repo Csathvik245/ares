@@ -250,6 +250,21 @@ describe("CAUTION rules (Contract 3)", () => {
     expect(spe.status).toBe("CAUTION");
     expect(spe.reasons.join(" ")).toMatch(/solar particle/i);
   });
+
+  it("low margin is measured against the usable budget (8 h minus reserve)", () => {
+    const calm = buildCostGrid(site, CALM);
+    const usable = 8 * 3600 - 45 * 60; // 26,100 s; CAUTION below 6,525 s
+    // Stop on the habitat cell: no walking, only science at WORK_BURN.
+    const above = planRoute(site, calm, habitat, [stopAt(site, 1, 1, 357)]);
+    expect(above.marginSec).toBeCloseTo(usable - 357 * 60 * WORK_BURN, 3); // 6,822 s
+    expect(above.marginSec).toBeLessThan(0.25 * 28800); // would be CAUTION against the full 8 h
+    expect(above.status).toBe("GO");
+
+    const below = planRoute(site, calm, habitat, [stopAt(site, 1, 1, 365)]); // 6,390 s
+    expect(below.marginSec).toBeLessThan(0.25 * usable);
+    expect(below.status).toBe("CAUTION");
+    expect(below.reasons.join(" ")).toMatch(/usable budget/i);
+  });
 });
 
 describe("fake Jezero site.json", () => {

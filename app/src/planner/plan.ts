@@ -1,16 +1,8 @@
-import {
-  CONSUMABLE_HOURS,
-  RESERVE_MIN,
-  STORM_EXTRA_RESERVE_MIN,
-  WALK_BURN,
-  WORK_BURN,
-} from "./constants";
+import { STORM_EXTRA_RESERVE_MIN, WALK_BURN, WORK_BURN } from "./constants";
+import { isLowMargin, oxygenBudget } from "./oxygen";
 import { aStar, pathLengthM, pathTo } from "./search";
 import { cellCenter, cellIndexOf } from "./site";
 import type { CostGrid, LatLng, Leg, Plan, Site, Status, Stop } from "./types";
-
-/** Contract 3: CAUTION when the margin is below this fraction of the oxygen budget. */
-const CAUTION_MARGIN_FRACTION = 0.25;
 
 const minutes = (sec: number) => Math.round(sec / 60);
 
@@ -77,10 +69,10 @@ export function planRoute(site: Site, cost: CostGrid, habitat: LatLng, stops: St
   }
 
   // Oxygen budget (Contract 2).
-  const budgetSec = CONSUMABLE_HOURS * 3600;
-  const reserveSec = (RESERVE_MIN + (storm ? STORM_EXTRA_RESERVE_MIN : 0)) * 60;
+  const budget = oxygenBudget(storm);
+  const { budgetSec, reserveSec, usableSec } = budget;
   const oxygenUsedSec = walkSec * WALK_BURN + workSec * WORK_BURN;
-  const marginSec = budgetSec - reserveSec - oxygenUsedSec;
+  const marginSec = usableSec - oxygenUsedSec;
   const oxygenAtReturnPct = Math.max(0, ((budgetSec - oxygenUsedSec) / budgetSec) * 100);
   const ok = unreachable.length === 0;
 
@@ -97,9 +89,9 @@ export function planRoute(site: Site, cost: CostGrid, habitat: LatLng, stops: St
   if (reasons.length > 0) {
     status = "NO-GO";
   } else {
-    if (marginSec < CAUTION_MARGIN_FRACTION * budgetSec) {
+    if (isLowMargin(marginSec, budget)) {
       reasons.push(
-        `Oxygen margin is low: ${minutes(marginSec)} min above reserve (under 25% of the ${CONSUMABLE_HOURS} h budget).`,
+        `Oxygen margin is low: ${minutes(marginSec)} min above reserve, under 25% of the ${minutes(usableSec)} min usable budget (${minutes(budgetSec)} min minus the ${minutes(reserveSec)} min reserve).`,
       );
     }
     if (storm) {
