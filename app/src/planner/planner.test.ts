@@ -551,12 +551,12 @@ describe("CAUTION rules (Contract 3)", () => {
 });
 
 describe("fake Jezero site.json", () => {
-  const jsonPath = fileURLToPath(new URL("../../public/data/site.json", import.meta.url));
+  const jsonPath = fileURLToPath(new URL("./__fixtures__/fake-site.json", import.meta.url));
   const site = loadSite(JSON.parse(readFileSync(jsonPath, "utf8")));
   const cost = buildCostGrid(site, CALM);
   const habitatCell = cellIndexOf(site, site.habitat);
 
-  // Centerline of the fake delta scarp, from pipeline/make_fake_site.py.
+  // Centerline of the fake delta scarp, from pipeline/fixtures/make_fake_site.py.
   const scarpLng = (lat: number) =>
     77.415 + 0.012 * Math.sin(((lat - site.bounds.south) / (site.bounds.north - site.bounds.south)) * Math.PI * 1.5);
   // The cliff has gaps (no cell over 25°) at 18.429–18.441 N and 18.466–18.478 N.

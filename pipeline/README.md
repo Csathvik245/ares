@@ -24,20 +24,20 @@ pip install numpy matplotlib
 
 | Script | What it does | Output |
 |---|---|---|
-| `make_fake_site.py` | Generates the fake terrain (fixed seed 42, so everyone gets the same file) | `app/public/data/site.json` (~2.35 MB) |
+| `fixtures/make_fake_site.py` | Generates the fake terrain (fixed seed 42, so everyone gets the same file) | `app/src/planner/__fixtures__/fake-site.json` (~2.35 MB, test fixture only) |
 | `check_site.py` | Checks the file against Contract 1 and checks that the terrain is walkable | Pass/fail list; exit code 0 = all pass, 1 = something failed |
 | `preview_site.py` | Draws each layer as a PNG with HAB-1 and the POIs marked, plus a no-go map | `pipeline/previews/*.png` |
 
 ### 1. Generate
 
 ```bash
-python pipeline/make_fake_site.py
+python pipeline/fixtures/make_fake_site.py
 ```
 
 Expected output:
 
 ```
-Wrote app/public/data/site.json  (2.35 MB)
+Wrote app/src/planner/__fixtures__/fake-site.json  (2.35 MB)
 Grid 320 x 240, cells 24.6 m x 24.7 m
 Elevation -2533 to -2403 m
 Slope max 56.1 deg, cells over 25 deg: 609

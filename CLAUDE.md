@@ -397,7 +397,7 @@ Do **not** use the NASA logo in our branding. Credit images "NASA/JPL-Caltech" (
 
 **First milestone (by ~hour 6): a walking skeleton.** Fake `site.json` loads in the app, click two stops, an orange route draws on the map. Everything after that improves something that already runs.
 
-1. Fake `site.json` (`pipeline/make_fake_site.py`) ← **first**
+1. Fake `site.json` (`pipeline/fixtures/make_fake_site.py`, now a test fixture only) ← **first**
 2. `/app` scaffold + Vercel deploy + Mars Trek tile test in Leaflet
 3. `tokens.css`
 4. Planner: `constants.ts` → `loadSite` → `buildCostGrid` → Dijkstra/A* → `planRoute` → tests

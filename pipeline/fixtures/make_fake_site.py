@@ -1,5 +1,9 @@
 """
-make_fake_site.py — generates a FAKE site.json that matches Contract 1 exactly.
+make_fake_site.py — generates a FAKE terrain file that matches Contract 1 exactly.
+
+TEST FIXTURE ONLY. The app never loads this file; it uses the real terrain built
+by pipeline/build_site.py. The planner's unit tests use this fake terrain because
+its features (a cliff with two ramps, a boulder field) are known in advance.
 
 Purpose: unblock the Planner and Frontend work before real NASA data is ready.
 The terrain is synthetic but plausible for the Jezero delta front:
@@ -10,9 +14,9 @@ The terrain is synthetic but plausible for the Jezero delta front:
   - science value: high along the delta front (stand-in for carbonates and clays)
 
 Run from the repo root:
-    python pipeline/make_fake_site.py
+    python pipeline/fixtures/make_fake_site.py
 Output:
-    app/public/data/site.json
+    app/src/planner/__fixtures__/fake-site.json
 """
 
 import json
@@ -31,7 +35,7 @@ WIDTH, HEIGHT = 320, 240
 MARS_RADIUS_M = 3396190
 
 HABITAT = {"name": "HAB-1", "lat": 18.445, "lng": 77.451}
-OUT_PATH = os.path.join("app", "public", "data", "site.json")
+OUT_PATH = os.path.join("app", "src", "planner", "__fixtures__", "fake-site.json")
 
 rng = np.random.default_rng(42)  # fixed seed so everyone gets the same fake file
 
