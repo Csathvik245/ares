@@ -34,6 +34,10 @@ const degrees = (deg: number) => `${deg < 0 ? "−" : ""}${Math.abs(deg).toFixed
  * Low sun (Contract 3): the sun is checked once a minute from conditions.startLmst
  * to the end of the EVA (walking and science). If it is ever below 10° the status
  * is at least CAUTION, with a reason giving the time and elevation. NO-GO still wins.
+ *
+ * Emergencies (Contract 3): if conditions.storm or conditions.spe is true the EVA
+ * is aborted, so the status is NO-GO with the reason "EVA aborted: active dust
+ * storm" (or "... solar particle event"). The way home is abortRoute's job.
  */
 export function planRoute(site: Site, cost: CostGrid, habitat: LatLng, stops: Stop[]): Plan {
   const { storm, spe } = cost.conditions;
@@ -96,45 +100,56 @@ export function planRoute(site: Site, cost: CostGrid, habitat: LatLng, stops: St
   const ok = unreachable.length === 0;
 
   // Status (Contract 3).
-  let status: Status = "GO";
-  const reasons: string[] = [];
-
-  if (!ok) reasons.push(...unreachable);
+  //   NO-GO   — a dust storm or solar particle event is active (the EVA is aborted),
+  //             a stop is unreachable, or the oxygen margin is negative
+  //   CAUTION — the margin is low, or the sun gets below 10° during the EVA
+  //   GO      — everything else
+  // NO-GO reasons come first; any CAUTION reasons that also apply are listed after them.
+  const blocking: string[] = [];
+  if (storm) blocking.push("EVA aborted: active dust storm");
+  if (spe) blocking.push("EVA aborted: active solar particle event");
+  blocking.push(...unreachable);
   if (marginSec < 0) {
-    reasons.push(
+    blocking.push(
       `Oxygen margin is negative: the plan uses ${minutes(-marginSec)} min more oxygen than the budget allows after the ${minutes(reserveSec)} min reserve.`,
     );
   }
-  if (reasons.length > 0) {
+
+  const cautions: string[] = [];
+  if (ok && marginSec >= 0 && isLowMargin(marginSec, budget)) {
+    cautions.push(
+      `Oxygen margin is low: ${minutes(marginSec)} min above reserve, under 25% of the ${minutes(usableSec)} min usable budget (${minutes(budgetSec)} min minus the ${minutes(reserveSec)} min reserve).`,
+    );
+  }
+  if (storm) {
+    cautions.push(
+      `Dust storm conditions: low visibility slows walking and adds ${STORM_EXTRA_RESERVE_MIN} min to the reserve.`,
+    );
+  }
+  if (spe) cautions.push("Solar particle event conditions: radiation dose rate is elevated.");
+  const lowSun = ok && stops.length > 0 ? lowSunDuring(cost.conditions.startLmst, clock) : null;
+  if (lowSun) {
+    const { first, lowest } = lowSun;
+    const when = first.tSec === 0 ? "from the start" : `${elapsedTime(first.tSec)} into the EVA`;
+    let reason = `Low sun: below ${SUN_CAUTION_DEG}° at ${clockTime(first.lmst)} LMST (${when}, elevation ${degrees(first.sunElevationDeg)})`;
+    if (lowest.tSec !== first.tSec) {
+      reason += `, dropping to ${degrees(lowest.sunElevationDeg)} at ${clockTime(lowest.lmst)} LMST`;
+    }
+    if (lowest.sunElevationDeg < 0) reason += " — part of the EVA is in darkness";
+    cautions.push(`${reason}.`);
+  }
+
+  let status: Status;
+  let reasons: string[];
+  if (blocking.length > 0) {
     status = "NO-GO";
+    reasons = [...blocking, ...cautions];
+  } else if (cautions.length > 0) {
+    status = "CAUTION";
+    reasons = cautions;
   } else {
-    if (isLowMargin(marginSec, budget)) {
-      reasons.push(
-        `Oxygen margin is low: ${minutes(marginSec)} min above reserve, under 25% of the ${minutes(usableSec)} min usable budget (${minutes(budgetSec)} min minus the ${minutes(reserveSec)} min reserve).`,
-      );
-    }
-    if (storm) {
-      reasons.push(
-        `Dust storm active: low visibility slows walking and adds ${STORM_EXTRA_RESERVE_MIN} min to the reserve.`,
-      );
-    }
-    if (spe) reasons.push("Solar particle event active: radiation dose rate is elevated.");
-    const lowSun = stops.length > 0 ? lowSunDuring(cost.conditions.startLmst, clock) : null;
-    if (lowSun) {
-      const { first, lowest } = lowSun;
-      const when = first.tSec === 0 ? "from the start" : `${elapsedTime(first.tSec)} into the EVA`;
-      let reason = `Low sun: below ${SUN_CAUTION_DEG}° at ${clockTime(first.lmst)} LMST (${when}, elevation ${degrees(first.sunElevationDeg)})`;
-      if (lowest.tSec !== first.tSec) {
-        reason += `, dropping to ${degrees(lowest.sunElevationDeg)} at ${clockTime(lowest.lmst)} LMST`;
-      }
-      if (lowest.sunElevationDeg < 0) reason += " — part of the EVA is in darkness";
-      reasons.push(`${reason}.`);
-    }
-    if (reasons.length > 0) {
-      status = "CAUTION";
-    } else {
-      reasons.push(`All stops reachable with ${minutes(marginSec)} min of oxygen margin above reserve.`);
-    }
+    status = "GO";
+    reasons = [`All stops reachable with ${minutes(marginSec)} min of oxygen margin above reserve.`];
   }
 
   return {

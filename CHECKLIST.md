@@ -86,7 +86,7 @@ Needs nothing from anyone. Test everything with Vitest: unit tests use the fixtu
 - [x] 🟧 `explainSegment`
 - [x] 🟧 `envAt`: Mars24 sun elevation at 18.45 N for a fixed Ls; temperature curve (placeholder −83 to −23 °C, flagged in a comment); dose rate (+SPE). Constants live in `planner/` so you don't wait for MEDA values
 - [x] 🟧 Sun < 10° CAUTION rule
-- [ ] 🟧 Tests for every function; each < 100 ms
+- [x] 🟧 Tests for every function; each < 100 ms
 - [x] 🟧 `index.ts` exports every Contract 4 function, so the frontend's swap (I2) is one line
 - [ ] 🟦 `optimizeOrder` (≤ 6 stops), `suggestStops` (science ÷ round-trip oxygen)
 - [ ] 🟦 Web Worker wrapper `planner/worker.ts` (only if the frontend reports lag)
