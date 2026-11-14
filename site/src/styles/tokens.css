@@ -1,0 +1,92 @@
+:root {
+  color-scheme: dark;
+
+  /* Contract 6 — same palette as the mission console */
+  --void: #08090b;
+  --console: #111318;
+  --console-2: #171a21;
+  --hairline: #242833;
+  --text: #eceae6;
+  --muted: #8a93a3;
+  --mars: #ff6b35;
+  --safe: #4fd1ff;
+  --go: #3ddc97;
+  --caution: #ffb020;
+  --nogo: #ff4d5a;
+  --science: #a78bfa;
+
+  --font-heading: "Space Grotesk", "Avenir Next", sans-serif;
+  --font-body: Inter, "Helvetica Neue", sans-serif;
+  --font-mono: "JetBrains Mono", "SFMono-Regular", Consolas, monospace;
+
+  --radius-card: 6px;
+  --radius-floating: 10px;
+  --radius-pill: 999px;
+  --touch-target: 44px;
+
+  --gutter: clamp(16px, 4vw, 48px);
+  --max: 1200px;
+
+  font-family: var(--font-body);
+  color: var(--text);
+  background: var(--void);
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  background: var(--void);
+}
+
+body {
+  margin: 0;
+  background: var(--void);
+  color: var(--text);
+  line-height: 1.55;
+  overflow-x: hidden;
+}
+
+button {
+  font: inherit;
+  color: inherit;
+}
+
+a {
+  color: inherit;
+}
+
+:focus-visible {
+  outline: 2px solid var(--safe);
+  outline-offset: 3px;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* Lenis */
+html.lenis,
+html.lenis body {
+  height: auto;
+}
+.lenis.lenis-smooth {
+  scroll-behavior: auto !important;
+}
+.lenis.lenis-stopped {
+  overflow: hidden;
+}
