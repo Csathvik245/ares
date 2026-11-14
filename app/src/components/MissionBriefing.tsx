@@ -1,4 +1,5 @@
 import type { CSSProperties } from "react";
+import { CONSUMABLE_HOURS, RESERVE_MIN } from "../planner/constants";
 import "../styles/tokens.css";
 import "./mission-screens.css";
 
@@ -10,6 +11,10 @@ export type MissionBriefingProps = {
   objective?: string;
   crewSummary?: string;
 };
+
+// Life support as HH:MM, e.g. 8 hours -> "08:00".
+const lifeSupportMin = Math.round(CONSUMABLE_HOURS * 60);
+const lifeSupportLabel = `${String(Math.floor(lifeSupportMin / 60)).padStart(2, "0")}:${String(lifeSupportMin % 60).padStart(2, "0")}`;
 
 function AresPatch() {
   return (
@@ -76,8 +81,8 @@ export function MissionBriefing({
           </article>
           <div className="briefing__facts">
             <div><span>CREW</span><strong>{crewSummary}</strong></div>
-            <div><span>LIFE SUPPORT</span><strong className="mono">08:00 <small>HRS</small></strong></div>
-            <div><span>RETURN RESERVE</span><strong className="mono">00:45 <small>MIN</small></strong></div>
+            <div><span>LIFE SUPPORT</span><strong className="mono">{lifeSupportLabel} <small>HRS</small></strong></div>
+            <div><span>RETURN RESERVE</span><strong className="mono">{RESERVE_MIN} <small>MIN</small></strong></div>
           </div>
         </div>
 

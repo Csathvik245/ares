@@ -28,7 +28,7 @@ export function HelmetHud({
   nextStop,
   distanceM,
   headingDeg,
-  oxygenRemainingMin,
+  oxygenRemainingMin: oxygenRemainingMinRaw,
   oxygenCapacityMin = 480,
   marginMin,
   doseMsv,
@@ -36,6 +36,8 @@ export function HelmetHud({
   temperatureC,
   onExitHud,
 }: HelmetHudProps) {
+  // Whole minutes, so the hours and minutes always display as whole numbers.
+  const oxygenRemainingMin = Math.round(oxygenRemainingMinRaw);
   const oxygenPct = Math.max(
     0,
     Math.min(100, (oxygenRemainingMin / Math.max(1, oxygenCapacityMin)) * 100),
