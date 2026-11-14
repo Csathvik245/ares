@@ -15,7 +15,7 @@ Every role can finish **all of its items without waiting for anyone's commits**.
 
 | Role | Person | Owns (only you edit these) |
 |---|---|---|
-| Data & GIS | Anish | `pipeline/`, `app/public/data/site.json` |
+| Data & GIS | Sathvik (took over from Anish) | `pipeline/`, `app/public/data/site.json`, `app/public/data/basemap.png` |
 | Planner + backend | Sathvik | `app/src/planner/`, `backend/` |
 | Frontend | Viren | `app/src/` (everything except `planner/`, `styles/`, `design/`, `ai/`), `app/index.html`, Vite config |
 | UI/UX design | _unassigned_ | `app/src/styles/`, `app/src/design/` (HUD, opening screen, stop card), Figma |
@@ -46,7 +46,7 @@ Every role can finish **all of its items without waiting for anyone's commits**.
 
 ---
 
-## Data & GIS: Anish
+## Data & GIS: Sathvik (took over from Anish)
 
 Needs nothing from anyone. Your output is checked by your own `check_site.py`.
 
@@ -55,18 +55,18 @@ Needs nothing from anyone. Your output is checked by your own `check_site.py`.
 - [x] 🟥 Place POIs so habitat → 3 stops → habitat is about 4–5 km walking; `check_site.py` passes
 
 **Real data**
-- [ ] 🟥 Download the Mars 2020 HiRISE DTM mosaic of Jezero (USGS Astrogeology). Backups: CTX DTM, then MOLA
-- [ ] 🟥 Clip to 18.40–18.50 N, 77.36–77.50 E; reproject to `+proj=longlat +R=3396190 +no_defs`
-- [ ] 🟥 Resample elevation to 320 × 240; slope in degrees using real meters
-- [ ] 🟥 Boulder density 0–1 from DTM roughness; flag cells hiding steep 1 m sub-pixels
-- [ ] 🟥 HiRISE or CTX orthoimage of the area (for checks and the slides)
-- [ ] 🟧 THEMIS thermal inertia (~100 m) resampled to the grid
-- [ ] 🟧 CRISM carbonate/clay → science layer. **Decide by hour 8:** real CRISM, or digitize a published Jezero mineral map in QGIS and cite the paper
-- [ ] 🟧 Real habitat + 3 stop coordinates: pick them yourself from flat, firm ground near high science value, then write them into `site.json` `pois` (the story lead can rename them later in `stops.json`)
-- [ ] 🟥 Write the real `site.json` to `app/public/data/site.json`. `check_site.py` passes, size < 5 MB, `"fake"` removed, real `sources`. **Keep the fake generator** so anyone can regenerate it
+- [x] 🟥 Download the Mars 2020 HiRISE DTM mosaic of Jezero (USGS Astrogeology). Backups: CTX DTM, then MOLA
+- [x] 🟥 Clip to 18.40–18.50 N, 77.36–77.50 E; reproject to `+proj=longlat +R=3396190 +no_defs`
+- [x] 🟥 Resample elevation to 320 × 240; slope in degrees using real meters
+- [x] 🟥 Boulder density 0–1 from DTM roughness; flag cells hiding steep 1 m sub-pixels
+- [x] 🟥 HiRISE or CTX orthoimage of the area (for checks and the slides)
+- [x] 🟧 THEMIS thermal inertia (~100 m) resampled to the grid
+- [x] 🟧 CRISM carbonate/clay → science layer. **Decide by hour 8:** real CRISM, or digitize a published Jezero mineral map in QGIS and cite the paper
+- [x] 🟧 Real habitat + 3 stop coordinates: pick them yourself from flat, firm ground near high science value, then write them into `site.json` `pois` (the story lead can rename them later in `stops.json`)
+- [x] 🟥 Write the real `site.json` to `app/public/data/site.json`. `check_site.py` passes, size < 5 MB, `"fake"` removed, real `sources`. **Keep the fake generator** so anyone can regenerate it
 - [ ] 🟧 Visual check in QGIS vs Mars Trek (cliffs = high slope, dunes = low TI)
-- [ ] 🟧 Layer PNGs for slides via `preview_site.py` → `docs/images/`
-- [ ] 🟧 `pipeline/README.md` documents the real-data steps
+- [x] 🟧 Layer PNGs for slides via `preview_site.py` → `docs/images/`
+- [x] 🟧 `pipeline/README.md` documents the real-data steps
 - [ ] 🟦 ML boulder map merged into `rock` (only if you build it yourself in `pipeline/`)
 
 ---

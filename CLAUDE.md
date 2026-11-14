@@ -47,7 +47,7 @@ The astronaut picks science stops. ARES plans the safest walking route around st
 | Callsign | ARES-1 EVA |
 | Site | Jezero Crater delta front (Perseverance's region), bounds **18.40–18.50 N, 77.36–77.50 E** (~6 × 8 km) |
 | Science objective | Sample **carbonate and clay** layers at the ancient river delta — top targets for preserved signs of past life |
-| Habitat | HAB-1 at **18.445 N, 77.451 E** |
+| Habitat | HAB-1 at **18.4446 N, 77.4509 E** (the Perseverance landing site) |
 | User | Astronaut planning in the habitat, then walking with a tablet or helmet HUD |
 | Why Jezero | Strong life-search story, high-res NASA terrain data from the Perseverance landing, thousands of rover photos. NASA's own example is Mount Sharp, so most teams will pick that — Jezero sets us apart. |
 
@@ -175,11 +175,11 @@ Produced by the data pipeline; read by the planner and the frontend.
     "thermalInertia": [ "J m-2 K-1 s-1/2" ],
     "science":        [ "science value, 0 to 1" ]
   },
-  "habitat": { "name": "HAB-1", "lat": 18.445, "lng": 77.451 },
+  "habitat": { "name": "HAB-1", "lat": 18.4446, "lng": 77.4509 },
   "pois": [
-    { "id": "carb-1", "name": "Delta front carbonates", "lat": 18.4365, "lng": 77.421,
-      "kind": "science", "note": "Carbonate layers record ancient lake chemistry",
-      "photo": "photos/carb-1.jpg", "photoCredit": "NASA/JPL-Caltech, Perseverance Mastcam-Z" }
+    { "id": "seitah-brac", "name": "Séítah outcrop (Brac)", "lat": 18.43397, "lng": 77.44301,
+      "kind": "science", "note": "Olivine-rich igneous rock altered by water, with carbonate",
+      "photo": "photos/seitah-brac.jpg", "photoCredit": "NASA/JPL-Caltech" }
   ],
   "sources": {
     "elevation": "Mars 2020 HiRISE DTM mosaic, USGS Astrogeology",
@@ -195,7 +195,7 @@ Produced by the data pipeline; read by the planner and the frontend.
 
 **Click → cell:** `col = floor((lng - west) / (east - west) * width)`, `row = floor((north - lat) / (north - south) * height)`.
 
-The fake file may include an extra `"fake": true` key; consumers ignore unknown keys.
+The app's `site.json` is built from real NASA data by `pipeline/build_site.py` (see `pipeline/README.md`). A POI's `photo` and `photoCredit` are optional (one demo stop was never visited by a rover). The fake test fixture (`app/src/planner/__fixtures__/fake-site.json`) has an extra `"fake": true` key; consumers ignore unknown keys.
 
 ### Contract 2 — suit and mission constants (`/app/src/planner/constants.ts`)
 

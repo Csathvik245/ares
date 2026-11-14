@@ -14,7 +14,7 @@ Full references with links are in [`sources.md`](sources.md).
 
 ## Model assumptions (slide-ready)
 
-- **Terrain:** 25 m grid (320 × 240 cells) over the Jezero delta front. Distances use the IAU Mars radius (3,396.19 km).
+- **Terrain:** real NASA data on a 25 m grid (320 × 240 cells) over the Jezero delta front: HiRISE elevation (1 m), THEMIS thermal inertia (100 m) and CRISM minerals (36 m). Slope keeps small cliffs by taking the 90th percentile inside each cell. "Rock" is ground roughness, not a boulder count. "Science value" is a relative clay/carbonate index, not an abundance. Distances use the IAU Mars radius (3,396.19 km).
 - **Walking speed:** Tobler's hiking function, slowed for a suit: 3 km/h on flat firm ground. That is Tobler's 5 km/h × his 3/5 off-path factor. Soft sand and boulders slow the walk further. Slopes over 25° and dense boulder fields are no-go.
 - **Oxygen:** 8 h of life support (Shuttle/ISS EMU rating). Walking burns 1.3× the nominal rate and science work 0.9×. 45 min must be left on return (75 min in a dust storm). The burn rates and reserve are our assumptions.
 - **Safety rules:** NO-GO if any stop can't be reached or the oxygen margin is negative. CAUTION if the margin is under 25% of the usable oxygen, the sun is below 10°, or a storm or solar event is active.
@@ -37,7 +37,7 @@ Full references with links are in [`sources.md`](sources.md).
 | `MAX_SLOPE_DEG` | 25° | Steeper cells are no-go | No source found for a suited slope limit. Chosen as a conservative cut-off; at 25° our speed formula has already dropped to ~25% of flat speed. | Assumption |
 | `SAND_TI_THRESHOLD` | 175 J m⁻² K⁻¹ s⁻½ | Thermal inertia below this counts as soft sand | Edwards et al. 2009 classify THEMIS pixels above 1200 as bedrock, so low values mean loose fine material. 175 sits at the loose, fine-grained end. We chose it; it is not a published cut-off. | Assumption |
 | `SAND_SPEED_FACTOR` | 0.55 | Speed multiplier in soft sand | No source. Assumed: walking in loose sand roughly halves speed. | Assumption |
-| `ROCK_NO_GO` | 0.75 | Boulder density (0–1) above which a cell is no-go | No source. The rock layer is a 0–1 index we derive from DTM roughness, not a physical unit. | Assumption |
+| `ROCK_NO_GO` | 0.75 | Rock/roughness value (0–1) above which a cell is no-go | No source. The rock layer is a 0–1 roughness index we derive from the HiRISE DTM (1.0 = 1 m of bumpiness inside a cell), so 0.75 means about 0.75 m. See "Terrain data" below. | Assumption |
 | `STORM_SPEED_FACTOR` | 0.55 | Speed multiplier in a dust storm | The **reason** is sourced: NASA says Mars air is "about 1 percent as dense as Earth's atmosphere" and storm wind "likely could not tip or rip apart major mechanical equipment". So the slowdown is from low visibility and dust on the visor, not wind. The 0.55 number is ours. | Assumption |
 | `STORM_EXTRA_RESERVE_MIN` | 30 min | Extra oxygen reserve while a storm is active | No source. Extra margin for slower, low-visibility walking. | Assumption |
 | `DOSE_MSV_PER_SOL` | 0.64 mSv | Average surface dose per sol | Hassler et al. 2014 (*Science* 343) is the RAD surface paper. **We could not open its full text to confirm 0.64.** The SwRI press release for the paper (opened) gives "an average GCR dose equivalent rate of 0.67 millisieverts per day from August 2012 to June 2013". It is per Earth **day**, galactic cosmic rays only. See note 1. | Sourced (value to confirm) |
@@ -57,6 +57,23 @@ Full references with links are in [`sources.md`](sources.md).
 | `TEMP_MIN_C` / `TEMP_MAX_C` | −83 °C / −23 °C | Coldest (pre-dawn) and warmest (early afternoon) air temperature | Placeholder. University of the Basque Country MEDA team (phys.org, 2023) gives a Jezero average near −55 °C with "typical differences of around 50 to 60 degrees" between day and night. Our 60 °C range is consistent but not measured. Replace with MEDA data. | Placeholder |
 | `TEMP_MIN_LMST` / `TEMP_MAX_LMST` | 05:30 / 14:00 | Times of coldest and warmest air | Placeholder shape (smooth cosine curve). | Placeholder |
 | Dose rate over the sol | flat: 0.64 / 24.66 mSv per h | Dose spread evenly through the day | Simplification. RAD measured a daily cycle tied to atmospheric pressure (seen in search results, paper not opened). | Assumption |
+
+## Terrain data (`pipeline/build_site.py`)
+
+All layers come from real NASA/USGS data (see [`sources.md`](sources.md) and `pipeline/README.md`). The choices below are how we turned them into one number per 25 m cell.
+
+| Name | Value | What it means | Source or justification | Status |
+|---|---|---|---|---|
+| Elevation | mean of the 1 m HiRISE DTM in each cell | Height of each cell, meters | USGS Mars 2020 TRN HiRISE DTM mosaic (doi:10.5066/P9REJ9JN). Checked: 400 random cells match the source DTM (median difference 0.01 m). | Sourced |
+| Slope | 90th percentile of ~5 m slopes in each cell | Steepness the planner sees | Our choice. A plain mean hides a 10 m wide cliff in a 25 m cell (383 cells over 25° with the mean, 838 with the 90th percentile). The percentile is not from a source. | Assumption |
+| Rock layer | std of plane-detrended 1 m elevation in each cell, 1.0 m = 1.0 | Ground roughness, 0–1 | Our method. **It is not a boulder count**: a 1 m DTM cannot resolve boulders under a few meters. It marks rugged ground (ledges, scarps, crater rims, dune crests). The 1.0 m full scale is our choice; with it 419 cells (0.5%) are no-go. | Assumption |
+| Thermal inertia | Edwards & Buz 2021 THEMIS mosaic, bilinear from 100 m to 25 m | Soft sand where the value is under 175 | Quantitative product (doi:10.5281/zenodo.4931348). Real detail is 100 m; the 25 m layer only looks finer. 9% of cells are under 175. | Sourced (resampling is ours) |
+| Thermal inertia product choice | Jezero-specific product, not the USGS global mosaic | Which of two real maps we trust | The USGS global mosaic reads ~100 units higher here (mean ~314 vs ~215). We picked the crater-specific, DOI-archived product. With the other one almost nothing would be soft sand. | Assumption |
+| Science value | highest of three CRISM scores: D2300 (clay), MIN2295_2480 and MIN2345_2537 (carbonate) | Where orbital data sees clay or carbonate, 0–1 | CRISM MTRDR HRL000040FF summary parameters (definitions: Viviano-Beck et al. 2014). Scoring is ours: 0 or less = 0, the scene's 99.5th percentile = 1. | Sourced data, our index |
+| Science value meaning | relative index within one scene | Not a mineral abundance | The clay parameter dominates (delta high, crater floor low). Summary parameters are noisy and can respond to other minerals. Rover-confirmed carbonate on the crater floor scores only 0.1–0.3. | Assumption |
+| Habitat location | 18.4446 N, 77.4509 E | HAB-1 sits at the Perseverance landing site | NASA "Where is Perseverance" waypoints file, first waypoint. Flat, firm cell (slope 1.1°, thermal inertia 243). | Sourced |
+| Demo stop "Delta front toe" | 18.4594 N, 77.4228 E | A stop the rover never visited | Chosen by us as the nearest flat, firm ground with science value over 0.6. The rover's own delta-front sites are too far for a 4–5 km loop (2.6–3.1 km each way). | Assumption |
+| Other stops | seven Perseverance sampling sites | Real places with real samples | Coordinates and rock descriptions from the Mars 2020 Initial Reports, volumes 1 and 2. | Sourced |
 
 ## Planner model choices
 

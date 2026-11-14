@@ -1,0 +1,17 @@
+{
+  "file": "basemap.png",
+  "bounds": {
+    "south": 18.4,
+    "north": 18.5,
+    "west": 77.36,
+    "east": 77.5
+  },
+  "width": 2400,
+  "height": 1714,
+  "projection": "Equirectangular (plain lat/lng), planetocentric latitude, east longitude, Mars sphere R = 3396190 m. Row 0 = north.",
+  "metersPerPixel": 3.46,
+  "source": "Mars 2020 Terrain Relative Navigation HiRISE Orthorectified Image Mosaic, 25 cm/pixel (Fergason et al. 2020, USGS Astrogeology, doi:10.5066/P9QJDP48); MRO HiRISE",
+  "sourceUrl": "https://planetarymaps.usgs.gov/mosaic/mars2020_trn/HiRISE/JEZ_hirise_soc_006_orthoMosaic_25cm_Eqc_latTs0_lon0_first.tif",
+  "credit": "NASA/JPL-Caltech/University of Arizona/USGS",
+  "processing": "Cropped to the site bounds and averaged down from 25 cm to about 3.5 m per pixel. No other changes."
+}
