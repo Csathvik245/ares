@@ -147,3 +147,16 @@ vite.config.ts.timestamp-*
 
 # Turbo Repo
 .turbo
+
+# Python
+.venv/
+__pycache__/
+*.pyc
+.ipynb_checkpoints/
+
+# Raw data (large downloads stay out of git)
+data/raw/
+*.tif
+*.tiff
+*.IMG
+*.zip
