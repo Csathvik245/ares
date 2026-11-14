@@ -182,8 +182,8 @@ Needs nothing from anyone. Research and docs stand alone. Use Mars Trek screensh
 
 - [ ] 🟥 Verify the Perseverance landing-site coordinates for the habitat; post them in the group chat
 - [ ] 🟥 Jezero science case paragraph (lake, delta, carbonates, clays, biosignatures)
-- [ ] 🟥 `docs/sources.md`: every dataset + paper with links
-- [ ] 🟥 `docs/assumptions.md`: every Contract 2 constant with a source or "assumption", incl. Tobler's hiking function, Curiosity RAD 0.64 mSv/sol (Hassler et al. 2014), Mars24, SPE ×30 marked illustrative, dust-storm slowdown = visibility not wind
+- [x] 🟥 `docs/sources.md`: every dataset + paper with links
+- [x] 🟥 `docs/assumptions.md`: every Contract 2 constant with a source or "assumption", incl. Tobler's hiking function, Curiosity RAD 0.64 mSv/sol (Hassler et al. 2014), Mars24, SPE ×30 marked illustrative, dust-storm slowdown = visibility not wind
 - [ ] 🟥 Confirm Space Apps 2026 rules, required fields, video length, **deadline**
 - [ ] 🟧 `app/public/data/stops.json`: 3 demo stops `{ id, label, lat, lng, dwellMin, why, tools, photo, photoCredit }`
 - [ ] 🟧 Perseverance photos for each stop in `app/public/photos/` with credits ("NASA/JPL-Caltech, …")
