@@ -258,10 +258,20 @@ planRoute(site, cost, habitat: LatLng, stops: Stop[]): Plan
 //          oxygenAtReturnPct, status: "GO" | "CAUTION" | "NO-GO", reasons: string[] }
 safeZone(site, cost, plan: Plan): Uint8Array            // 1 = inside zone, per cell
 positionAt(plan, tSec): { lat, lng, phase: "walk" | "science", legIndex, oxygenUsedSec }
-abortRoute(site, stormCost, from: LatLng, oxygenUsedSec): { path: LatLng[], sec, marginSec, status }
+abortRoute(site, stormCost, from: LatLng, oxygenUsedSec): { path: LatLng[], sec, marginSec, status, reasons }
 envAt(lmstHours: number, spe: boolean): { sunElevationDeg, tempC, doseRateMsvPerHr }
 explainSegment(site, plan, legIndex): { maxSlopeDeg, sandFraction, rockMax, detourNote }
 ```
+
+Behaviour notes (implemented in `/app/src/planner`):
+
+- **Leg paths** are smoothed (section 6, step 9). Each starts and ends at the exact habitat/stop coordinates. A waypoint is dropped only if the straight line crosses passable cells **and** is no slower than the grid path it replaces, so a drawn leg never cuts across sand the route went around. `walkSec`/`distM` come from the grid path.
+- **Fields** (full-field Dijkstra) are cached per `CostGrid` object. Build a new grid when conditions change; never edit `secPerM` in place. Build the storm grid **once** when a storm starts and reuse it for every `abortRoute` call.
+- **safeZone:** "oxygen left after reserve" = oxygen left when leaving the last stop = `plan.marginSec + lastLeg.walkSec × WALK_BURN`. No stops → every cell with a round trip inside the usable budget. Empty if `!plan.ok` or `marginSec < 0`. Pass the same `cost` the plan was built with.
+- **positionAt:** `t` is clamped to `[0, totalSec]`; both ends are the habitat. Even pace along each leg (assumption). During science `legIndex` is the leg that just arrived. Empty plan → `lat/lng = NaN`, `legIndex = −1`.
+- **abortRoute:** home = `site.habitat`; reserve follows `stormCost.conditions`. Unreachable → `path: []`, `sec: Infinity`, `marginSec: −Infinity`, NO-GO. `reasons` added so the status always has a reason (Contract 3).
+- **explainSegment:** facts are for the cells the drawn leg crosses. Throws `RangeError` for a bad `legIndex`.
+- **Extra helpers** (additive): `oxygenBudget`, `isLowMargin`, `walkHomeSec` (cursor probe), `fieldFrom`, `smoothPath`, `segmentTimeSec`, `distanceM`, `polylineLengthM`.
 
 ### Contract 5 — AI assistant tools (stretch)
 
