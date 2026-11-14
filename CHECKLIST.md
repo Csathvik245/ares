@@ -188,14 +188,14 @@ Needs nothing from anyone. Research and docs stand alone. Use Mars Trek screensh
 - [ ] 🟥 Jezero science case paragraph (lake, delta, carbonates, clays, biosignatures)
 - [x] 🟥 `docs/sources.md`: every dataset + paper with links
 - [x] 🟥 `docs/assumptions.md`: every Contract 2 constant with a source or "assumption", incl. Tobler's hiking function, Curiosity RAD 0.64 mSv/sol (Hassler et al. 2014), Mars24, SPE ×30 marked illustrative, dust-storm slowdown = visibility not wind
-- [ ] 🟥 Confirm Space Apps 2026 rules, required fields, video length, **deadline**
+- [x] 🟥 Confirm Space Apps 2026 rules, required fields, video length, **deadline** → `docs/submission.md` (video ≤ 30 s or ≤ 7 slides; closes Sun 15 Nov 23:59 Local Event time)
 - [ ] 🟧 `app/public/data/stops.json`: 3 demo stops `{ id, label, lat, lng, dwellMin, why, tools, photo, photoCredit }`
 - [ ] 🟧 Perseverance photos for each stop in `app/public/photos/` with credits ("NASA/JPL-Caltech, …")
 - [ ] 🟧 MEDA temperature values posted in `docs/assumptions.md` (the planner swaps them in later)
 - [ ] 🟧 Apollo traverse map / cuff checklist heritage slide
-- [ ] 🟧 Demo video script + shot list (by hour 12)
-- [ ] 🟧 Slides: problem, story, how it works, 6 data layers, safe zone, emergencies, HUD, novelty, assumptions, sources, team, next steps
-- [ ] 🟧 README + Space Apps project page text
+- [x] 🟧 Demo video script + shot list (by hour 12) → `docs/video-script.md` (60 s version + 30 s submission cut)
+- [ ] 🟧 Slides: problem, story, how it works, 6 data layers, safe zone, emergencies, HUD, novelty, assumptions, sources, team, next steps (outline done: `docs/slides-outline.md`; deck not built)
+- [ ] 🟧 README + Space Apps project page text (README done; project page text still to write)
 - [ ] 🟧 Record + edit the 60 s video (once the live link works)
 - [ ] 🟧 Judge test: live app in a fresh browser; report issues in the group chat
 - [ ] 🟥 Final submission with all links working
