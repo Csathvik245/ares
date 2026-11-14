@@ -1,105 +1,113 @@
-# ARES demo video script
+# ARES demo video script (30 seconds, captions only)
 
-> ⚠️ **Length rule.** Space Apps 2026 accepts a demo video of **30 seconds or less**. Longer videos are **not eligible for Global Judging** ([Project Submission Guide](https://www.spaceappschallenge.org/resources/project-submission-guide/), "Limitations"; details in [`submission.md`](submission.md)).
-> The **60-second version** below follows `CLAUDE.md` section 9 and suits local judging, the project page or social media. **Submit the 30-second cut** at the end of this file, unless the team agrees to submit a slide deck instead.
+This is the video we submit as the Space Apps **Link to Project Demo**.
 
-**Under-18 rule:** no recognisable faces, voices or names of anyone under 18 ([FAQ](https://www.spaceappschallenge.org/resources/participant-faqs/); [Terms](https://www.spaceappschallenge.org/legal/)). So the video is **screen recording only**. Use a narrator aged 18 or older, or on-screen captions with no voice. An AI text-to-speech voice counts as AI ("SI") audio and must be disclosed in the description text and the file metadata. AI-generated images or video need a visible watermark.
+**Rules this script follows** (details and links in [`submission.md`](submission.md)):
 
-**Emergency rule (as the app shows it).** When a dust storm or solar particle event starts, the **EVA is aborted, so the mission status is NO-GO**. The **walk home has its own status**, shown in the red banner as `Walk home: … · margin … min · <status>`. It is usually **CAUTION**: the walk home is still safe, but a storm or SPE is active, and that is always CAUTION (Contract 3). Say both in the voiceover; never call the abort itself "GO".
+- **30 seconds or less.** Longer videos are not eligible for Global Judging ([Project Submission Guide](https://www.spaceappschallenge.org/resources/project-submission-guide/), "Limitations").
+- **No names, voices or likenesses of anyone under 18** ([2026 Participant Terms and Conditions](https://www.spaceappschallenge.org/legal/)). Our team is under 18, so the video has **no voiceover, no faces and no names**. It is a **screen recording of the app with captions added in editing**. The only name on screen is "The Ares Initiative".
+- **English captions** ([Project Submission Guide](https://www.spaceappschallenge.org/resources/project-submission-guide/), "Language Requirements").
+- **AI disclosure.** If any AI tool makes images, video, music or captions for the video, images and video need a visible watermark, and audio must be acknowledged in the description and metadata. See [`ai-disclosure.md`](ai-disclosure.md). The plan below uses no AI-generated media.
+- **No NASA logo**, flags or mission insignia in our own graphics. Data credits go in the end card.
 
-**Demo mission** (real terrain, three Perseverance-region stops, loaded with **Load demo mission**):
+**Caption reading speed:** about **3 words per second**. Each caption below shows its word count and the most words its time allows.
 
-| # | Stop | Why it matters |
-|---|---|---|
-| 1 | Séítah outcrop (Brac) | Perseverance sampling site, crater-floor igneous rock |
-| 2 | Delta front toe | Chosen from the CRISM clay/carbonate layer, base of the ancient delta |
-| 3 | Máaz lava rock (Sid) | Perseverance sampling site, close to the habitat |
+**Emergency rule (as the app shows it):** when a dust storm starts, the **EVA is aborted, so mission status is NO-GO**. The **walk home has its own status** in the red banner (`Walk home: … · margin … min · <status>`), usually **CAUTION**: still inside the reserve, but a storm is active. Captions must say both and never call the abort "GO".
 
-Measured by the planner: **4.97 km, 3 h 35 min, about 192 min margin, GO** (commit `b18348f`). Check these on screen before recording; they change if the terrain or constants change.
-
-Voiceover pace: about **2.5 words per second**. Each line below is counted to fit its slot.
+**Demo mission:** **Load demo mission** gives 3 stops on the real terrain: Séítah outcrop (Brac), Delta front toe, Máaz lava rock (Sid). The planner measured **4.97 km, 3 h 35 min, about 192 min margin, GO** (commit `b18348f`). Check the numbers on screen before recording.
 
 ---
 
-## 60-second script
+## Main script: 30 seconds
 
-| Time | On screen | Voiceover (words) | Exact clicks / keys |
-|---|---|---|---|
-| 0:00–0:08 | Opening briefing screen: ARES patch, "2040 MISSION SCENARIO", Jezero site, science objective, LIFE SUPPORT 8 HRS, RETURN RESERVE 45 MIN | "2040. Jezero Crater. Eight hours of oxygen, a sample kit, and four kilometres of unknown terrain." (16) | Start on the briefing screen (app root URL, fresh load). Hold still for 5 s, slowly move the cursor to **BEGIN PLANNING**, click at ~0:07. |
-| 0:08–0:18 | Planning console. Terrain layers switch on one at a time: Slope → Soft sand risk → Boulders → Science value. Each card shows data type and source. | "ARES layers NASA data: HiRISE elevation, THEMIS thermal inertia for soft sand, CRISM minerals for science." (17) | In **Terrain layers** (left), tick **Slope** (0:09), **Soft sand risk** (0:11), **Boulders** (0:13), **Science value** (0:15). At 0:17 untick all but **Walking difficulty** and **Science value**. |
-| 0:18–0:32 | Three numbered orange stops appear; orange route draws; cyan safe-return zone shrinks; oxygen ring and margin update; status **GO** | "She picks three science stops. ARES finds the fastest safe route around cliffs and sand, and draws everywhere she can still reach and get home. Status: GO." (28) | Click **Load demo mission** (right panel) at 0:19. Hover the cursor over the oxygen ring at 0:25, then over the **GO** status and its reasons at 0:29. |
-| 0:32–0:45 | Playback: astronaut marker walks; LMST clock runs; storm starts after stop 2; red banner **DUST STORM · ABORT EVA**; status **NO-GO**; zone collapses; red abort route home; banner shows walk-home time, margin and **CAUTION** | "Mid-walk, a dust storm hits. EVA aborted: NO-GO. ARES instantly plots the safest way home, slower in low visibility, still inside her oxygen reserve." (24) | Before recording, pre-set the slider (see checklist). At 0:32 press **Space** (Play). At ~0:36 click **Simulate dust storm** (right panel, *Conditions*). Hold. At 0:42 hover over the banner's `Walk home … · CAUTION` text. |
-| 0:45–0:55 | Stop detail card for stop 2 (photo if available), then full-screen Helmet HUD: heading, NEXT SCIENCE STOP, distance, oxygen, return margin, dose; HUD shows ABORT / RETURN TO HABITAT | "Outside, the same plan becomes her helmet display: heading, next stop, oxygen, margin and radiation dose." (16) | Click **Reset emergency and playback** at 0:45, then **Details** on stop 2's card (0:46). Close it with **Esc** at 0:50, then press **H** (Helmet HUD) at 0:51. |
-| 0:55–1:00 | End card: ARES patch, "ARES, by The Ares Initiative. Science first. Safety always." Small credit line "Imagery and data: NASA/JPL-Caltech, USGS, ASU" | "ARES, by The Ares Initiative. Science first. Safety always." (9) | Press **Esc** to leave the HUD, cut to the end card (made in the editor, no NASA logo). |
+| Time | On screen (screen recording) | Caption (added in editing) | Words / max | Clicks to record this shot |
+|---|---|---|---|---|
+| 0:00–0:04 | Opening briefing screen: ARES patch, "2040 MISSION SCENARIO", Jezero, LIFE SUPPORT 8 HRS | **ARES · The Ares Initiative**<br>NASA Space Apps 2026 · Martian Map | 10 / 12 | Fresh load of the app URL. Hold still. |
+| 0:04–0:07 | Same screen; cursor moves to **BEGIN PLANNING** and clicks | **2040. Jezero Crater. 8 hours of oxygen.** | 7 / 9 | Click **BEGIN PLANNING** at the end of the shot. |
+| 0:07–0:12 | Console. Layers switch on fast: Slope → Soft sand risk → Science value. Layer cards show their NASA source. | **NASA HiRISE, THEMIS, CRISM data → one walking map** | 8 / 15 | In **Terrain layers** (left), tick **Slope**, **Soft sand risk**, **Science value**, one per second (cut to 2× speed if needed). |
+| 0:12–0:16 | **Load demo mission**: three numbered orange stops, orange route draws in | **Pick science stops. ARES plans the safest route.** | 8 / 12 | Click **Load demo mission** (right panel). Don't move the mouse while the route draws. |
+| 0:16–0:19 | Cyan safe-return zone, oxygen ring, status pill **GO** | **Cyan: everywhere she can still get home from. GO.** | 9 / 9 | Hover over the **GO** status. |
+| 0:19–0:22 | Playback: astronaut marker walking after stop 2; click **Simulate dust storm**; red banner **DUST STORM · ABORT EVA**; status **NO-GO** | **Dust storm. EVA aborted: NO-GO.** | 5 / 9 | Pre-set the slider (see checklist), press **Space** to play, then click **Simulate dust storm** (right panel, *Conditions*) after about 2 s. |
+| 0:22–0:26 | Zone collapses; red abort route home; banner shows `Walk home … · CAUTION` | **Safest way home: CAUTION, still inside the oxygen reserve.** | 9 / 12 | Hold still; hover over the banner's walk-home line. |
+| 0:26–0:28 | Helmet HUD (abort mode, red): ABORT / RETURN TO HABITAT, oxygen, margin, dose | **Same plan, in her helmet.** | 5 / 6 | Press **H**. |
+| 0:28–0:30 | End card: ARES patch, tagline, credit line "Data: NASA/JPL-Caltech, USGS, ASU" | **Science first. Safety always.** | 4 / 6 | Made in the editor (no app). |
 
-Total spoken: about 110 words in 60 s.
+**Total: 30 seconds, 65 words of captions.**
 
-**Note on the HUD shot:** if you want the HUD in abort mode ("ABORT / RETURN TO HABITAT", red), skip the reset. Press **H** straight after the storm shot, then do the Details shot. Pick one version and practise it.
+Caption style: Inter or Space Grotesk, white (`#ECEAE6`) on a dark bar (`#08090B` at 80% opacity), bottom centre, at least 36 px tall at 1440 × 900. Put status words in their colours: **GO** `#3DDC97`, **CAUTION** `#FFB020`, **NO-GO** `#FF4D5A`, always with the word (never colour alone).
 
----
-
-## 30-second submission cut
-
-Same recording, tighter edit. About 60 words. This is the version to upload as the **Link to Project Demo**.
-
-| Time | On screen | Voiceover (words) | Clicks (record once, cut in editor) |
-|---|---|---|---|
-| 0:00–0:05 | Briefing screen, then BEGIN PLANNING | "The Ares Initiative, answering NASA's Martian Map challenge. This is ARES." (11) | Click **BEGIN PLANNING** at 0:04 |
-| 0:05–0:12 | Layers flicking on (fast cut of the 60 s shot) | "It fuses HiRISE terrain, THEMIS sand and CRISM minerals into one walking map." (13) | Ticks from the layer shot, sped up 2× |
-| 0:12–0:20 | Load demo mission → route, safe zone, GO | "Pick science stops; ARES plans the safest route, oxygen, and a safe-return zone. GO." (14) | **Load demo mission** |
-| 0:20–0:27 | Storm → NO-GO, abort route, banner CAUTION, then 2 s of HUD | "Dust storm: EVA aborted, NO-GO. ARES routes her home, inside her oxygen reserve." (13) | **Space**, **Simulate dust storm**, then **H** |
-| 0:27–0:30 | End card | "Science first. Safety always." (4) | — |
-
-The guide's suggested 30 s order is: team, challenge, project name, how it works, future ([Submission Guide](https://www.spaceappschallenge.org/resources/project-submission-guide/)). This cut covers team, challenge and name at 0:00–0:05, how it works at 0:05–0:27, and the tagline at the end. There's no time for a "future" line; it goes on the project page instead.
+This order follows the guide's 30-second outline: team and challenge first, then the project name, how it works, and the payoff ([Project Submission Guide](https://www.spaceappschallenge.org/resources/project-submission-guide/), "Video Demo"). There's no time for a "future" line; it goes on the project page ([`project-page.md`](project-page.md)).
 
 ---
 
 ## Shot list
 
-Record each shot as its own clip at 1440 × 900, then edit. Get extra seconds at both ends of every clip.
+Record each shot as its own clip in a **1440 × 900** browser window, with 2 s of spare footage at both ends. Cut and caption in the editor.
 
-| # | Shot | Length to capture | Start state | Notes |
+| # | Shot | Capture | Start state | Used at |
 |---|---|---|---|---|
-| S1 | Briefing screen idle → BEGIN PLANNING | 12 s | Fresh load of the live URL | Cursor hidden until 0:05 |
-| S2 | Layers on one by one | 15 s | Console, no stops, all layers off | Click slowly; pause 1 s on each layer's source line |
-| S3 | Load demo mission → route draws → GO | 15 s | Layers: Walking difficulty + Science value | Route draws in over 600 ms; don't move the mouse until it finishes |
-| S4 | Oxygen ring + stats close-up | 6 s | After S3 | Crop or zoom in the editor; numbers in JetBrains Mono must be readable |
-| S5 | Playback walking | 8 s | Slider pre-set just after stop 2 | Astronaut marker must be visible on screen |
-| S6 | Dust storm → NO-GO + abort route + banner with CAUTION | 12 s | Continues from S5 | Hold 4 s on the banner so viewers can read both statuses |
-| S7 | (Optional) Solar particle event | 10 s | Reset, slider after stop 2 | Backup shot; banner reads SOLAR PARTICLE EVENT. SPE ×30 is illustrative; don't claim a real dose |
-| S8 | Stop 2 Details card | 6 s | Planning, after reset | Shows photo + credit if photos have landed; otherwise skip |
-| S9 | Helmet HUD | 8 s | Press H | Try both normal and abort versions |
-| S10 | End card | 5 s | Editor | Patch + tagline + credits; no NASA logo |
-| S11 | Data sources dialog | 5 s | Click **Data sources** | B-roll for the layers voiceover or the slides |
+| S1 | Briefing screen idle → BEGIN PLANNING | 10 s | Fresh load of the live URL | 0:00–0:07 |
+| S2 | Layers on one by one | 8 s | Console, no stops, all layers off | 0:07–0:12 |
+| S3 | Load demo mission → route draws → safe zone → GO | 10 s | Layers: Walking difficulty + Science value | 0:12–0:19 |
+| S4 | Playback after stop 2 → dust storm → NO-GO → abort route → banner with CAUTION | 12 s | Demo loaded, slider pre-set just after stop 2 | 0:19–0:26 |
+| S5 | Helmet HUD in abort mode | 5 s | Straight after S4, press **H** | 0:26–0:28 |
+| S6 | End card | 3 s | Editor | 0:28–0:30 |
+| B1 | (Backup) Solar particle event instead of storm | 12 s | Reset, slider after stop 2, **Simulate solar particle event** | Spare |
+| B2 | (Backup) **Data sources** dialog | 5 s | Click **Data sources** | Spare / slides |
+| B3 | (Backup) Stop 2 **Details** card with photo | 5 s | After reset; only if photos have landed | Spare / slides |
 
 ---
 
 ## Pre-recording checklist
 
 **Rules**
-- [ ] Final cut is **≤ 30 s** for submission (the 60 s version is for other uses only)
-- [ ] No faces, voices or names of anyone under 18; narrator is 18+ or captions only
-- [ ] English voiceover, or English subtitles if spoken in another language
-- [ ] AI voice, music or images (if any) disclosed in the video description and metadata; AI images and video watermarked
-- [ ] No NASA logo, flags or mission insignia in our end card or graphics. Credit "NASA/JPL-Caltech" + instrument team
-- [ ] Music is our own or clearly licensed for reuse; licence listed in the References field
+- [ ] Final export is **30 s or less** (check the file length, not just the timeline)
+- [ ] **No voiceover**, no faces, no webcam, no names except "The Ares Initiative"
+- [ ] No personal details visible: browser profile picture, account names, bookmarks, file paths, notifications
+- [ ] Captions in English, each on screen long enough to read (≈ 3 words per second)
+- [ ] Any music is our own or licensed for reuse; licence listed in the References field. If music is AI-generated, acknowledge it in the video description and metadata
+- [ ] No AI-generated images or video. If any are added, they carry a visible watermark
+- [ ] No NASA logo, flags or mission insignia in the end card or captions
 
 **App state**
-- [ ] Live URL (https://ares-mission-console.vercel.app) is on the latest `main` and loads the real NASA terrain (the **Data sources** dialog lists the HiRISE, THEMIS and CRISM datasets)
-- [ ] Fresh browser profile or private window: no extensions, bookmarks bar hidden, zoom 100%
-- [ ] Browser window **exactly 1440 × 900** (content area), on a screen where it fits without scaling
-- [ ] **Load demo mission** gives 3 stops, **GO**, about 4.97 km and about 192 min margin. Write down the real numbers if they changed
-- [ ] Start LMST left at **13** (so the sun is above 10° and the plan stays GO)
-- [ ] Map zoomed and panned so habitat, all 3 stops and the delta front fit on screen
-- [ ] Basemap tiles loaded (or the hillshade fallback looks good); no grey missing tiles
-- [ ] For S5/S6: drag the **EVA timeline** slider until the status line reads `walk` just after the second science block (stop 2, delta front toe). Pause. Then start recording
-- [ ] Dust storm banner shows `DUST STORM · ABORT EVA`, mission status **NO-GO**, and `Walk home: … · CAUTION`. If the walk-home status is not CAUTION, update the voiceover to match the screen
-- [ ] Photos in `app/public/photos/` have landed if you want the Details shot (S8)
-- [ ] DevTools console shows no errors (close DevTools before recording)
+- [ ] Live URL (https://ares-mission-console.vercel.app) is deployed from the latest `main` and shows the real NASA terrain (the **Data sources** dialog lists HiRISE, THEMIS and CRISM)
+- [ ] **Load demo mission** is enabled on the live URL (it is disabled when the deployed `site.json` has no demo stops). It gives 3 stops and **GO**; write down the real distance, duration and margin
+- [ ] Start LMST left at **13**, so the sun stays above 10° and the plan stays GO
+- [ ] Fresh browser profile or private window, no extensions, bookmarks bar hidden, zoom 100%
+- [ ] Browser content area **exactly 1440 × 900**, on a screen where it fits without scaling
+- [ ] Map panned and zoomed so the habitat, all 3 stops and the delta front fit on screen
+- [ ] Basemap imagery loaded (or the hillshade fallback looks clean); no grey missing tiles
+- [ ] For S4: drag the **EVA timeline** slider until the status line reads `walk` just after the second science block (stop 2, Delta front toe), then pause and start recording
+- [ ] After the storm click, the banner shows `DUST STORM · ABORT EVA`, the mission status is **NO-GO**, and the walk-home line ends in **CAUTION**. If the walk-home status differs, change the 0:22 caption to match the screen
+- [ ] DevTools console shows no errors (then close DevTools)
 
-**Recording**
-- [ ] Do Not Disturb on; notifications, dock and other windows hidden
-- [ ] Screen recorder at 1440 × 900, 30 or 60 fps, cursor highlight on
-- [ ] Practise the click sequence twice with a stopwatch against the table timings
-- [ ] Record voiceover separately in a quiet room and lay it over the screen recording
-- [ ] Export MP4 (H.264), upload to YouTube as **Unlisted or Public**, and test the link in a private window with no login
+**Recording and editing**
+- [ ] Do Not Disturb on; dock, menu-bar clock and other windows hidden
+- [ ] Screen recorder set to the 1440 × 900 window, 30 or 60 fps, system audio off
+- [ ] Practise each shot twice against the table timings
+- [ ] Add captions in the editor (not burned into the app); check spelling of Séítah, Máaz, Jezero
+- [ ] Export MP4 (H.264), 1440 × 900 or 1920 × 1080 with letterbox
+- [ ] Upload to YouTube as **Unlisted or Public**; description lists data credits, links to the repo, and states AI use (see [`ai-disclosure.md`](ai-disclosure.md))
+- [ ] Test the link in a private window with no login
+
+---
+
+## Appendix: 60-second version — NOT FOR SUBMISSION
+
+> ⚠️ **Not for submission.** Over the 30-second limit, so it is not eligible for Global Judging. Use it only for local judging (if the Local Lead allows), the project page or social media. It follows `CLAUDE.md` section 9 and uses the same caption-only rules: no voiceover, no faces, no names.
+
+| Time | On screen | Caption | Words / max | Clicks |
+|---|---|---|---|---|
+| 0:00–0:04 | Briefing screen | **ARES · The Ares Initiative**<br>NASA Space Apps 2026 · Martian Map | 10 / 12 | Fresh load |
+| 0:04–0:08 | Briefing screen, click BEGIN PLANNING | **2040. Jezero Crater. 8 hours of oxygen. 4 km of unknown terrain.** | 12 / 12 | **BEGIN PLANNING** |
+| 0:08–0:13 | Layers on: Slope, Soft sand risk | **Slope from HiRISE elevation. Soft sand from THEMIS.** | 8 / 15 | Tick **Slope**, **Soft sand risk** |
+| 0:13–0:18 | Layers on: Boulders, Science value | **Boulders from HiRISE roughness. Clays and carbonates from CRISM.** | 9 / 15 | Tick **Boulders**, **Science value** |
+| 0:18–0:23 | Load demo mission, route draws | **Three science stops. The fastest safe route around cliffs and sand.** | 11 / 15 | **Load demo mission** |
+| 0:23–0:28 | Safe zone, oxygen ring | **Cyan zone: everywhere she can reach and still get home.** | 10 / 15 | Hover oxygen ring |
+| 0:28–0:32 | Status GO with reasons | **Oxygen margin healthy. Status: GO.** | 5 / 12 | Hover **GO** |
+| 0:32–0:37 | Playback after stop 2, storm starts, NO-GO | **Dust storm hits. EVA aborted: NO-GO.** | 6 / 15 | **Space**, then **Simulate dust storm** |
+| 0:37–0:41 | Zone collapses, red abort route | **ARES plots the safest way home, instantly.** | 7 / 12 | Hold |
+| 0:41–0:45 | Banner walk-home line | **Walk home: CAUTION, but inside her oxygen reserve.** | 8 / 12 | Hover banner |
+| 0:45–0:50 | Reset, stop 2 Details card (photo if available) | **Every stop: why it matters, and a real rover photo.** | 10 / 15 | **Reset emergency and playback**, then **Details** on stop 2 |
+| 0:50–0:55 | Helmet HUD | **Outside, the same plan becomes her helmet display.** | 8 / 15 | **Esc**, then **H** |
+| 0:55–1:00 | End card | **ARES, by The Ares Initiative. Science first. Safety always.** | 9 / 15 | Editor |
