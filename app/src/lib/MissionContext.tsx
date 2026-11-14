@@ -21,6 +21,7 @@ import {
   SOL_HOURS,
 } from "./planner";
 import { optionalJson, readDemoStops, type DemoStop } from "./data";
+import { publicAssetUrl } from "./assets";
 export type { DemoStop } from "./data";
 
 function useMissionState() {
@@ -63,9 +64,10 @@ function useMissionState() {
             .slice(0, 3)
             .map((p) => ({ ...p, label: p.name, dwellMin: 30, why: p.note })),
         );
-        return fetch(`${import.meta.env.BASE_URL}data/stops.json`, {
-          signal: control.signal,
-        }).catch(() => null);
+        const stopsUrl = publicAssetUrl("data/stops.json");
+        return stopsUrl
+          ? fetch(stopsUrl, { signal: control.signal }).catch(() => null)
+          : null;
       })
       .then(async (r) => {
         const d = await optionalJson(r);
@@ -178,19 +180,30 @@ function useMissionState() {
     ]);
     setSelected(id);
   };
-  const trigger = (kind: "storm" | "spe") => {
+  const trigger = (kind: "storm" | "spe", at = elapsed) => {
+    const snapshot = plan?.legs.length ? positionAt(plan, at) : position;
+    setElapsed(at);
     setPlaying(false);
     setEmergency({
       kind,
-      from: position,
-      used: position.oxygenUsedSec,
-      at: elapsed,
+      from: snapshot,
+      used: snapshot.oxygenUsedSec,
+      at,
     });
-    setConditions((c) => ({
-      ...c,
+    const nextConditions = {
+      ...conditions,
       storm: kind === "storm",
       spe: kind === "spe",
-    }));
+    };
+    setConditions(nextConditions);
+    return site
+      ? abortRoute(
+          site,
+          buildCostGrid(site, nextConditions),
+          snapshot,
+          snapshot.oxygenUsedSec,
+        )
+      : null;
   };
   return {
     site,

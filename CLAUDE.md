@@ -101,6 +101,8 @@ Note: RAD is on Curiosity, not Perseverance. Label it "surface baseline measured
 - **Frontend:** React + Vite + TypeScript in `/app`. CSS variables for design tokens. State in React context or Zustand (one source of truth for the plan).
 - **Map: Leaflet with `L.CRS.EPSG4326`.** *Not MapLibre* — MapLibre only supports Web Mercator, and Mars Trek tiles are equirectangular (lat/lng).
 - **Mars Trek tiles:** `https://trek.nasa.gov/tiles/Mars/EQ/<LAYER_ID>/1.0.0/default/default028mm/{z}/{y}/{x}.jpg` (layer IDs from the Mars Trek site). **Test this in hour 1.** Always keep a fallback basemap: a hillshade drawn from the elevation layer.
+- **Frontend basemap check:** `Mars_Viking_MDIM21_ClrMosaic_global_232m` served an HTTP 200 JPEG root tile with CORS enabled. It is coarse Viking imagery, not HiRISE. Chrome production review also exercised the local elevation hillshade when imagery was unavailable; do not treat the root-tile check as verification of all zoom levels.
+- **Frontend deployment:** https://ares-mission-console.vercel.app (`?frontend` skips briefing/HUD). Vercel project `ares-mission-console`, root directory `app`. Production currently uses CLI deployment. GitHub auto-deploy is pending Vercel access to `Csathvik245/ares`; the CLI connection attempt failed.
 - **Planner:** TypeScript in `/app/src/planner`, optionally in a Web Worker. Pure functions, no UI code.
 - **Data pipeline:** Python (numpy, GDAL, rasterio) in `/pipeline`; QGIS for visual checks.
 - **Backend (stretch, AI only):** FastAPI or one Vercel serverless function in `/backend`.

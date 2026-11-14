@@ -107,33 +107,37 @@ Needs nothing from anyone. Test everything with Vitest on the fake `site.json` t
 
 Needs nothing from anyone. The fake `site.json` and planner core are already on `main`. For anything not built yet, use your own stubs.
 
+**Frontend verification update:** Production: https://ares-mission-console.vercel.app/?frontend. Checked items below are existing code already on main and exercised by automated checks or Chrome review. New local fixes still need the user's commit/push. Vercel root is now `app`, but GitHub connection failed; the current production release was uploaded by CLI. Chrome review confirmed demo mission, 4.87 km route, GO status, 174-minute margin, oxygen gauge, hillshade fallback and playback clock/dose changes. A missing optional `stops.json` 404 was found and fixed locally using a public-asset inventory. Full interaction/console QA remains in progress.
+
+I3: adapters are ready; no `app/src/design` files exist. I4: parser and image handling are ready; final `stops.json` and rover photos are absent. I5: lazy ChatPanel mount and Contract 5 frontend tool handlers are implemented locally; the AI component/backend are absent, so end-to-end verification remains pending. No other role's checklist section was changed.
+
 **Setup**
-- [ ] 🟥 React + Vite + TS in `/app`. **Keep** `src/planner/`, `public/data/`, and the existing deps in `package.json`
-- [ ] 🟥 Temporary `src/styles/tokens.css` from Contract 6 (the designer replaces it later; the variable names stay the same)
-- [ ] 🟥 Google Fonts: Space Grotesk, Inter, JetBrains Mono
+- [x] 🟥 React + Vite + TS in `/app`. **Keep** `src/planner/`, `public/data/`, and the existing deps in `package.json`
+- [x] 🟥 Temporary `src/styles/tokens.css` from Contract 6 (the designer replaces it later; the variable names stay the same)
+- [x] 🟥 Google Fonts: Space Grotesk, Inter, JetBrains Mono
 - [ ] 🟥 Deploy to Vercel from `main` (root dir `app`); share the live link
-- [ ] 🟥 One plan-state store (React context or Zustand)
+- [x] 🟥 One plan-state store (React context or Zustand)
 
 **Stand-ins (so you never wait)**
-- [ ] 🟥 `src/lib/planner.ts`: the **only** file the UI imports planner functions from. Re-export what exists in `src/planner`, and write stubs for the rest (`safeZone` returns a circle, `positionAt` interpolates along the route, `abortRoute` returns a straight line home, `envAt` returns fixed values). Mark each stub `// STUB`
-- [ ] 🟧 Placeholder `<Hud>`, `<OpeningScreen>`, `<StopCard>` in `src/components/placeholders/` until design components exist
-- [ ] 🟧 Demo stops hard-coded from `site.json` POIs until `stops.json` exists
+- [x] 🟥 `src/lib/planner.ts`: the **only** file the UI imports planner functions from. Re-export what exists in `src/planner`, and write stubs for the rest (`safeZone` returns a circle, `positionAt` interpolates along the route, `abortRoute` returns a straight line home, `envAt` returns fixed values). Mark each stub `// STUB`
+- [x] 🟧 Placeholder `<Hud>`, `<OpeningScreen>`, `<StopCard>` in `src/components/placeholders/` until design components exist
+- [x] 🟧 Demo stops hard-coded from `site.json` POIs until `stops.json` exists
 
 **Map**
-- [ ] 🟥 Leaflet with `L.CRS.EPSG4326` (**not** MapLibre or Mapbox)
+- [x] 🟥 Leaflet with `L.CRS.EPSG4326` (**not** MapLibre or Mapbox)
 - [ ] 🟥 Mars Trek basemap tiles; note which layer ID works in `CLAUDE.md` section 3
-- [ ] 🟥 Hillshade fallback from `site.json` elevation (the app must work if tiles fail)
-- [ ] 🟥 Canvas overlays: walking difficulty, slope, soft sand, boulders, science value (draw once, cache)
-- [ ] 🟥 Habitat (cyan square), POIs, numbered orange stop markers
+- [x] 🟥 Hillshade fallback from `site.json` elevation (the app must work if tiles fail)
+- [x] 🟥 Canvas overlays: walking difficulty, slope, soft sand, boulders, science value (draw once, cache)
+- [x] 🟥 Habitat (cyan square), POIs, numbered orange stop markers
 
 **Planning**
 - [ ] 🟥 Click to add a stop; drag to move; delete; set dwell time; reorder
 - [ ] 🟥 Recompute plan + safe zone on every change; orange route line, cyan safe-zone glow
-- [ ] 🟥 Mission panel: oxygen ring gauge, distance, duration, walk/science time, margin, dose
-- [ ] 🟥 Status pill GO / CAUTION / NO-GO **with reasons**
+- [x] 🟥 Mission panel: oxygen ring gauge, distance, duration, walk/science time, margin, dose
+- [x] 🟥 Status pill GO / CAUTION / NO-GO **with reasons**
 - [ ] 🟥 Layers panel: toggle, name, data-type chip, source chip (read from `site.json` `sources`), legend
 - [ ] 🟧 Cursor probe: elevation, slope, sand risk, science value, walk-home time
-- [ ] 🟧 "Load demo mission" button
+- [x] 🟧 "Load demo mission" button
 
 **Time & emergencies**
 - [ ] 🟧 Timeline: play / pause / scrub, start-time selector, colored track
@@ -147,7 +151,7 @@ Needs nothing from anyone. The fake `site.json` and planner core are already on 
 - [ ] 🟥 No console errors; the full demo works on the live link in Chrome
 
 **Swaps (do whenever the real thing appears; each is minutes)**
-- [ ] I2: replace each `// STUB` in `src/lib/planner.ts` with the real export
+- [x] I2: replace each `// STUB` in `src/lib/planner.ts` with the real export
 - [ ] I3: replace placeholders with design components
 - [ ] I4: read `stops.json` and photos
 - [ ] I5: mount `<ChatPanel>`

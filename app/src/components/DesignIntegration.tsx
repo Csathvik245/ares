@@ -8,6 +8,7 @@ import type { HelmetHudProps } from "./HelmetHud";
 import type { MissionBriefingProps } from "./MissionBriefing";
 import type { DemoStop } from "../lib/MissionContext";
 import { WORK_BURN } from "../lib/planner";
+import { publicAssetUrl } from "../lib/assets";
 import { Dialog } from "./Dialog";
 
 // I3: discover only actual design modules. No fabricated replacement assets.
@@ -102,11 +103,7 @@ export function StopCard({
       <Dialog title={stop.label} onClose={onClose}>
         <DesignStop
           stop={stop}
-          photoUrl={
-            stop.photo
-              ? `${import.meta.env.BASE_URL}${stop.photo.replace(/^\//, "")}`
-              : undefined
-          }
+          photoUrl={publicAssetUrl(stop.photo)}
           photoCredit={stop.photoCredit}
           why={stop.why}
           dwellMin={stop.dwellMin}

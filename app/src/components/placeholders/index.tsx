@@ -2,6 +2,7 @@
 export { HelmetHud as Hud } from "../HelmetHud";
 export { MissionBriefing as OpeningScreen } from "../MissionBriefing";
 import { useState } from "react";
+import { publicAssetUrl } from "../../lib/assets";
 import { Dialog } from "../Dialog";
 import { WORK_BURN } from "../../lib/planner";
 import type { DemoStop } from "../../lib/MissionContext";
@@ -13,13 +14,14 @@ export function StopCard({
   onClose: () => void;
 }) {
   const [failed, setFailed] = useState(false);
+  const photoUrl = publicAssetUrl(stop.photo);
   return (
     <Dialog title={stop.label} onClose={onClose}>
       <h2>{stop.label}</h2>
-      {stop.photo && !failed ? (
+      {photoUrl && !failed ? (
         <figure>
           <img
-            src={`${import.meta.env.BASE_URL}${stop.photo.replace(/^\//, "")}`}
+            src={photoUrl}
             alt={`Rover view associated with ${stop.label}`}
             onError={() => setFailed(true)}
           />

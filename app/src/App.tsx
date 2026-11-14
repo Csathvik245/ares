@@ -13,6 +13,10 @@ import {
 } from "./lib/planner";
 import { bearingDeg, distanceM } from "./geo";
 import "./console.css";
+import {
+  AssistantIntegration,
+  assistantAvailable,
+} from "./components/AssistantIntegration";
 import { Dialog } from "./components/Dialog";
 const duration = (s: number) =>
   Number.isFinite(s)
@@ -34,6 +38,7 @@ function Console() {
     [probe, setProbe] = useState(-1),
     [tab, setTab] = useState("Plan"),
     [sources, setSources] = useState(false),
+    [assistant, setAssistant] = useState(false),
     [detail, setDetail] = useState("");
   const { site, plan, cost, position, emergency, abort } = m;
   const remove = () => {
@@ -145,6 +150,9 @@ function Console() {
           </span>
           <span className={`status status--${status}`}>{status}</span>
           <button onClick={() => setSources(true)}>Data sources</button>
+          {assistantAvailable && (
+            <button onClick={() => setAssistant(true)}>ARES assistant</button>
+          )}
           {!frontendOnly && (
             <button onClick={() => setScreen("hud")}>Helmet HUD · H</button>
           )}
@@ -498,6 +506,9 @@ function Console() {
           Simulate solar particle event
         </button>
       </section>
+      {assistant && (
+        <AssistantIntegration onClose={() => setAssistant(false)} />
+      )}
       {sources && (
         <Dialog title="Data sources" onClose={() => setSources(false)}>
           <h2>Data sources & assumptions</h2>
