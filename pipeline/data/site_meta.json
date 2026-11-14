@@ -1,0 +1,10 @@
+{
+  "_about": "Habitat and points of interest written into site.json by pipeline/build_site.py. Coordinates are planetocentric latitude and east longitude in degrees. Every entry names where its coordinates came from.",
+  "habitat": {
+    "name": "HAB-1",
+    "lat": 18.4446,
+    "lng": 77.4509,
+    "_source": "Perseverance landing site (Octavia E. Butler Landing). NASA 'Where is Perseverance' waypoints file, first waypoint (sol 13, no motion since landing): lat 18.44462715, lon 77.45088572. https://mars.nasa.gov/mmgis-maps/M20/Layers/json/M20_waypoints.json"
+  },
+  "pois": []
+}

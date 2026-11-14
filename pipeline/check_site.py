@@ -2,19 +2,32 @@
 check_site.py — verifies app/public/data/site.json against Contract 1 and
 checks that the terrain is actually walkable for the planner.
 
-Checks:
+Works on both the real file (built by build_site.py) and the fake test fixture
+(app/src/planner/__fixtures__/fake-site.json, marked "fake": true).
+
+Checks on every file:
   1. Contract 1 shape: all keys, width/height, cellSizeM, layer lengths = 76800,
      no NaN/Infinity, value ranges, 2-decimal rounding, file size < 5 MB.
-  2. Orientation: row 0 = north edge (elevation rises toward the delta top in
-     the west, and the habitat's cell computed with the Contract 1 click->cell
-     formula lands on the eastern crater floor).
-  3. Habitat sits on flat, firm ground: slope < 5 deg, thermalInertia >= 175,
-     rock < 0.2.
+     A layer may be entirely null only if its "sources" entry starts with PENDING.
+  3. Habitat sits on flat, firm ground: slope < 5 deg, rock < 0.2, and
+     thermalInertia >= 175 (skipped while thermal inertia is pending).
   4. Every POI is reachable from the habitat walking only through cells with
      slope <= 25 deg and rock <= 0.75 (8-neighbor flood fill, no corner-cutting,
      same rule as the planner in CLAUDE.md section 6).
-  5. Delta scarp ramps: each ramp (~18.435 N and ~18.472 N) has a gentle
-     (slope < 15 deg) walkable crossing from the crater floor onto the delta.
+
+Real file only:
+  2. Orientation and georeferencing: cell elevations are compared with the
+     source DTM (data/raw/jezero_hirise_dtm_1m_window.tif) sampled at the cell's
+     lat/lng. If rows or columns were flipped or shifted this fails badly.
+     Skipped with a warning if the DTM cache is not on this machine.
+     Also: the slope layer (90th percentile of 5 m slopes) must be at least as
+     steep as the slope of the 25 m elevation grid, and follow it.
+
+Fake fixture only (these test features that were built into the fake terrain):
+  2. Orientation from the fake scarp, slope recomputed from elevation, science
+     hotspots at the POIs.
+  5. Delta scarp ramps (~18.435 N and ~18.472 N) are gentle walkable crossings.
+  6. The crater-floor boulder field blocks the straight line HAB-1 -> clay-1.
 
 Run from the repo root:
     python pipeline/check_site.py [path/to/site.json]
@@ -98,6 +111,45 @@ def flood_fill(passable, start):
     return seen
 
 
+DTM_CACHE = os.path.join("data", "raw", "jezero_hirise_dtm_1m_window.tif")
+
+
+def check_against_dtm(site, elev, samples=400, tolerance_m=3.0):
+    """Real file only: compare cell elevations with the source DTM at the same lat/lng."""
+    if not os.path.exists(DTM_CACHE):
+        print(f"  [WARN] {DTM_CACHE} not found; run pipeline/build_site.py to enable the DTM cross-check")
+        return
+    try:
+        import rasterio
+        from rasterio.crs import CRS
+        from rasterio.warp import transform as warp_transform
+        from rasterio.windows import Window
+    except ImportError:
+        print("  [WARN] rasterio not installed; skipping the DTM cross-check")
+        return
+    b, W, H = site["bounds"], site["width"], site["height"]
+    rng = np.random.default_rng(0)
+    rows, cols = rng.integers(0, H, samples), rng.integers(0, W, samples)
+    lats = b["north"] - (rows + 0.5) / H * (b["north"] - b["south"])
+    lngs = b["west"] + (cols + 0.5) / W * (b["east"] - b["west"])
+    diffs = []
+    with rasterio.open(DTM_CACHE) as src:
+        site_crs = CRS.from_proj4("+proj=longlat +R=3396190 +no_defs")
+        xs, ys = warp_transform(site_crs, src.crs, lngs.tolist(), lats.tolist())
+        for r, c, x, y in zip(rows, cols, xs, ys):
+            if np.isnan(elev[r, c]):
+                continue
+            pr, pc = src.index(x, y)
+            patch = src.read(1, window=Window(pc - 12, pr - 12, 25, 25), boundless=True, fill_value=np.nan).astype(float)
+            patch[patch < -1e30] = np.nan
+            if np.isfinite(patch).mean() > 0.9:
+                diffs.append(abs(elev[r, c] - np.nanmean(patch)))
+    diffs = np.array(diffs)
+    check(len(diffs) > samples * 0.5 and np.percentile(diffs, 99) < tolerance_m,
+          f"cell elevations match the source DTM at the same lat/lng "
+          f"({len(diffs)} cells, median diff {np.median(diffs):.2f} m, 99th pct {np.percentile(diffs, 99):.2f} m)")
+
+
 def main():
     path = sys.argv[1] if len(sys.argv) > 1 else os.path.join("app", "public", "data", "site.json")
     print(f"Checking {path}\n")
@@ -106,6 +158,8 @@ def main():
     with open(path) as f:
         raw = f.read()
     site = json.loads(raw)
+    is_fake = site.get("fake") is True
+    print("File type: FAKE test fixture\n" if is_fake else "File type: real terrain\n")
 
     # ---- 1. Contract 1 shape ------------------------------------------------
     print("Contract 1 shape")
@@ -131,6 +185,12 @@ def main():
             continue
         a = np.array([np.nan if v is None else v for v in arr], dtype=float)
         nulls = int(np.isnan(a).sum())
+        if nulls == n:
+            src = str(site.get("sources", {}).get(name, ""))
+            check(src.startswith("PENDING"),
+                  f"{name}: no data yet (all null) and its source is marked PENDING")
+            grids[name] = a.reshape(H, W)
+            continue
         lo, hi = LAYER_RANGES[name]
         amin, amax = np.nanmin(a), np.nanmax(a)
         check(lo <= amin and amax <= hi,
@@ -142,7 +202,10 @@ def main():
     hab = site.get("habitat", {})
     check({"name", "lat", "lng"} <= set(hab), f"habitat has name/lat/lng ({hab.get('name')})")
     pois = site.get("pois", [])
-    check(len(pois) > 0, f"{len(pois)} POIs")
+    if is_fake:
+        check(len(pois) > 0, f"{len(pois)} POIs")
+    elif not pois:
+        print("  [WARN] no POIs yet")
     for p in pois:
         need = {"id", "name", "lat", "lng", "kind", "note"} | ({"photo", "photoCredit"} if p.get("kind") == "science" else set())
         check(need <= set(p), f"POI {p.get('id')}: required fields present (missing: {sorted(need - set(p)) or 'none'})")
@@ -159,26 +222,38 @@ def main():
 
     # ---- 2. Orientation -----------------------------------------------------
     print("\nOrientation (row 0 = north, col 0 = west)")
-    # The delta top (west) is higher than the crater floor (east). If columns
-    # were flipped, the west would be lower.
-    west_mean, east_mean = np.nanmean(elev[:, :40]), np.nanmean(elev[:, -40:])
-    check(west_mean > east_mean + 30, f"west edge higher than east edge ({west_mean:.0f} vs {east_mean:.0f} m)")
-    # Row order: the slope layer must agree with an independently recomputed
-    # slope only if rows run north->south with the stated cell size. Also the
-    # scarp hotspot clay-1 (north) must map to a low row number.
-    dz_dy, dz_dx = np.gradient(elev, site["cellSizeM"]["y"], site["cellSizeM"]["x"])
-    recomputed = np.degrees(np.arctan(np.hypot(dz_dx, dz_dy)))
-    diff = np.nanmax(np.abs(recomputed - slope))
-    check(diff < 0.5, f"slope layer matches slope recomputed from elevation (max diff {diff:.2f} deg)")
-    # Science hotspots sit on POIs; if rows were flipped they'd be in the wrong place.
-    sci_ok = True
-    for p in pois:
-        if p["kind"] != "science":
-            continue
-        r, c = latlng_to_cell(site, p["lat"], p["lng"])
-        rf = H - 1 - r  # where it would be if north/south were flipped
-        sci_ok &= grids["science"][r, c] > grids["science"][rf, c]
-    check(sci_ok, "science hotspots line up with POIs (row 0 = north)")
+    if is_fake:
+        # The delta top (west) is higher than the crater floor (east). If columns
+        # were flipped, the west would be lower.
+        west_mean, east_mean = np.nanmean(elev[:, :40]), np.nanmean(elev[:, -40:])
+        check(west_mean > east_mean + 30, f"west edge higher than east edge ({west_mean:.0f} vs {east_mean:.0f} m)")
+        # Row order: the slope layer must agree with an independently recomputed
+        # slope only if rows run north->south with the stated cell size. Also the
+        # scarp hotspot clay-1 (north) must map to a low row number.
+        dz_dy, dz_dx = np.gradient(elev, site["cellSizeM"]["y"], site["cellSizeM"]["x"])
+        recomputed = np.degrees(np.arctan(np.hypot(dz_dx, dz_dy)))
+        diff = np.nanmax(np.abs(recomputed - slope))
+        check(diff < 0.5, f"slope layer matches slope recomputed from elevation (max diff {diff:.2f} deg)")
+        # Science hotspots sit on POIs; if rows were flipped they'd be in the wrong place.
+        sci_ok = True
+        for p in pois:
+            if p["kind"] != "science":
+                continue
+            r, c = latlng_to_cell(site, p["lat"], p["lng"])
+            rf = H - 1 - r  # where it would be if north/south were flipped
+            sci_ok &= grids["science"][r, c] > grids["science"][rf, c]
+        check(sci_ok, "science hotspots line up with POIs (row 0 = north)")
+    else:
+        check_against_dtm(site, elev)
+        # The slope layer is the 90th percentile of 5 m slopes inside each cell, so
+        # it should be at least as steep as the slope of the 25 m elevation grid.
+        dz_dy, dz_dx = np.gradient(elev, site["cellSizeM"]["y"], site["cellSizeM"]["x"])
+        coarse = np.degrees(np.arctan(np.hypot(dz_dx, dz_dy)))
+        both = np.isfinite(coarse) & np.isfinite(slope)
+        steeper = float(np.mean(slope[both] >= coarse[both] - 1.0))
+        corr = float(np.corrcoef(slope[both], coarse[both])[0, 1])
+        check(steeper > 0.95, f"slope layer is at least as steep as the 25 m slope in {steeper * 100:.1f}% of cells")
+        check(corr > 0.6, f"slope layer follows the 25 m slope (correlation {corr:.2f})")
 
     # ---- 3. Habitat ground --------------------------------------------------
     print("\nHabitat ground")
@@ -186,7 +261,10 @@ def main():
     print(f"  HAB-1 -> row {hr}, col {hc}: slope {slope[hr, hc]:.2f} deg, "
           f"TI {ti[hr, hc]:.0f}, rock {rock[hr, hc]:.2f}, elev {elev[hr, hc]:.0f} m")
     check(slope[hr, hc] < HAB_MAX_SLOPE, f"habitat slope {slope[hr, hc]:.2f} < {HAB_MAX_SLOPE} deg")
-    check(ti[hr, hc] >= SAND_TI_THRESHOLD, f"habitat thermalInertia {ti[hr, hc]:.0f} >= {SAND_TI_THRESHOLD} (firm, not sand)")
+    if np.isnan(ti[hr, hc]):
+        print("  [SKIP] habitat thermal inertia: no data yet")
+    else:
+        check(ti[hr, hc] >= SAND_TI_THRESHOLD, f"habitat thermalInertia {ti[hr, hc]:.0f} >= {SAND_TI_THRESHOLD} (firm, not sand)")
     check(rock[hr, hc] < HAB_MAX_ROCK, f"habitat rock {rock[hr, hc]:.2f} < {HAB_MAX_ROCK}")
 
     # ---- 4. POI reachability ------------------------------------------------
@@ -202,44 +280,45 @@ def main():
         check(reach[r, c], f"{p['id']} ({p['kind']}) at row {r}, col {c} reachable{note}")
 
     # ---- 5. Gentle ramps onto the delta -------------------------------------
-    print(f"\nDelta scarp ramps (gentle = slope < {RAMP_MAX_SLOPE} deg and rock <= {ROCK_NO_GO})")
-    gentle = (slope < RAMP_MAX_SLOPE) & (rock <= ROCK_NO_GO)
-    # The scarp is the band of cells steeper than 25 deg; a crossing must get
-    # from east of the scarp to west of it.
-    steep_cols = np.where((slope > MAX_SLOPE_DEG).any(axis=0))[0]
-    scarp_w, scarp_e = int(steep_cols.min()), int(steep_cols.max())
-    for ramp_lat in RAMP_LATS:
-        r0, _ = latlng_to_cell(site, ramp_lat + RAMP_HALF_BAND_DEG, b["west"])
-        r1, _ = latlng_to_cell(site, ramp_lat - RAMP_HALF_BAND_DEG, b["west"])
-        band = np.zeros_like(gentle)
-        band[r0:r1 + 1, :] = True
-        # Start on gentle cells east of the scarp, try to reach cells west of it.
-        mask = gentle & band
-        seeds = [(r, scarp_e + 1) for r in range(r0, r1 + 1) if mask[r, scarp_e + 1]]
-        crossed = False
-        for s in seeds:
-            fill = flood_fill(mask, s)
-            if fill[:, :scarp_w].any():
-                crossed = True
-                break
-        steepest = np.nanmin(np.nanmax(np.where(band, slope, np.nan)[r0:r1 + 1, scarp_w:scarp_e + 1], axis=1))
-        check(crossed, f"ramp near {ramp_lat} N: gentle crossing onto delta "
-                       f"(gentlest row's max slope across scarp {steepest:.1f} deg)")
-    # And the delta top is reachable from the habitat by gentle cells only.
-    gentle_reach = flood_fill(gentle, (hr, hc))
-    carb = next((p for p in pois if p["id"] == "carb-1"), None)
-    if carb:
-        r, c = latlng_to_cell(site, carb["lat"], carb["lng"])
-        check(gentle_reach[r, c], "carb-1 (delta top) reachable from HAB-1 on slopes < 15 deg only")
-        # The scarp must be a real wall elsewhere: block the ramp bands and
-        # carb-1 should become unreachable (the planner's detour test relies on it).
-        walled = passable.copy()
+    if is_fake:
+        print(f"\nDelta scarp ramps (gentle = slope < {RAMP_MAX_SLOPE} deg and rock <= {ROCK_NO_GO})")
+        gentle = (slope < RAMP_MAX_SLOPE) & (rock <= ROCK_NO_GO)
+        # The scarp is the band of cells steeper than 25 deg; a crossing must get
+        # from east of the scarp to west of it.
+        steep_cols = np.where((slope > MAX_SLOPE_DEG).any(axis=0))[0]
+        scarp_w, scarp_e = int(steep_cols.min()), int(steep_cols.max())
         for ramp_lat in RAMP_LATS:
-            r0, _ = latlng_to_cell(site, ramp_lat + 2 * RAMP_HALF_BAND_DEG, b["west"])
-            r1, _ = latlng_to_cell(site, ramp_lat - 2 * RAMP_HALF_BAND_DEG, b["west"])
-            walled[r0:r1 + 1, scarp_w:scarp_e + 1] = False
-        check(not flood_fill(walled, (hr, hc))[r, c],
-              "scarp is a no-go wall outside the ramps (carb-1 unreachable when ramps are blocked)")
+            r0, _ = latlng_to_cell(site, ramp_lat + RAMP_HALF_BAND_DEG, b["west"])
+            r1, _ = latlng_to_cell(site, ramp_lat - RAMP_HALF_BAND_DEG, b["west"])
+            band = np.zeros_like(gentle)
+            band[r0:r1 + 1, :] = True
+            # Start on gentle cells east of the scarp, try to reach cells west of it.
+            mask = gentle & band
+            seeds = [(r, scarp_e + 1) for r in range(r0, r1 + 1) if mask[r, scarp_e + 1]]
+            crossed = False
+            for s in seeds:
+                fill = flood_fill(mask, s)
+                if fill[:, :scarp_w].any():
+                    crossed = True
+                    break
+            steepest = np.nanmin(np.nanmax(np.where(band, slope, np.nan)[r0:r1 + 1, scarp_w:scarp_e + 1], axis=1))
+            check(crossed, f"ramp near {ramp_lat} N: gentle crossing onto delta "
+                           f"(gentlest row's max slope across scarp {steepest:.1f} deg)")
+        # And the delta top is reachable from the habitat by gentle cells only.
+        gentle_reach = flood_fill(gentle, (hr, hc))
+        carb = next((p for p in pois if p["id"] == "carb-1"), None)
+        if carb:
+            r, c = latlng_to_cell(site, carb["lat"], carb["lng"])
+            check(gentle_reach[r, c], "carb-1 (delta top) reachable from HAB-1 on slopes < 15 deg only")
+            # The scarp must be a real wall elsewhere: block the ramp bands and
+            # carb-1 should become unreachable (the planner's detour test relies on it).
+            walled = passable.copy()
+            for ramp_lat in RAMP_LATS:
+                r0, _ = latlng_to_cell(site, ramp_lat + 2 * RAMP_HALF_BAND_DEG, b["west"])
+                r1, _ = latlng_to_cell(site, ramp_lat - 2 * RAMP_HALF_BAND_DEG, b["west"])
+                walled[r0:r1 + 1, scarp_w:scarp_e + 1] = False
+            check(not flood_fill(walled, (hr, hc))[r, c],
+                  "scarp is a no-go wall outside the ramps (carb-1 unreachable when ramps are blocked)")
 
     # ---- 6. Boulder field (fake file only) ----------------------------------
     clay = next((p for p in pois if p["id"] == "clay-1"), None)

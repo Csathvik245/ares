@@ -4,9 +4,9 @@ marked, for quick visual checks (and slides). Also saves a "no-go" map showing
 cells the planner treats as impassable (slope > 25 deg or rock > 0.75).
 
 Run from the repo root:
-    python pipeline/preview_site.py [path/to/site.json]
+    python pipeline/preview_site.py [path/to/site.json] [output_dir]
 Output:
-    pipeline/previews/<layer>.png
+    pipeline/previews/<layer>.png   (or <output_dir>/<layer>.png, e.g. docs/images)
 """
 
 import json
@@ -25,7 +25,7 @@ OUT_DIR = os.path.join("pipeline", "previews")
 STYLE = {
     "elevation": ("terrain", "Elevation (m)", None),
     "slope": ("magma", "Slope (deg)", (0, 45)),
-    "rock": ("bone_r", "Boulder density (0-1)", (0, 1)),
+    "rock": ("bone_r", "Rock / roughness (0-1)", (0, 1)),
     "thermalInertia": ("YlOrBr_r", "Thermal inertia (J m-2 K-1 s-1/2)", None),
     "science": ("Purples", "Science value (0-1)", (0, 1)),
 }
@@ -43,9 +43,13 @@ def main():
     grids["nogo"] = ((grids["slope"] > 25) | (grids["rock"] > 0.75)).astype(float)
     STYLE["nogo"] = ("Reds", "No-go (slope > 25 deg or rock > 0.75)", (0, 1))
 
-    os.makedirs(OUT_DIR, exist_ok=True)
+    out_dir = sys.argv[2] if len(sys.argv) > 2 else OUT_DIR
+    os.makedirs(out_dir, exist_ok=True)
     hab = site["habitat"]
     for name, grid in grids.items():
+        if np.isnan(grid).all():
+            print(f"Skipped {name}: no data yet")
+            continue
         cmap, label, rng = STYLE[name]
         fig, ax = plt.subplots(figsize=(9, 6.2), dpi=120)
         im = ax.imshow(grid, cmap=cmap, origin="upper", extent=extent, aspect="auto",
@@ -72,7 +76,7 @@ def main():
         ax.set_title(title)
         ax.set_xlabel("Longitude (deg E)")
         ax.set_ylabel("Latitude (deg N)")
-        out = os.path.join(OUT_DIR, f"{name}.png")
+        out = os.path.join(out_dir, f"{name}.png")
         fig.tight_layout()
         fig.savefig(out)
         plt.close(fig)
