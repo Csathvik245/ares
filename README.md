@@ -72,7 +72,7 @@ AI coding and chat assistants helped us write and test the code and docs. Every 
 
 ## Team
 
-**The Ares Initiative**: a team of six. Everyone shares every role: data, planner, frontend, design and story.
+**The Ares Initiative**: a team of five. Everyone shares every role: data, planner, frontend, design and story.
 
 ## License
 

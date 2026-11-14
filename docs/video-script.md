@@ -14,7 +14,7 @@ This is the video we submit as the Space Apps **Link to Project Demo**.
 
 **Emergency rule (as the app shows it):** when a dust storm starts, the **EVA is aborted, so mission status is NO-GO**. The **walk home has its own status** in the red banner (`Walk home: … · margin … min · <status>`), usually **CAUTION**: still inside the reserve, but a storm is active. Captions must say both and never call the abort "GO".
 
-**Demo mission:** **Load demo mission** gives 3 stops on the real terrain: Séítah outcrop (Brac), Delta front toe, Máaz lava rock (Sid). The planner measured **4.97 km, 3 h 35 min, about 192 min margin, GO** (commit `b18348f`). Check the numbers on screen before recording.
+**Demo mission:** **Load demo mission** gives 3 stops on the real terrain: Séítah outcrop (Brac), Delta front toe (a new clay target ARES selected from CRISM data), Máaz lava rock (Sid). The planner measured **4.97 km, 3 h 35 min (about 3.5 hours), about 192 min margin, 49% oxygen at return, GO** (commit `b18348f`). Check the numbers on screen before recording.
 
 ---
 
@@ -54,7 +54,7 @@ Record each shot as its own clip in a **1440 × 900** browser window, with 2 s o
 | S6 | End card | 3 s | Editor | 0:28–0:30 |
 | B1 | (Backup) Solar particle event instead of storm | 12 s | Reset, slider after stop 2, **Simulate solar particle event** | Spare |
 | B2 | (Backup) **Data sources** dialog | 5 s | Click **Data sources** | Spare / slides |
-| B3 | (Backup) Stop 2 **Details** card with photo | 5 s | After reset; only if photos have landed | Spare / slides |
+| B3 | (Backup) Stop 1 (Brac) **Details** card with photo (stop 2 has no rover photo) | 5 s | After reset; only if photos have landed | Spare / slides |
 
 ---
 
@@ -99,7 +99,7 @@ Record each shot as its own clip in a **1440 × 900** browser window, with 2 s o
 | Time | On screen | Caption | Words / max | Clicks |
 |---|---|---|---|---|
 | 0:00–0:04 | Briefing screen | **ARES · The Ares Initiative**<br>NASA Space Apps 2026 · Martian Map | 10 / 12 | Fresh load |
-| 0:04–0:08 | Briefing screen, click BEGIN PLANNING | **2040. Jezero Crater. 8 hours of oxygen. 4 km of unknown terrain.** | 12 / 12 | **BEGIN PLANNING** |
+| 0:04–0:08 | Briefing screen, click BEGIN PLANNING | **2040. Jezero Crater. 8 hours of oxygen. 5 km of unknown terrain.** | 12 / 12 | **BEGIN PLANNING** |
 | 0:08–0:13 | Layers on: Slope, Soft sand risk | **Slope from HiRISE elevation. Soft sand from THEMIS.** | 8 / 15 | Tick **Slope**, **Soft sand risk** |
 | 0:13–0:18 | Layers on: Boulders, Science value | **Boulders from HiRISE roughness. Clays and carbonates from CRISM.** | 9 / 15 | Tick **Boulders**, **Science value** |
 | 0:18–0:23 | Load demo mission, route draws | **Three science stops. The fastest safe route around cliffs and sand.** | 11 / 15 | **Load demo mission** |
@@ -108,6 +108,6 @@ Record each shot as its own clip in a **1440 × 900** browser window, with 2 s o
 | 0:32–0:37 | Playback after stop 2, storm starts, NO-GO | **Dust storm hits. EVA aborted: NO-GO.** | 6 / 15 | **Space**, then **Simulate dust storm** |
 | 0:37–0:41 | Zone collapses, red abort route | **ARES plots the safest way home, instantly.** | 7 / 12 | Hold |
 | 0:41–0:45 | Banner walk-home line | **Walk home: CAUTION, but inside her oxygen reserve.** | 8 / 12 | Hover banner |
-| 0:45–0:50 | Reset, stop 2 Details card (photo if available) | **Every stop: why it matters, and a real rover photo.** | 10 / 15 | **Reset emergency and playback**, then **Details** on stop 2 |
+| 0:45–0:50 | Reset, stop 1 (Séítah outcrop, Brac) Details card with its rover photo | **Every stop: why it matters, and a real rover photo.** | 10 / 15 | **Reset emergency and playback**, then **Details** on stop 1. Not stop 2: Perseverance never went to the delta front toe, so it has no rover photo |
 | 0:50–0:55 | Helmet HUD | **Outside, the same plan becomes her helmet display.** | 8 / 15 | **Esc**, then **H** |
 | 0:55–1:00 | End card | **ARES, by The Ares Initiative. Science first. Safety always.** | 9 / 15 | Editor |
