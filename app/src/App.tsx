@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Hud, OpeningScreen, StopCard } from "./components/placeholders";
+import { Hud, OpeningScreen, StopCard } from "./components/DesignIntegration";
 import { MissionMap, TREK_LAYER } from "./components/MissionMap";
 import { MissionProvider, useMission } from "./lib/MissionContext";
 import { layers, type OverlayName } from "./lib/layers";
@@ -13,6 +13,7 @@ import {
 } from "./lib/planner";
 import { bearingDeg, distanceM } from "./geo";
 import "./console.css";
+import { Dialog } from "./components/Dialog";
 const duration = (s: number) =>
   Number.isFinite(s)
     ? `${Math.floor(Math.abs(s) / 3600)}h ${Math.floor(Math.abs(s) / 60) % 60}m`
@@ -23,8 +24,12 @@ const lmst = (h: number) => {
 };
 function Console() {
   const m = useMission();
-  const frontendOnly = new URLSearchParams(window.location.search).has("frontend");
-  const [screen, setScreen] = useState<"briefing" | "plan" | "hud">(frontendOnly ? "plan" : "briefing"),
+  const frontendOnly = new URLSearchParams(window.location.search).has(
+    "frontend",
+  );
+  const [screen, setScreen] = useState<"briefing" | "plan" | "hud">(
+      frontendOnly ? "plan" : "briefing",
+    ),
     [active, setActive] = useState<OverlayName[]>([]),
     [probe, setProbe] = useState(-1),
     [tab, setTab] = useState("Plan"),
@@ -140,12 +145,15 @@ function Console() {
           </span>
           <span className={`status status--${status}`}>{status}</span>
           <button onClick={() => setSources(true)}>Data sources</button>
-          {!frontendOnly && <button onClick={() => setScreen("hud")}>Helmet HUD · H</button>}
+          {!frontendOnly && (
+            <button onClick={() => setScreen("hud")}>Helmet HUD · H</button>
+          )}
         </div>
       </header>
       <div className="assumptions">
         {m.fake ? "SYNTHETIC TERRAIN · " : ""}Demonstration · Terrain-aware
-        planner · Mars24 sun (Ls 0°) · Temperature model pending MEDA · {TREK_LAYER}
+        planner · Mars24 sun (Ls 0°) · Temperature model pending MEDA ·{" "}
+        {TREK_LAYER}
       </div>
       {emergency && (
         <aside className="emergency" role="alert">
@@ -491,42 +499,34 @@ function Console() {
         </button>
       </section>
       {sources && (
-        <div className="detail-backdrop">
-          <section
-            className="stop-detail"
-            role="dialog"
-            aria-modal="true"
-            aria-label="Data sources"
-          >
-            <button autoFocus onClick={() => setSources(false)}>
-              Close sources
-            </button>
-            <h2>Data sources & assumptions</h2>
-            {Object.entries(site.sources).map(([name, source]) => (
-              <p key={name}>
-                <b>{name}:</b> {source}
-              </p>
-            ))}
-            <p>
-              Basemap: NASA/JPL-Caltech Viking MDIM 2.1. Terrain:{" "}
-              {m.fake
-                ? "synthetic demonstration grid"
-                : "see layer sources above"}
-              .
+        <Dialog title="Data sources" onClose={() => setSources(false)}>
+          <h2>Data sources & assumptions</h2>
+          {Object.entries(site.sources).map(([name, source]) => (
+            <p key={name}>
+              <b>{name}:</b> {source}
             </p>
-            <p>
-              Radiation: surface baseline measured by Curiosity RAD at Gale,
-              applied to Jezero. 0.64 mSv/sol; SPE ×30 illustrative. Suit,
-              walking and reserve constants are demonstration assumptions in
-              CLAUDE.md. Temperature is a placeholder curve; sun uses Mars24 at Ls 0°. These are not live weather observations.
-            </p>
-            <p>
-              Safe-zone, position, abort and segment explanations use the real
-              planner. Sun uses the planner’s Mars24 model at a fixed Ls of 0°. Temperature uses a placeholder curve awaiting MEDA.
-              AI assistant is unavailable until its component and backend land.
-            </p>
-          </section>
-        </div>
+          ))}
+          <p>
+            Basemap: NASA/JPL-Caltech Viking MDIM 2.1. Terrain:{" "}
+            {m.fake
+              ? "synthetic demonstration grid"
+              : "see layer sources above"}
+            .
+          </p>
+          <p>
+            Radiation: surface baseline measured by Curiosity RAD at Gale,
+            applied to Jezero. 0.64 mSv/sol; SPE ×30 illustrative. Suit, walking
+            and reserve constants are demonstration assumptions in CLAUDE.md.
+            Temperature is a placeholder curve; sun uses Mars24 at Ls 0°. These
+            are not live weather observations.
+          </p>
+          <p>
+            Safe-zone, position, abort and segment explanations use the real
+            planner. Sun uses the planner’s Mars24 model at a fixed Ls of 0°.
+            Temperature uses a placeholder curve awaiting MEDA. AI assistant is
+            unavailable until its component and backend land.
+          </p>
+        </Dialog>
       )}
       {selected && (
         <StopCard

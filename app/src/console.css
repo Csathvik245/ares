@@ -415,3 +415,15 @@ progress {
     stroke-dashoffset: 0;
   }
 }
+.design-exit {
+  position: fixed;
+  right: 24px;
+  bottom: 24px;
+  z-index: 1000;
+  min-height: 44px;
+  padding: 12px;
+  background: var(--console);
+  color: var(--safe);
+  border: 1px solid var(--safe);
+  border-radius: 6px;
+}

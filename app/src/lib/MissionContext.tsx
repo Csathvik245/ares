@@ -16,19 +16,13 @@ import {
   envAt,
   homeField,
   type Site,
-  type Stop,
   type Conditions,
   type LatLng,
   SOL_HOURS,
 } from "./planner";
-import { optionalJson } from "./data";
+import { optionalJson, readDemoStops, type DemoStop } from "./data";
+export type { DemoStop } from "./data";
 
-export type DemoStop = Stop & {
-  why?: string;
-  tools?: string[];
-  photo?: string;
-  photoCredit?: string;
-};
 function useMissionState() {
   const [site, setSite] = useState<Site | null>(null),
     [fake, setFake] = useState(false),
@@ -75,21 +69,8 @@ function useMissionState() {
       })
       .then(async (r) => {
         const d = await optionalJson(r);
-        if (!control.signal.aborted) {
-          if (
-            Array.isArray(d) &&
-            d.length &&
-            d.every(
-              (s) =>
-                typeof s.id === "string" &&
-                typeof s.label === "string" &&
-                Number.isFinite(s.lat) &&
-                Number.isFinite(s.lng) &&
-                Number.isFinite(s.dwellMin),
-            )
-          )
-            setDemo(d);
-        }
+        const stops = readDemoStops(d);
+        if (!control.signal.aborted && stops) setDemo(stops);
       })
       .catch((e) => {
         if (e.name !== "AbortError") setError(String(e));
@@ -144,7 +125,10 @@ function useMissionState() {
         : null,
     [site, cost, emergency],
   );
-  const env = envAt(conditions.startLmst + elapsed / 3600 * 24 / SOL_HOURS, conditions.spe);
+  const env = envAt(
+    conditions.startLmst + ((elapsed / 3600) * 24) / SOL_HOURS,
+    conditions.spe,
+  );
   const dose =
     (envAt(0, false).doseRateMsvPerHr * (emergency ? emergency.at : elapsed)) /
       3600 +
