@@ -102,8 +102,18 @@ slope = np.degrees(np.arctan(np.hypot(dz_dx, dz_dy)))
 roughness = np.abs(elevation - smooth(elevation, 1))
 boulder_noise = normalize(smooth(rng.normal(0, 1, (HEIGHT, WIDTH)), 4))
 below_scarp = np.exp(-np.maximum(dist_to_scarp_m, 0) / 300.0) * (dist_to_scarp_m > 0)
+# Small boulder field on the crater floor, on the straight line between the
+# habitat and clay-1, so the planner has to route around boulders (not just the
+# cliff). Deterministic blob: uses no random numbers, so the seed's sequence and
+# every other layer stay the same.
+BOULDER_FIELD = (18.461, 77.4485, 220.0)  # lat, lng, radius in meters
+bf_lat, bf_lng, bf_rad_m = BOULDER_FIELD
+bf_d = np.hypot((lat - bf_lat) * cell_y * HEIGHT / (NORTH - SOUTH),
+                (lng - bf_lng) * cell_x * WIDTH / (EAST - WEST))
+boulder_field = np.exp(-(bf_d / bf_rad_m) ** 2)
 rock = np.clip(
-    0.45 * normalize(roughness) + 0.35 * boulder_noise ** 3 + 0.5 * below_scarp,
+    0.45 * normalize(roughness) + 0.35 * boulder_noise ** 3 + 0.5 * below_scarp
+    + 0.9 * boulder_field,
     0,
     1,
 )
