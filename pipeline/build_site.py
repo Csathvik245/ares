@@ -40,9 +40,18 @@ What it does
      scarps, dune crests), not a boulder count.
    - Cells with too little DTM coverage become null (Contract 1: missing = null).
 
-4. thermalInertia and science are filled by later pipeline steps (see
-   pipeline/README.md). Until then they are null and their "sources" entry says
-   PENDING — nothing is invented.
+4. THERMAL INERTIA (soft sand)
+   "THEMIS-derived Thermal Inertia of Jezero Crater, Mars" (Edwards & Buz 2021,
+   Zenodo, doi:10.5281/zenodo.4931348), quantitative, 100 m/pixel, from Mars
+   Odyssey THEMIS. Resampled (bilinear) to the 25 m grid. See thermal_inertia_layer().
+
+5. SCIENCE VALUE (clays and carbonates)
+   MRO CRISM map-projected targeted observation HRL000040FF (MTRDR, 36 m/pixel),
+   refined summary parameters D2300, MIN2295_2480 and MIN2345_2537
+   (Viviano-Beck et al. 2014). Only those three bands are read over HTTPS.
+   See science_layer() for how they become a 0-1 index.
+
+Every layer's "sources" entry in site.json names the real dataset. Nothing is invented.
 """
 
 import json
@@ -387,12 +396,13 @@ def to_list(a, decimals=2):
 def main():
     fetch_dtm_window()
     elevation, slope, rock, extra, stats = terrain_layers()
+    thermal_inertia = thermal_inertia_layer()
+    science, science_parts = science_layer()
     cell_x, cell_y = cell_sizes_m()
 
     with open(SITE_META_PATH, encoding="utf-8") as f:
         meta = json.load(f)  # habitat and POIs, with their sources
 
-    n = WIDTH * HEIGHT
     site = {
         "name": "Jezero Crater delta front",
         "bounds": {"south": SOUTH, "north": NORTH, "west": WEST, "east": EAST},
@@ -403,8 +413,8 @@ def main():
             "elevation": to_list(elevation),
             "slope": to_list(slope),
             "rock": to_list(rock),
-            "thermalInertia": [None] * n,
-            "science": [None] * n,
+            "thermalInertia": to_list(thermal_inertia),
+            "science": to_list(science),
         },
         # Keys starting with "_" in site_meta.json are notes for humans (sources); Contract 1
         # has no place for them, so they are left out of site.json.
@@ -417,8 +427,8 @@ def main():
             "rock": ("Roughness proxy, not a boulder count: standard deviation of plane-detrended 1 m "
                      f"elevation in each cell, {ROUGHNESS_FULL_SCALE_M:g} m = 1.0 "
                      "(HiRISE DTM mosaic, doi:10.5066/P9REJ9JN)"),
-            "thermalInertia": "PENDING: no data yet (THEMIS thermal inertia, pipeline step 3)",
-            "science": "PENDING: no data yet (CRISM carbonate and clay detections, pipeline step 4)",
+            "thermalInertia": TI_CITATION,
+            "science": CRISM_CITATION,
         },
     }
 
@@ -437,6 +447,14 @@ def main():
         f"(a plain mean would give {int(np.nansum(extra['slope_mean'] > 25))})")
     log(f"Rock > 0.75 (no-go): {int(np.nansum(rock > 0.75))} cells")
     log(f"Null cells: {stats['null_cells']}; cells with partial DTM coverage: {stats['partial_cells']}")
+    pct = lambda a, ps: [round(float(v), 2) for v in np.nanpercentile(a, ps)]
+    log(f"Thermal inertia min/p5/p50/p95/max: {pct(thermal_inertia, [0, 5, 50, 95, 100])}; "
+        f"soft sand (TI < 175): {int(np.nansum(thermal_inertia < 175))} cells; "
+        f"null: {int(np.isnan(thermal_inertia).sum())}")
+    log(f"Science p50/p90/p99/max: {pct(science, [50, 90, 99, 100])}; cells > 0.5: {int(np.nansum(science > 0.5))}; "
+        f"null: {int(np.isnan(science).sum())}")
+    for name, part in science_parts.items():
+        log(f"  {name}: cells > 0.5: {int(np.nansum(part > 0.5))}")
     return 0
 
 
