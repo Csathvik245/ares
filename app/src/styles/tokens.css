@@ -1,0 +1,61 @@
+:root {
+  color-scheme: dark;
+
+  /* Contract 6 — ARES mission-console palette */
+  --void: #08090b;
+  --console: #111318;
+  --console-2: #171a21;
+  --hairline: #242833;
+  --text: #eceae6;
+  --muted: #8a93a3;
+  --mars: #ff6b35;
+  --safe: #4fd1ff;
+  --go: #3ddc97;
+  --caution: #ffb020;
+  --nogo: #ff4d5a;
+  --science: #a78bfa;
+
+  /* Semantic aliases keep component intent readable. */
+  --background: var(--void);
+  --surface: var(--console);
+  --surface-raised: var(--console-2);
+  --border: var(--hairline);
+  --plan: var(--mars);
+  --safety: var(--safe);
+
+  --font-heading: "Space Grotesk", "Avenir Next", sans-serif;
+  --font-body: Inter, "Helvetica Neue", sans-serif;
+  --font-mono: "JetBrains Mono", "SFMono-Regular", Consolas, monospace;
+
+  --space-0: 0;
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-10: 40px;
+  --space-12: 48px;
+
+  --radius-card: 6px;
+  --radius-floating: 10px;
+  --radius-pill: 999px;
+  --touch-target: 44px;
+
+  font-family: var(--font-body);
+  color: var(--text);
+  background: var(--void);
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+button {
+  font: inherit;
+}
