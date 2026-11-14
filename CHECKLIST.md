@@ -195,10 +195,12 @@ Needs nothing from anyone. Research and docs stand alone. Use Mars Trek screensh
 - [ ] 🟧 Perseverance photos for each stop in `app/public/photos/` with credits ("NASA/JPL-Caltech, …")
 - [ ] 🟧 MEDA temperature values posted in `docs/assumptions.md` (the planner swaps them in later)
 - [ ] 🟧 Apollo traverse map / cuff checklist heritage slide
-- [x] 🟧 Demo video script + shot list (by hour 12) → `docs/video-script.md` (60 s version + 30 s submission cut)
-- [ ] 🟧 Slides: problem, story, how it works, 6 data layers, safe zone, emergencies, HUD, novelty, assumptions, sources, team, next steps (outline done: `docs/slides-outline.md`; deck not built)
-- [ ] 🟧 README + Space Apps project page text (README done; project page text still to write)
-- [ ] 🟧 Record + edit the 60 s video (once the live link works)
+- [x] 🟧 Demo video script + shot list (by hour 12) → `docs/video-script.md` (30 s caption-only script is the main one; 60 s in appendix, not for submission)
+- [ ] 🟧 Slides: problem, story, how it works, 6 data layers, safe zone, emergencies, HUD, novelty, assumptions, sources, team, next steps (outline done: `docs/slides-outline.md`, 7-slide plan + 12-slide appendix; deck not built)
+- [x] 🟧 README + Space Apps project page text → `README.md`, `docs/project-page.md` (draft; fill its TODO links, then paste into the Project tab)
+- [ ] 🟥 AI use disclosure → draft in `docs/ai-disclosure.md`; team must resolve its TODOs and check the official SI wording before submitting
+- [x] 🟥 No team member names in README, docs or slides (under-18 rule); "The Ares Initiative" only
+- [ ] 🟧 Record + edit the **30 s caption-only** video (once the live link works; no voice, no faces)
 - [ ] 🟧 Judge test: live app in a fresh browser; report issues in the group chat
 - [ ] 🟥 Final submission with all links working
 
