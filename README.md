@@ -68,7 +68,7 @@ Rules, deadline and judging criteria are summarised, with links to the official 
 
 ## Team
 
-**The Ares Initiative**: Sathvik, Anish, Viren, Arjun.
+**The Ares Initiative**: a team of six. Everyone shares every role: data, planner, frontend, design and story.
 
 ## License
 

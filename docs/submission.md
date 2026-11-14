@@ -22,7 +22,7 @@ These conflict with what `CLAUDE.md` and `CHECKLIST.md` currently say. `CLAUDE.m
 2. **No names, faces, voices or likenesses of anyone under 18** in the demo or the submission. Our team is high school students. ([FAQ](https://www.spaceappschallenge.org/resources/participant-faqs/), "Can participants under the age of 18 participate?"; [Terms](https://www.spaceappschallenge.org/legal/), "Submissions" and "Media Release")
    - The video must not show or voice any teammate who is under 18. Use screen recording, captions, or a narrator who is 18 or older.
    - Under-18 teammates should not upload a photo of themselves as their avatar or on the team page ([FAQ](https://www.spaceappschallenge.org/resources/participant-faqs/)).
-   - **README and slides list teammates by first name.** If the final project link points to the GitHub repo, those names count as part of the submission. Check each teammate's age and decide as a team whether to keep the names (see [open questions](#open-questions)).
+   - **Decided: our team is under 18, so no names.** README, docs and slides use only "The Ares Initiative". Names still appear in places outside the Science & story files (see [open questions](#open-questions)).
 3. **AI-generated content needs a visible label.** Images and videos made with AI need a visible watermark. AI-generated code and data must be acknowledged in descriptive text and metadata. ([Submission guide](https://www.spaceappschallenge.org/resources/project-submission-guide/), "Use of Super Intelligence (SI)") See [AI rules](#ai-tool-use-super-intelligence-si) below.
 
 ---
@@ -95,7 +95,7 @@ Suggested 30-second outline from the guide:
 | 0:10 | How it works: images or prototype, the user's experience, how NASA open data made it possible |
 | 0:20–0:30 | The future: what it could do for people and beyond |
 
-A slide deck should show an image of the project, the user experience, how NASA data makes it possible, the team name, team member names, and the challenge. ([Submission guide](https://www.spaceappschallenge.org/resources/project-submission-guide/)) Note the under-18 rule above when listing names.
+A slide deck should show an image of the project, the user experience, how NASA data makes it possible, the team name, team member names, and the challenge. ([Submission guide](https://www.spaceappschallenge.org/resources/project-submission-guide/)) **Conflict:** the Terms forbid recognisable names of anyone under 18, so our deck shows the team name "The Ares Initiative" instead of member names. The Terms (legal agreement) take priority over the guide's tip.
 
 ## AI tool use ("Super Intelligence", SI)
 
@@ -171,7 +171,7 @@ Every team that submits by the deadline gets a participant certificate on their 
 Decide as a team:
 
 1. **Video length.** Cut the 60 s script in `CLAUDE.md` section 9 to ≤ 30 s, or switch to a ≤ 7-slide deck. Update `CLAUDE.md` and `CHECKLIST.md` after agreeing.
-2. **Names and faces of under-18 teammates.** Whether to drop first names from the README and slides. No team faces or voices in the video either way.
+2. **Names left outside the Science & story files.** Team names are removed from the README and docs. They still appear in `LICENSE` (copyright line), `CHECKLIST.md` role tables, `CLAUDE.md` and `app/src/FRONTEND.md` (the repo URL contains a username), and the git commit author history of the public repo. Decide whether to clean these before submitting; rewriting git history would need a force-push, which the team rules forbid.
 3. **AI disclosure wording** for the SI field and README.
 4. **Our Local Event and time zone**, written into the [Deadline](#deadline) section.
 

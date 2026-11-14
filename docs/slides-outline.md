@@ -102,9 +102,9 @@
 
 ## 11. Team: The Ares Initiative
 
-- Sathvik, Anish, Viren, Arjun. All share every role: data & GIS, planner, frontend, design, science & story.
+- The Ares Initiative. Everyone shares every role: data & GIS, planner, frontend, design, science & story.
 - Built in about 48 hours for NASA Space Apps Challenge 2026, *Interplanetary Survival Guide: Martian Map*.
-- Open source, MIT licence: `github.com/Csathvik245/ares`.
+- Open source, MIT licence: link to the public GitHub repo (see note on slide 11 about the repo URL).
 - **AI use:** say how AI tools were used (Space Apps requires disclosure; wording to be agreed by the team).
 
 **Visual:** ARES mission patch (our own design) and team name. **No photos of team members** (under-18 rule). Decide as a team whether first names stay (see [`submission.md`](submission.md), open questions).
