@@ -21,6 +21,8 @@ import {
   type LatLng,
   SOL_HOURS,
 } from "./planner";
+import { optionalJson } from "./data";
+
 export type DemoStop = Stop & {
   why?: string;
   tools?: string[];
@@ -49,6 +51,7 @@ function useMissionState() {
     } | null>(null);
   useEffect(() => {
     const control = new AbortController();
+    setError("");
     fetch(`${import.meta.env.BASE_URL}data/site.json`, {
       signal: control.signal,
     })
@@ -71,8 +74,8 @@ function useMissionState() {
         }).catch(() => null);
       })
       .then(async (r) => {
-        if (r?.ok) {
-          const d = await r.json();
+        const d = await optionalJson(r);
+        if (!control.signal.aborted) {
           if (
             Array.isArray(d) &&
             d.length &&

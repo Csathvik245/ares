@@ -23,7 +23,8 @@ const lmst = (h: number) => {
 };
 function Console() {
   const m = useMission();
-  const [screen, setScreen] = useState<"briefing" | "plan" | "hud">("briefing"),
+  const frontendOnly = new URLSearchParams(window.location.search).has("frontend");
+  const [screen, setScreen] = useState<"briefing" | "plan" | "hud">(frontendOnly ? "plan" : "briefing"),
     [active, setActive] = useState<OverlayName[]>([]),
     [probe, setProbe] = useState(-1),
     [tab, setTab] = useState("Plan"),
@@ -51,7 +52,7 @@ function Console() {
         setScreen((s) => (s === "hud" ? "plan" : s));
       }
       if (screen === "briefing") return;
-      if (e.key.toLowerCase() === "h")
+      if (!frontendOnly && e.key.toLowerCase() === "h")
         setScreen((s) => (s === "hud" ? "plan" : "hud"));
       if (e.code === "Space" && !emergency) {
         e.preventDefault();
@@ -139,7 +140,7 @@ function Console() {
           </span>
           <span className={`status status--${status}`}>{status}</span>
           <button onClick={() => setSources(true)}>Data sources</button>
-          <button onClick={() => setScreen("hud")}>Helmet HUD · H</button>
+          {!frontendOnly && <button onClick={() => setScreen("hud")}>Helmet HUD · H</button>}
         </div>
       </header>
       <div className="assumptions">
