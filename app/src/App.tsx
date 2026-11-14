@@ -1,218 +1,43 @@
-import { useEffect, useMemo, useState } from "react";
-import { HelmetHud } from "./components/HelmetHud";
-import type { HelmetHudProps } from "./components/HelmetHud";
-import { MissionBriefing } from "./components/MissionBriefing";
-import { bearingDeg, distanceM } from "./geo";
-import {
-  CONSUMABLE_HOURS,
-  DOSE_MSV_PER_SOL,
-  SOL_HOURS,
-  WALK_BURN,
-  buildCostGrid,
-  loadSite,
-  planRoute,
-} from "./planner";
-import type { Conditions, Plan, Site, Stop } from "./planner";
-
-type Screen = "briefing" | "planning" | "hud";
-
-// ASSUMPTION: 30 minutes of science at each stop until the stop editor exists.
-const DEFAULT_DWELL_MIN = 30;
-
-// TODO: not real yet — the start time will come from the timeline's start-time selector.
-const PLACEHOLDER_START_LMST = 13;
-// TODO: not real yet — local time needs the timeline clock (LMST).
-const PLACEHOLDER_LOCAL_TIME = "13:00";
-// TODO: not real yet — temperature needs envAt(). −23 °C is the early-afternoon
-// placeholder from CLAUDE.md section 6; replace with MEDA values.
-const PLACEHOLDER_TEMPERATURE_C = -23;
-
-const CONDITIONS: Conditions = { storm: false, spe: false, startLmst: PLACEHOLDER_START_LMST };
-
-type Mission = { site: Site; isFake: boolean; stops: Stop[]; plan: Plan };
-
-/** Load the terrain, use the three science POIs as stops, and run the planner. */
-function buildMission(json: unknown): Mission {
-  const site = loadSite(json);
-  const stops: Stop[] = site.pois
-    .filter((poi) => poi.kind === "science")
-    .slice(0, 3)
-    .map((poi) => ({ id: poi.id, label: poi.name, lat: poi.lat, lng: poi.lng, dwellMin: DEFAULT_DWELL_MIN }));
-  const cost = buildCostGrid(site, CONDITIONS);
-  const plan = planRoute(site, cost, site.habitat, stops);
-  const isFake = (json as { fake?: unknown }).fake === true;
-  return { site, isFake, stops, plan };
+import {useEffect,useState} from 'react';
+import {Hud,OpeningScreen,StopCard} from './components/placeholders';
+import {MissionMap,TREK_LAYER} from './components/MissionMap';
+import {MissionProvider,useMission} from './lib/MissionContext';
+import {layers,type OverlayName} from './lib/layers';
+import {cellIndexOf,CONSUMABLE_HOURS,RESERVE_MIN,SAND_TI_THRESHOLD,SOL_HOURS} from './lib/planner';
+import {bearingDeg,distanceM} from './geo';
+import './console.css';
+const duration=(s:number)=>Number.isFinite(s)?`${Math.floor(Math.abs(s)/3600)}h ${Math.floor(Math.abs(s)/60)%60}m`:'Unreachable';
+const lmst=(h:number)=>{const min=Math.floor(((h%24)+24)%24*60);return `${String(Math.floor(min/60)).padStart(2,'0')}:${String(min%60).padStart(2,'0')}`};
+function Console(){
+ const m=useMission();const [screen,setScreen]=useState<'briefing'|'plan'|'hud'>('briefing'),[active,setActive]=useState<OverlayName[]>([]),[probe,setProbe]=useState(-1),[tab,setTab]=useState('Plan'),[sources,setSources]=useState(false),[detail,setDetail]=useState('');
+ const {site,plan,cost,position,emergency,abort}=m;
+ const remove=()=>{if(!emergency&&m.selected)m.edit(m.stops.filter(s=>s.id!==m.selected))};
+ useEffect(()=>{const handler=(e:KeyboardEvent)=>{const el=e.target as HTMLElement;if(e.ctrlKey||e.metaKey||e.altKey||el.matches('input,textarea,select,button')||el.isContentEditable)return;if(e.key==='Escape'){setDetail('');setSources(false);setScreen(s=>s==='hud'?'plan':s)}if(screen==='briefing')return;if(e.key.toLowerCase()==='h')setScreen(s=>s==='hud'?'plan':'hud');if(e.code==='Space'&&!emergency){e.preventDefault();m.setPlaying(v=>!v)}if(e.key==='Delete')remove()};window.addEventListener('keydown',handler);return()=>window.removeEventListener('keydown',handler)});
+ if(screen==='briefing')return <OpeningScreen onBeginPlanning={()=>setScreen('plan')}/>;
+ if(m.error)return <main className="load-state" role="alert">Terrain could not load: {m.error} <button onClick={()=>location.reload()}>Retry</button></main>;
+ if(!site||!plan||!cost)return <main className="load-state" role="status">Loading Jezero terrain…</main>;
+ const next=m.stops[position.legIndex]??site.habitat;
+ const target=emergency?site.habitat:next;
+ const status=emergency?'NO-GO':plan.status;
+ if(screen==='hud')return <Hud status={status} nextStop={'label'in target?target.label:target.name} distanceM={emergency?abort?.path.reduce((sum,p,i,path)=>i?sum+distanceM(path[i-1],p):sum,0)??0:distanceM(position,target)} headingDeg={bearingDeg(position,target)} oxygenRemainingMin={Math.max(0,Math.round((CONSUMABLE_HOURS*3600-position.oxygenUsedSec)/60))} marginMin={(abort?.marginSec??plan.marginSec)/60} doseMsv={m.dose} localTime={lmst(m.conditions.startLmst+m.elapsed/3600*24/SOL_HOURS)} temperatureC={m.env.tempC} onExitHud={()=>setScreen('plan')}/>;
+ const changeStop=(id:string,patch:object)=>m.edit(m.stops.map(s=>s.id===id?{...s,...patch}:s));
+ const reorder=(id:string,delta:number)=>{const i=m.stops.findIndex(s=>s.id===id),j=i+delta;if(j<0||j>=m.stops.length)return;const s=[...m.stops];[s[i],s[j]]=[s[j],s[i]];m.edit(s)};
+ const selected=m.stops.find(s=>s.id===detail);
+ return <main className="console-app">
+  <header className="console-header"><div><span className="eyebrow">ARES-1 / SURFACE OPERATIONS</span><h1>{site.name}</h1><p>Carbonate & clay sampling · Science first. Safety always.</p></div><div className="header-actions"><span className="mono">LMST {lmst(m.conditions.startLmst+m.elapsed/3600*24/SOL_HOURS)}</span><span className={`status status--${status}`}>{status}</span><button onClick={()=>setSources(true)}>Data sources</button><button onClick={()=>setScreen('hud')}>Helmet HUD · H</button></div></header>
+  <div className="assumptions">{m.fake?'SYNTHETIC TERRAIN · ':''}Demonstration · Safe zone / playback / abort adapters · Fixed sun 45°, −23°C pending Mars24/MEDA · {TREK_LAYER}</div>
+  {emergency&&<aside className="emergency" role="alert"><strong>{emergency.kind==='storm'?'DUST STORM':'SOLAR PARTICLE EVENT'} · ABORT EVA</strong><p>{emergency.kind==='storm'?'Visibility and visor dust slow walking.':'Illustrative 30× radiation dose rate.'} Return guidance frozen at incident position. {abort?.path.length?`Walk home: ${duration(abort.sec)} · margin ${Math.round(abort.marginSec/60)} min · ${abort.status}`:'No terrain-safe return path found.'}</p><button onClick={m.reset}>Reset emergency and playback</button></aside>}
+  <nav className="tablet-tabs" aria-label="Console panels">{['Plan','Layers','Conditions'].map(t=><button key={t} aria-pressed={tab===t} onClick={()=>setTab(t)}>{t}</button>)}</nav>
+  <div className="console-body">
+   <aside className={`side layers-panel ${tab==='Layers'?'mobile-open':''}`}><h2>Terrain layers</h2>{layers.map(l=><label className="layer-card" key={l.id}><span><input type="checkbox" checked={active.includes(l.id)} onChange={()=>setActive(a=>a.includes(l.id)?a.filter(k=>k!==l.id):[...a,l.id])}/>{l.name}</span><small>{l.type} · {site.sources[l.source]}</small><small>{l.legend}</small></label>)}<h2>Cursor probe</h2>{probe>=0?<dl><dt>Elevation</dt><dd>{site.layers.elevation[probe].toFixed(0)} m</dd><dt>Slope</dt><dd>{site.layers.slope[probe].toFixed(1)}°</dd><dt>Soft sand risk</dt><dd>{site.layers.thermalInertia[probe]<SAND_TI_THRESHOLD?'High':'Low'}</dd><dt>Science value</dt><dd>{site.layers.science[probe].toFixed(2)}</dd><dt>Walk home</dt><dd>{duration(m.home?.cost[probe]??Infinity)}</dd></dl>:<p>Move over the map.</p>}</aside>
+   <section className="map-column"><MissionMap site={site} cost={cost} plan={plan} stops={m.stops} zone={m.zone} active={active} position={position} abort={abort?.path??[]} onAdd={m.add} onMove={(id,p)=>{if(!emergency&&cellIndexOf(site,p)>=0)changeStop(id,{lat:p.lat,lng:p.lng})}} onSelect={m.setSelected} onProbe={setProbe}/>
+    <section className="timeline" aria-label="EVA playback"><div><button disabled={!plan.ok||!plan.legs.length||!!emergency} onClick={()=>{if(m.elapsed>=plan.totalSec)m.setElapsed(0);m.setPlaying(p=>!p)}}>{m.playing?'Pause':'Play'} · Space</button><span>{duration(m.elapsed)} / {duration(plan.totalSec)} · {position.phase}</span><label>Start LMST <input aria-label="Start LMST" type="number" min="0" max="23.99" step=".25" value={m.conditions.startLmst} disabled={!!emergency} onChange={e=>{m.setConditions(c=>({...c,startLmst:Number(e.target.value)}));m.reset()}}/></label></div><input aria-label="EVA timeline" type="range" min="0" max={Math.max(1,plan.totalSec)} value={m.elapsed} disabled={!!emergency} onChange={e=>{m.setPlaying(false);m.setElapsed(Number(e.target.value))}}/><div className="timeline-track">{plan.legs.flatMap((leg,i)=>{const science=plan.legs[i+1]?plan.legs[i+1].arriveSec-plan.legs[i+1].walkSec-leg.arriveSec:0;return [<span key={`w${i}`} style={{flex:leg.walkSec}} title="Walking"/>,<span key={`s${i}`} className="science-track" style={{flex:science}} title="Science"/>]})}<span className="reserve-track" style={{flex:RESERVE_MIN*60}} title="45 minute oxygen reserve"/></div><small>Walking · Science · Oxygen reserve (reserve is not playback time) · Speed: 240×</small></section>
+   </section>
+   <aside className={`side plan-panel ${tab==='Plan'?'mobile-open':''}`}><h2>Mission plan</h2><span className={`status status--${status}`}>{status}</span><ul>{(emergency?['Emergency abort required. See return guidance above.']:plan.reasons).map(r=><li key={r}>{r}</li>)}</ul><div className="oxygen-gauge" aria-label={`Oxygen at return ${plan.oxygenAtReturnPct.toFixed(0)} percent`}><svg viewBox="0 0 80 80" aria-hidden="true"><circle cx="40" cy="40" r="32" fill="none" stroke="var(--hairline)" strokeWidth="5"/><circle cx="40" cy="40" r="32" fill="none" stroke="var(--safe)" strokeWidth="5" strokeDasharray="201.06" strokeDashoffset={201.06*(1-Math.min(100,plan.oxygenAtReturnPct)/100)} transform="rotate(-90 40 40)"/></svg><b>{plan.oxygenAtReturnPct.toFixed(0)}%</b></div><label className="oxygen-label">Oxygen at return <b>{plan.oxygenAtReturnPct.toFixed(0)}%</b><progress max="100" value={plan.oxygenAtReturnPct}/></label><dl><dt>Distance</dt><dd>{(plan.distM/1000).toFixed(2)} km</dd><dt>Duration</dt><dd>{duration(plan.totalSec)}</dd><dt>Walking</dt><dd>{duration(plan.walkSec)}</dd><dt>Science</dt><dd>{duration(plan.workSec)}</dd><dt>Return margin</dt><dd>{Math.round((abort?.marginSec??plan.marginSec)/60)} min</dd><dt>Dose so far</dt><dd>{m.dose.toFixed(3)} mSv</dd></dl><div className="button-row"><button disabled={!!emergency} onClick={()=>m.edit(m.demo)}>Load demo mission</button><button disabled={!!emergency} onClick={()=>m.edit([])}>Clear</button></div><p className="hint">Click map or + science markers. Drag numbered markers. Default dwell: 30 min (assumption).</p>{m.stops.map((s,i)=><article className={`stop-card ${m.selected===s.id?'selected':''}`} key={s.id} draggable={!emergency} onDragStart={e=>e.dataTransfer.setData('text/plain',s.id)} onDragOver={e=>e.preventDefault()} onDrop={e=>{e.preventDefault();if(emergency)return;const id=e.dataTransfer.getData('text/plain'),from=m.stops.findIndex(s=>s.id===id);if(from<0)return;const a=[...m.stops],moving=a.splice(from,1)[0];a.splice(i,0,moving);m.edit(a)}} onClick={()=>m.setSelected(s.id)}><label>Stop {i+1}<input aria-label={`Stop ${i+1} name`} value={s.label} disabled={!!emergency} onChange={e=>changeStop(s.id,{label:e.target.value})}/></label><label>Science minutes<input type="number" min="0" max="480" value={s.dwellMin} disabled={!!emergency} onChange={e=>changeStop(s.id,{dwellMin:Math.max(0,Math.min(480,Number(e.target.value)))})}/></label><div className="button-row"><button disabled={!!emergency||i===0} onClick={()=>reorder(s.id,-1)} aria-label={`Move stop ${i+1} earlier`}>↑</button><button disabled={!!emergency||i===m.stops.length-1} onClick={()=>reorder(s.id,1)} aria-label={`Move stop ${i+1} later`}>↓</button><button onClick={()=>setDetail(s.id)}>Details</button><button disabled={!!emergency} onClick={()=>m.edit(m.stops.filter(x=>x.id!==s.id))}>Delete</button></div></article>)}</aside>
+  </div>
+  <section className={`conditions ${tab==='Conditions'?'mobile-open':''}`}><h2>Conditions</h2><span>Sun {m.env.sunElevationDeg}° · {m.env.tempC}°C · {m.env.doseRateMsvPerHr.toFixed(3)} mSv/h (model)</span><button disabled={!!emergency} onClick={()=>m.trigger('storm')}>Simulate dust storm</button><button disabled={!!emergency} onClick={()=>m.trigger('spe')}>Simulate solar particle event</button></section>
+  {sources&&<div className="detail-backdrop"><section className="stop-detail" role="dialog" aria-modal="true" aria-label="Data sources"><button autoFocus onClick={()=>setSources(false)}>Close sources</button><h2>Data sources & assumptions</h2>{Object.entries(site.sources).map(([name,source])=><p key={name}><b>{name}:</b> {source}</p>)}<p>Basemap: NASA/JPL-Caltech Viking MDIM 2.1. Terrain: {m.fake?'synthetic demonstration grid':'see layer sources above'}.</p><p>Radiation: surface baseline measured by Curiosity RAD at Gale, applied to Jezero. 0.64 mSv/sol; SPE ×30 illustrative. Suit, walking and reserve constants are demonstration assumptions in CLAUDE.md. Temperature and sun are fixed placeholders, not live weather.</p><p>Safe-zone, position, environment and abort adapters remain frontend stand-ins until planner exports land. AI assistant is unavailable until its component and backend land.</p></section></div>}
+  {selected&&<StopCard key={selected.id} stop={selected} onClose={()=>setDetail('')}/>}
+ </main>;
 }
-
-/**
- * Numbers for the helmet HUD, all taken from the plan.
- * Next stop = the first stop. Distance and heading are from the habitat to it;
- * oxygen and dose are what the astronaut will have on arriving there.
- */
-function hudPropsFor({ site, stops, plan }: Mission): Omit<HelmetHudProps, "onExitHud"> | null {
-  const firstStop = stops[0];
-  const firstLeg = plan.legs[0];
-  if (!firstStop || !firstLeg) return null;
-
-  const reachable = firstLeg.path.length > 0;
-  const budgetSec = CONSUMABLE_HOURS * 3600;
-  // Oxygen left on arrival at the first stop: the budget minus the oxygen burned walking there.
-  const oxygenAtFirstStopSec = budgetSec - firstLeg.walkSec * WALK_BURN;
-  // Dose picked up by the time of arrival, at the average surface rate (Curiosity RAD).
-  const doseMsv = (DOSE_MSV_PER_SOL / SOL_HOURS) * (firstLeg.arriveSec / 3600);
-
-  return {
-    status: plan.status,
-    nextStop: firstStop.label,
-    // Walking distance along the planned route; straight-line if no route exists.
-    distanceM: reachable ? firstLeg.distM : distanceM(site.habitat, firstStop),
-    headingDeg: bearingDeg(site.habitat, firstStop),
-    oxygenRemainingMin: Math.round(oxygenAtFirstStopSec / 60),
-    oxygenCapacityMin: CONSUMABLE_HOURS * 60,
-    marginMin: plan.marginSec / 60,
-    doseMsv,
-    localTime: PLACEHOLDER_LOCAL_TIME, // TODO: not real yet
-    temperatureC: PLACEHOLDER_TEMPERATURE_C, // TODO: not real yet
-  };
-}
-
-const formatKm = (meters: number) => `${(meters / 1000).toFixed(2)} km`;
-const formatDuration = (sec: number) => {
-  const totalMin = Math.round(sec / 60);
-  return `${Math.floor(totalMin / 60)} h ${String(totalMin % 60).padStart(2, "0")} min`;
-};
-const formatMargin = (sec: number) => `${sec < 0 ? "−" : ""}${Math.abs(Math.round(sec / 60))} min`;
-
-function PlanningScreen({ mission, error, onOpenHud }: { mission: Mission | null; error: string | null; onOpenHud: () => void }) {
-  if (error) {
-    return (
-      <main className="planning">
-        <p className="planning__message planning__message--error" role="alert">
-          COULD NOT LOAD TERRAIN: {error}
-        </p>
-      </main>
-    );
-  }
-  if (!mission) {
-    return (
-      <main className="planning">
-        <p className="planning__message">LOADING TERRAIN…</p>
-      </main>
-    );
-  }
-
-  const { site, isFake, stops, plan } = mission;
-  const statusClass = plan.status.toLowerCase().replace("-", "");
-
-  return (
-    <main className="planning">
-      <header className="planning__header">
-        <div>
-          <p className="planning__eyebrow">
-            EVA PLANNING · {site.habitat.name}
-            {isFake && <span className="planning__fake"> · FAKE TERRAIN DATA</span>}
-          </p>
-          <h1 className="planning__title">{site.name}</h1>
-        </div>
-        <button className="planning__button" type="button" onClick={onOpenHud} disabled={stops.length === 0}>
-          HELMET HUD <kbd>H</kbd>
-        </button>
-      </header>
-
-      <div className="planning__grid">
-        <section className="planning__panel planning__map-placeholder" aria-label="Map">
-          <p>
-            MAP GOES HERE
-            <br />
-            {site.width} × {site.height} CELLS · {site.cellSizeM.x} × {site.cellSizeM.y} M
-          </p>
-        </section>
-
-        <section className="planning__panel" aria-label="Plan summary">
-          <p className="planning__eyebrow">STATUS</p>
-          <span className={`planning__status planning__status--${statusClass}`}>{plan.status}</span>
-          <ul className="planning__reasons">
-            {plan.reasons.map((reason) => (
-              <li key={reason}>{reason}</li>
-            ))}
-          </ul>
-
-          <dl className="planning__stats">
-            <dt>TOTAL DISTANCE</dt>
-            <dd>{formatKm(plan.distM)}</dd>
-            <dt>DURATION</dt>
-            <dd>{formatDuration(plan.totalSec)}</dd>
-            <dt>OXYGEN MARGIN</dt>
-            <dd>{formatMargin(plan.marginSec)}</dd>
-          </dl>
-
-          <p className="planning__eyebrow" style={{ marginTop: "var(--space-6)" }}>
-            STOPS
-          </p>
-          <ol className="planning__stops">
-            {stops.map((stop) => (
-              <li key={stop.id}>
-                {stop.label} <span>· {stop.dwellMin} min science</span>
-              </li>
-            ))}
-          </ol>
-          <p className="planning__note">
-            Stops are the three science points from site.json, {DEFAULT_DWELL_MIN} min each (assumed).
-          </p>
-        </section>
-      </div>
-    </main>
-  );
-}
-
-export default function App() {
-  const [screen, setScreen] = useState<Screen>("briefing");
-  const [mission, setMission] = useState<Mission | null>(null);
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    let cancelled = false;
-    fetch("/data/site.json")
-      .then((response) => {
-        if (!response.ok) throw new Error(`HTTP ${response.status}`);
-        return response.json();
-      })
-      .then((json) => {
-        if (!cancelled) setMission(buildMission(json));
-      })
-      .catch((err: unknown) => {
-        if (!cancelled) setError(err instanceof Error ? err.message : String(err));
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, []);
-
-  const hudProps = useMemo(() => (mission ? hudPropsFor(mission) : null), [mission]);
-  const canShowHud = hudProps !== null;
-
-  // H toggles the helmet HUD from the planning screen; Esc leaves it.
-  useEffect(() => {
-    const onKeyDown = (event: KeyboardEvent) => {
-      if (event.ctrlKey || event.metaKey || event.altKey) return;
-      const target = event.target as HTMLElement | null;
-      if (target && (target.tagName === "INPUT" || target.tagName === "TEXTAREA" || target.isContentEditable)) return;
-      const key = event.key.toLowerCase();
-      if (key === "h" && canShowHud) {
-        setScreen((current) => (current === "planning" ? "hud" : current === "hud" ? "planning" : current));
-      } else if (key === "escape") {
-        setScreen((current) => (current === "hud" ? "planning" : current));
-      }
-    };
-    window.addEventListener("keydown", onKeyDown);
-    return () => window.removeEventListener("keydown", onKeyDown);
-  }, [canShowHud]);
-
-  if (screen === "briefing") {
-    return <MissionBriefing onBeginPlanning={() => setScreen("planning")} />;
-  }
-  if (screen === "hud" && hudProps) {
-    return <HelmetHud {...hudProps} onExitHud={() => setScreen("planning")} />;
-  }
-  return <PlanningScreen mission={mission} error={error} onOpenHud={() => setScreen("hud")} />;
-}
+export default function App(){return <MissionProvider><Console/></MissionProvider>}

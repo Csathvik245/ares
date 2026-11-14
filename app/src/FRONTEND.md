@@ -1,0 +1,15 @@
+# Frontend handoff
+
+Run `npm ci`, then `npm run dev` from `app`. Use a supported Node release (22.12+, 24, or 26); the existing Vitest lockfile does not declare Node 25 support. Checks: `npm run typecheck`, `npm test`, `npm run build`.
+
+The application opens on the briefing. Begin planning, click map cells or POI markers, edit stop cards, drag numbered markers, or load the demo mission. Dwell defaults to 30 min as a demonstration assumption. Drag cards or use arrow buttons to reorder them. H opens HUD, Escape closes it, Space toggles playback, and Delete removes the selected stop outside text inputs. Playback runs at 240× real time. Editing resets the playback and emergency state.
+
+`lib/MissionContext.tsx` owns mission state. UI imports planner through `lib/planner.ts`. That adapter re-exports the real core and marks missing exports `// STUB`: terrain-aware safeZone and abortRoute, position interpolation, and fixed envAt values. Replace individual adapter functions with planner exports at integration I2. No planner source files were changed. The sun/temperature stand-in does not implement the low-sun CAUTION rule; the planner's existing status rules are retained. Unreachable plans cannot play. Emergency simulations pause playback, collapse the zone, and show a route back from the incident point. Reset restores planning. Abort return animation is not implemented.
+
+Existing briefing and helmet screens are reused through `components/placeholders/index.tsx`; swap these wrappers at I3 when `src/design` lands. Stop detail supports a credited photo and handles missing image files. `/data/stops.json` is optional and replaces POI demo metadata when its array is available (I4). There is no AI component/backend yet, so I5 is pending.
+
+Map: Leaflet EPSG4326. NASA layer `Mars_Viking_MDIM21_ClrMosaic_global_232m`, endpoint `/tiles/Mars/EQ/<layer>/1.0.0/default/default028mm/{z}/{y}/{x}.jpg`. Root tile returned HTTP 200, image/jpeg, with cross-origin access. This is coarse Viking global imagery, not local HiRISE. First tile failure selects local elevation hillshade. Overlays are cached per site/cost; timeline ticks update only astronaut/abort markers. Hillshade and synthetic terrain remain usable without NASA imagery. Radiation is Curiosity RAD's Gale baseline applied to Jezero, SPE multiplier illustrative. All supplied layer sources are visible in the source dialog.
+
+For Vercel, import the GitHub repo, select Vite and root directory `app`; build `npm run build`, output `dist`. Deploy from main. Deployment still requires the team's Vercel project/account. Do not mark live-demo or visual QA items complete until reviewed in Chrome on the deployment.
+
+The shared checklist and CLAUDE.md were not edited: the checklist requires a group announcement before those shared-file changes, and no message to the group was authorized. Proposed CLAUDE.md section 3 note: the Viking layer above serves tiles; full local alignment/zoom behavior requires browser review. Tick frontend items only once pushed to main and working.

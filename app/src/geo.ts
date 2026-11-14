@@ -1,5 +1,5 @@
-import { MARS_RADIUS_M } from "./planner";
-import type { LatLng } from "./planner";
+import { MARS_RADIUS_M } from "./lib/planner";
+import type { LatLng } from "./lib/planner";
 
 const RAD = Math.PI / 180;
 
