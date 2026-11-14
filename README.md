@@ -66,6 +66,10 @@ Every number in the planner either has a source or is labelled as our assumption
 
 Rules, deadline and judging criteria are summarised, with links to the official pages, in **[docs/submission.md](docs/submission.md)**.
 
+## AI use
+
+AI coding and chat assistants helped us write and test the code and docs. Every route and safety decision in the app comes from deterministic algorithms, not AI. Full disclosure: **[docs/ai-disclosure.md](docs/ai-disclosure.md)**.
+
 ## Team
 
 **The Ares Initiative**: a team of six. Everyone shares every role: data, planner, frontend, design and story.
