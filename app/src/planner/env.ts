@@ -34,6 +34,9 @@ export const TEMP_MAX_LMST = 14;
 const RAD = Math.PI / 180;
 const sinDeg = (deg: number) => Math.sin(deg * RAD);
 const cosDeg = (deg: number) => Math.cos(deg * RAD);
+/** Contract 3: CAUTION when the sun is lower than this (degrees) at any time during the EVA. */
+export const SUN_CAUTION_DEG = 10;
+
 /** Wrap an hour value into [0, 24). */
 const wrap24 = (hours: number) => ((hours % 24) + 24) % 24;
 
@@ -194,4 +197,30 @@ export function sunElevationSeries(
     });
   }
   return series;
+}
+
+export type LowSun = {
+  /** First moment the sun is below SUN_CAUTION_DEG: seconds into the EVA, clock time and elevation. */
+  first: { tSec: number; lmst: number; sunElevationDeg: number };
+  /** The lowest the sun gets during the EVA. */
+  lowest: { tSec: number; lmst: number; sunElevationDeg: number };
+};
+
+/**
+ * Checks the sun once a minute through an EVA that starts at startLmst and lasts
+ * durationSec. Returns null if the sun stays at or above SUN_CAUTION_DEG the whole
+ * time, otherwise when it first drops below and how low it gets.
+ */
+export function lowSunDuring(startLmst: number, durationSec: number): LowSun | null {
+  if (!Number.isFinite(startLmst) || !Number.isFinite(durationSec) || durationSec < 0) return null;
+  const stepSec = 60;
+  // Round the duration up to a whole minute so the end of the EVA is checked too.
+  const series = sunElevationSeries(startLmst, Math.ceil(durationSec / stepSec) * stepSec, stepSec);
+  let first: LowSun["first"] | null = null;
+  let lowest = series[0];
+  for (const sample of series) {
+    if (!first && sample.sunElevationDeg < SUN_CAUTION_DEG) first = sample;
+    if (sample.sunElevationDeg < lowest.sunElevationDeg) lowest = sample;
+  }
+  return first ? { first, lowest } : null;
 }

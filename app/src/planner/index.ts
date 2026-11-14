@@ -16,3 +16,23 @@ export { abortRoute } from "./abort";
 export type { AbortRoute } from "./abort";
 export { explainSegment } from "./explain";
 export type { SegmentExplanation } from "./explain";
+export {
+  envAt,
+  sunElevationSeries,
+  sunElevationDeg,
+  lowSunDuring,
+  solarDeclinationDeg,
+  equationOfTimeDeg,
+  lmstToLtst,
+  ltstToLmst,
+  temperatureC,
+  doseRateMsvPerHr,
+  SITE_LAT_DEG,
+  DEMO_LS_DEG,
+  SUN_CAUTION_DEG,
+  TEMP_MIN_C,
+  TEMP_MIN_LMST,
+  TEMP_MAX_C,
+  TEMP_MAX_LMST,
+} from "./env";
+export type { LowSun } from "./env";

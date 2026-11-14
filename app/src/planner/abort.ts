@@ -64,6 +64,19 @@ export function abortRoute(site: Site, stormCost: CostGrid, from: LatLng, oxygen
   const budget = oxygenBudget(storm);
   const marginSec = budget.usableSec - oxygenUsedSec - sec * WALK_BURN;
 
+  // Status follows Contract 3, the same rules planRoute uses:
+  //   NO-GO   — the margin is negative (or home is unreachable, handled above)
+  //   CAUTION — the margin is low, or a storm / SPE is active
+  //   GO      — everything else
+  // An active storm on its own is CAUTION, not NO-GO.
+  const emergencyReasons: string[] = [];
+  if (storm) {
+    emergencyReasons.push(
+      `Dust storm active: low visibility slows walking and adds ${STORM_EXTRA_RESERVE_MIN} min to the reserve.`,
+    );
+  }
+  if (spe) emergencyReasons.push("Solar particle event active: radiation dose rate is elevated. Head for shelter.");
+
   const reasons: string[] = [];
   let status: Status;
   if (marginSec < 0) {
@@ -71,17 +84,13 @@ export function abortRoute(site: Site, stormCost: CostGrid, from: LatLng, oxygen
     reasons.push(
       `Not enough oxygen to walk home with the reserve intact: ${minutes(-marginSec)} min short ` +
         `(${minutes(sec)} min walk, ${minutes(budget.reserveSec)} min reserve).`,
+      ...emergencyReasons,
     );
   } else {
     if (isLowMargin(marginSec, budget)) {
       reasons.push(`Oxygen margin on arrival is low: ${minutes(marginSec)} min above reserve.`);
     }
-    if (storm) {
-      reasons.push(
-        `Dust storm active: low visibility slows walking and adds ${STORM_EXTRA_RESERVE_MIN} min to the reserve.`,
-      );
-    }
-    if (spe) reasons.push("Solar particle event active: radiation dose rate is elevated. Head for shelter.");
+    reasons.push(...emergencyReasons);
     status = reasons.length > 0 ? "CAUTION" : "GO";
     reasons.unshift(`Abort home: ${minutes(sec)} min walk, ${minutes(marginSec)} min of oxygen margin on arrival.`);
   }

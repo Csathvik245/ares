@@ -51,8 +51,8 @@ Every role can finish **all of its items without waiting for anyone's commits**.
 Needs nothing from anyone. Your output is checked by your own `check_site.py`.
 
 **Fake data (do first, about 15 min)**
-- [ ] 🟥 Move fake habitat to **18.445 N, 77.451 E** (near Perseverance's landing site); nudge if the cell is no-go or sand
-- [ ] 🟥 Place POIs so habitat → 3 stops → habitat is about 4–5 km walking; `check_site.py` passes
+- [x] 🟥 Move fake habitat to **18.445 N, 77.451 E** (near Perseverance's landing site); nudge if the cell is no-go or sand
+- [x] 🟥 Place POIs so habitat → 3 stops → habitat is about 4–5 km walking; `check_site.py` passes
 
 **Real data**
 - [ ] 🟥 Download the Mars 2020 HiRISE DTM mosaic of Jezero (USGS Astrogeology). Backups: CTX DTM, then MOLA
@@ -84,10 +84,10 @@ Needs nothing from anyone. Test everything with Vitest on the fake `site.json` t
 - [ ] 🟥 `positionAt(plan, tSec)`
 - [ ] 🟧 `abortRoute` (cached storm-cost field)
 - [ ] 🟧 `explainSegment`
-- [ ] 🟧 `envAt`: Mars24 sun elevation at 18.45 N for a fixed Ls; temperature curve (placeholder −83 to −23 °C, flagged in a comment); dose rate (+SPE). Constants live in `planner/` so you don't wait for MEDA values
-- [ ] 🟧 Sun < 10° CAUTION rule
+- [x] 🟧 `envAt`: Mars24 sun elevation at 18.45 N for a fixed Ls; temperature curve (placeholder −83 to −23 °C, flagged in a comment); dose rate (+SPE). Constants live in `planner/` so you don't wait for MEDA values
+- [x] 🟧 Sun < 10° CAUTION rule
 - [ ] 🟧 Tests for every function; each < 100 ms
-- [ ] 🟧 `index.ts` exports every Contract 4 function, so the frontend's swap (I2) is one line
+- [x] 🟧 `index.ts` exports every Contract 4 function, so the frontend's swap (I2) is one line
 - [ ] 🟦 `optimizeOrder` (≤ 6 stops), `suggestStops` (science ÷ round-trip oxygen)
 - [ ] 🟦 Web Worker wrapper `planner/worker.ts` (only if the frontend reports lag)
 

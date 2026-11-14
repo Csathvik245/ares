@@ -1,4 +1,5 @@
 import { STORM_EXTRA_RESERVE_MIN, WALK_BURN, WORK_BURN } from "./constants";
+import { SUN_CAUTION_DEG, lowSunDuring } from "./env";
 import { isLowMargin, oxygenBudget } from "./oxygen";
 import { smoothPath } from "./geom";
 import { aStar, pathLengthM, pathTo } from "./search";
@@ -6,6 +7,17 @@ import { cellIndexOf } from "./site";
 import type { CostGrid, LatLng, Leg, Plan, Site, Status, Stop } from "./types";
 
 const minutes = (sec: number) => Math.round(sec / 60);
+/** Clock time such as "17:58" from hours. */
+const clockTime = (hours: number) => {
+  const totalMin = Math.round(hours * 60) % (24 * 60);
+  return `${String(Math.floor(totalMin / 60)).padStart(2, "0")}:${String(totalMin % 60).padStart(2, "0")}`;
+};
+/** Elapsed time such as "2 h 05 min" from seconds. */
+const elapsedTime = (sec: number) => {
+  const totalMin = minutes(sec);
+  return totalMin < 60 ? `${totalMin} min` : `${Math.floor(totalMin / 60)} h ${String(totalMin % 60).padStart(2, "0")} min`;
+};
+const degrees = (deg: number) => `${deg < 0 ? "−" : ""}${Math.abs(deg).toFixed(1)}°`;
 
 /**
  * Plan the EVA: habitat → stop 1 → … → last stop → habitat.
@@ -16,10 +28,12 @@ const minutes = (sec: number) => Math.round(sec / 60);
  * Dwell time is added at each stop, then
  * oxygen, margin and status are worked out from Contracts 2 and 3.
  *
- * Storm and SPE are read from cost.conditions (the conditions the grid was built for).
+ * Storm, SPE and the start time are read from cost.conditions (the conditions the
+ * grid was built for).
  *
- * NOT YET CHECKED: Contract 3's "sun < 10° during walk" CAUTION rule needs the
- * Mars24 sun model in envAt, which is a later task.
+ * Low sun (Contract 3): the sun is checked once a minute from conditions.startLmst
+ * to the end of the EVA (walking and science). If it is ever below 10° the status
+ * is at least CAUTION, with a reason giving the time and elevation. NO-GO still wins.
  */
 export function planRoute(site: Site, cost: CostGrid, habitat: LatLng, stops: Stop[]): Plan {
   const { storm, spe } = cost.conditions;
@@ -105,6 +119,17 @@ export function planRoute(site: Site, cost: CostGrid, habitat: LatLng, stops: St
       );
     }
     if (spe) reasons.push("Solar particle event active: radiation dose rate is elevated.");
+    const lowSun = stops.length > 0 ? lowSunDuring(cost.conditions.startLmst, clock) : null;
+    if (lowSun) {
+      const { first, lowest } = lowSun;
+      const when = first.tSec === 0 ? "from the start" : `${elapsedTime(first.tSec)} into the EVA`;
+      let reason = `Low sun: below ${SUN_CAUTION_DEG}° at ${clockTime(first.lmst)} LMST (${when}, elevation ${degrees(first.sunElevationDeg)})`;
+      if (lowest.tSec !== first.tSec) {
+        reason += `, dropping to ${degrees(lowest.sunElevationDeg)} at ${clockTime(lowest.lmst)} LMST`;
+      }
+      if (lowest.sunElevationDeg < 0) reason += " — part of the EVA is in darkness";
+      reasons.push(`${reason}.`);
+    }
     if (reasons.length > 0) {
       status = "CAUTION";
     } else {
