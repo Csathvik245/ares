@@ -9,10 +9,12 @@ import {
   type Plan,
   type CostGrid,
 } from "../lib/planner";
+import type { Basemap } from "../lib/basemap";
 import { raster, type OverlayName } from "../lib/layers";
 export const TREK_LAYER = "Mars_Viking_MDIM21_ClrMosaic_global_232m";
 export function MissionMap({
   site,
+  basemap,
   cost,
   plan,
   stops,
@@ -26,6 +28,7 @@ export function MissionMap({
   onProbe,
 }: {
   site: Site;
+  basemap: Basemap | null;
   cost: CostGrid;
   plan: Plan;
   stops: Stop[];
@@ -42,7 +45,7 @@ export function MissionMap({
     map = useRef<L.Map | null>(null),
     callbacks = useRef({ onAdd, onMove, onSelect, onProbe });
   callbacks.current = { onAdd, onMove, onSelect, onProbe };
-  const [offline, setOffline] = useState(false);
+  const [baseLabel, setBaseLabel] = useState("Elevation hillshade");
   const cache = useRef(new Map<string, string>());
   useEffect(() => {
     cache.current.clear();
@@ -61,22 +64,54 @@ export function MissionMap({
     );
     m.fitBounds(b);
     m.setMaxBounds(b.pad(0.3));
+    m.createPane("fallback").style.zIndex = "150";
+    m.createPane("localBasemap").style.zIndex = "250";
     L.imageOverlay(raster(site, cost, "hillshade"), b, {
       interactive: false,
+      pane: "fallback",
     }).addTo(m);
-    const tiles = L.tileLayer(
-      `https://trek.nasa.gov/tiles/Mars/EQ/${TREK_LAYER}/1.0.0/default/default028mm/{z}/{y}/{x}.jpg`,
-      {
-        maxNativeZoom: 7,
-        maxZoom: 17,
-        attribution: "NASA/JPL-Caltech · Viking MDIM 2.1",
-      },
-    );
-    tiles.on("tileerror", () => {
-      setOffline(true);
-      m.removeLayer(tiles);
-    });
-    tiles.addTo(m);
+    let disposed = false;
+    let nasa: L.TileLayer | undefined;
+    const startNasa = () => {
+      if (disposed) return;
+      setBaseLabel("Elevation hillshade · loading Viking imagery");
+      nasa = L.tileLayer(
+        `https://trek.nasa.gov/tiles/Mars/EQ/${TREK_LAYER}/1.0.0/default/default028mm/{z}/{y}/{x}.jpg`,
+        {
+          maxNativeZoom: 7,
+          maxZoom: 17,
+          attribution: "NASA/JPL-Caltech · Viking MDIM 2.1",
+        },
+      );
+      nasa.on("load", () => {
+        if (!disposed && nasa && m.hasLayer(nasa))
+          setBaseLabel("Viking global imagery");
+      });
+      nasa.on("tileerror", () => {
+        if (nasa) m.removeLayer(nasa);
+        if (!disposed)
+          setBaseLabel("Elevation hillshade · imagery unavailable");
+      });
+      nasa.addTo(m);
+    };
+    if (basemap) {
+      const image = L.imageOverlay(basemap.url, b, {
+        pane: "localBasemap",
+        attribution: basemap.credit,
+        interactive: false,
+      });
+      image.on("load", () => {
+        if (!disposed)
+          setBaseLabel(
+            `HiRISE local mosaic · ${basemap.metersPerPixel.toFixed(1)} m/pixel`,
+          );
+      });
+      image.on("error", () => {
+        m.removeLayer(image);
+        startNasa();
+      });
+      image.addTo(m);
+    } else startNasa();
     m.on("click", (e: L.LeafletMouseEvent) => {
       if (cellIndexOf(site, e.latlng) >= 0) callbacks.current.onAdd(e.latlng);
     });
@@ -86,11 +121,12 @@ export function MissionMap({
     const resize = new ResizeObserver(() => m.invalidateSize());
     resize.observe(root.current!);
     return () => {
+      disposed = true;
       resize.disconnect();
       m.remove();
       map.current = null;
     };
-  }, [site]);
+  }, [site, basemap]);
   useEffect(() => {
     const m = map.current;
     if (!m) return;
@@ -113,7 +149,7 @@ export function MissionMap({
     return () => {
       group.remove();
     };
-  }, [site, cost, active, zone]);
+  }, [site, basemap, cost, active, zone]);
   useEffect(() => {
     const m = map.current;
     if (!m) return;
@@ -157,7 +193,7 @@ export function MissionMap({
     return () => {
       g.remove();
     };
-  }, [site, stops, plan]);
+  }, [site, basemap, stops, plan]);
   useEffect(() => {
     const m = map.current;
     if (!m) return;
@@ -175,7 +211,7 @@ export function MissionMap({
     return () => {
       g.remove();
     };
-  }, [position, abort]);
+  }, [basemap, position, abort]);
   return (
     <div className="map-shell">
       <div
@@ -183,12 +219,7 @@ export function MissionMap({
         className="mission-map"
         aria-label="Jezero map. Click to add stops."
       />
-      <span className="map-caption">
-        {offline
-          ? "Terrain hillshade · imagery unavailable"
-          : "Viking global imagery + local terrain"}{" "}
-        · Click map to add a stop
-      </span>
+      <span className="map-caption">{baseLabel} · Click map to add a stop</span>
     </div>
   );
 }

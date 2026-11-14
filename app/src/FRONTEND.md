@@ -29,3 +29,15 @@ Chrome production checks: real-data loading; empty-demo explanation; add two man
 Automated real-terrain tests verify passable habitat, reachable local QA cells, route/dwell changes, endpoint return, storm abort, blocked stops and oxygen exhaustion. Test-selected locations are not published as science stops. All 85 tests, TypeScript and production build pass.
 
 Vercel GitHub connection was retried and again rejected the repository. The repository owner must authorize the Vercel GitHub integration for Csathvik245/ares. CLI production deploy is working with rootDirectory=app. Local changes are deployed but require the user's commit and push; no GitHub push was made by the agent.
+
+## Latest frontend integration
+
+The supplied local HiRISE basemap is now preferred over remote tiles, using validated bounds and NASA/JPL-Caltech/University of Arizona/USGS credit from basemap.json. The credited image also feeds the existing opening briefing. Image errors fall back to Viking tiles and then local hillshade. No pipeline or public data files were changed.
+
+Demo loading now preserves the real POI notes and photo metadata. Chrome verified the supplied three-stop mission as 4.97 km, 3 h 34 min, GO, 192 min margin and 49% oxygen at return. Actual rover photo files and final stops.json are still absent; the existing photo fallback handles this without requesting nonexistent files.
+
+Emergency return can now be played or paused. This is frontend playback of the real planner abort path/time through positionAt; planner decisions and source remain unchanged. Chrome verified a simulated return from the demo's midpoint to the habitat (1 h 26 min storm return), with advancing marker, mission clock, oxygen and dose. Arrival is labeled simulated and the EVA remains aborted.
+
+H and Delete now work when ordinary buttons are focused; text inputs retain their normal editing keys. Escape closes HUD/dialogs. Space retains native focused-button activation and otherwise toggles mission/return playback. H, Escape, Space and Delete were exercised in Chrome. The local mosaic, credits, demo stop notes, missing-photo fallback and completed return playback were visually inspected. Exact responsive dimensions were explored in DevTools; a complete desktop/tablet visual review is still recommended.
+
+All 95 tests, TypeScript and production build passed. Changes are limited to frontend files under app/src and are not pushed by the agent. Production has the functional update; the last source-dialog attribution text refinement is local and will appear on the next deployment. Final design/AI components and rover photo assets are still teammate inputs.

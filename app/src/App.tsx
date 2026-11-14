@@ -48,33 +48,47 @@ function Console() {
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
       const el = e.target as HTMLElement;
-      if (
-        e.ctrlKey ||
-        e.metaKey ||
-        e.altKey ||
-        el.matches("input,textarea,select,button") ||
-        el.isContentEditable
-      )
-        return;
+      if (e.ctrlKey || e.metaKey || e.altKey || e.repeat) return;
       if (e.key === "Escape") {
         setDetail("");
         setSources(false);
-        setScreen((s) => (s === "hud" ? "plan" : s));
+        setAssistant(false);
+        setScreen((current) => (current === "hud" ? "plan" : current));
+        return;
       }
-      if (screen === "briefing") return;
-      if (!frontendOnly && e.key.toLowerCase() === "h")
-        setScreen((s) => (s === "hud" ? "plan" : "hud"));
-      if (e.code === "Space" && !emergency) {
+      if (
+        el.closest('input,textarea,select,[contenteditable="true"]') ||
+        screen === "briefing"
+      )
+        return;
+      if (!frontendOnly && e.key.toLowerCase() === "h") {
         e.preventDefault();
-        m.togglePlayback();
+        setScreen((current) => (current === "hud" ? "plan" : "hud"));
+        return;
       }
-      if (e.key === "Delete") remove();
+      if (e.code === "Space") {
+        // Focused buttons retain native Space activation; avoid toggling twice.
+        if (el.closest('button,a[href],[role="button"]')) return;
+        e.preventDefault();
+        if (emergency) m.toggleReturnPlayback();
+        else m.togglePlayback();
+      }
+      if (e.key === "Delete" && screen === "plan") {
+        e.preventDefault();
+        remove();
+      }
     };
     window.addEventListener("keydown", handler);
     return () => window.removeEventListener("keydown", handler);
   });
   if (screen === "briefing")
-    return <OpeningScreen onBeginPlanning={() => setScreen("plan")} />;
+    return (
+      <OpeningScreen
+        onBeginPlanning={() => setScreen("plan")}
+        terrainImageUrl={m.basemap?.url}
+        imageCredit={m.basemap?.credit}
+      />
+    );
   if (m.error)
     return (
       <main className="load-state" role="alert">
@@ -98,11 +112,13 @@ function Console() {
         nextStop={"label" in target ? target.label : target.name}
         distanceM={
           emergency
-            ? (abort?.path.reduce(
-                (sum, p, i, path) =>
-                  i ? sum + distanceM(path[i - 1], p) : sum,
-                0,
-              ) ?? 0)
+            ? m.returnPlan
+              ? m.returnPlan.distM *
+                (1 -
+                  (m.returnPlan.totalSec
+                    ? m.returnElapsed / m.returnPlan.totalSec
+                    : 1))
+              : 0
             : distanceM(position, target)
         }
         headingDeg={bearingDeg(position, target)}
@@ -113,7 +129,7 @@ function Console() {
         marginMin={(abort?.marginSec ?? plan.marginSec) / 60}
         doseMsv={m.dose}
         localTime={lmst(
-          m.conditions.startLmst + ((m.elapsed / 3600) * 24) / SOL_HOURS,
+          m.conditions.startLmst + ((m.clockElapsed / 3600) * 24) / SOL_HOURS,
         )}
         temperatureC={m.env.tempC}
         onExitHud={() => setScreen("plan")}
@@ -145,7 +161,8 @@ function Console() {
           <span className="mono">
             LMST{" "}
             {lmst(
-              m.conditions.startLmst + ((m.elapsed / 3600) * 24) / SOL_HOURS,
+              m.conditions.startLmst +
+                ((m.clockElapsed / 3600) * 24) / SOL_HOURS,
             )}
           </span>
           <span className={`status status--${status}`}>{status}</span>
@@ -161,7 +178,7 @@ function Console() {
       <div className="assumptions">
         {m.fake ? "SYNTHETIC TERRAIN · " : ""}Demonstration · Terrain-aware
         planner · Mars24 sun (Ls 0°) · Temperature model pending MEDA ·{" "}
-        {TREK_LAYER}
+        {m.basemap ? "Local HiRISE mosaic" : TREK_LAYER}
       </div>
       {emergency && (
         <aside className="emergency" role="alert">
@@ -173,11 +190,34 @@ function Console() {
             {emergency.kind === "storm"
               ? "Visibility and visor dust slow walking."
               : "Illustrative 30× radiation dose rate."}{" "}
-            Return guidance frozen at incident position.{" "}
+            Return route computed from the incident position.{" "}
             {abort?.path.length
               ? `Walk home: ${duration(abort.sec)} · margin ${Math.round(abort.marginSec / 60)} min · ${abort.status}`
               : "No terrain-safe return path found."}
           </p>
+          {m.returnPlan && (
+            <div className="return-playback">
+              <p role="status">
+                {m.returnElapsed >= m.returnPlan.totalSec
+                  ? "Simulated arrival at habitat · EVA aborted"
+                  : `Return progress: ${duration(m.returnElapsed)} / ${duration(m.returnPlan.totalSec)}`}
+              </p>
+              <progress
+                aria-label="Abort return progress"
+                max={Math.max(1, m.returnPlan.totalSec)}
+                value={m.returnElapsed}
+              />
+              <button
+                disabled={
+                  m.returnPlan.totalSec <= 0 ||
+                  m.returnElapsed >= m.returnPlan.totalSec
+                }
+                onClick={m.toggleReturnPlayback}
+              >
+                {m.returnPlaying ? "Pause return" : "Play return to habitat"}
+              </button>
+            </div>
+          )}
           <button onClick={m.reset}>Reset emergency and playback</button>
         </aside>
       )}
@@ -240,6 +280,7 @@ function Console() {
         <section className="map-column">
           <MissionMap
             site={site}
+            basemap={m.basemap}
             cost={cost}
             plan={plan}
             stops={m.stops}
@@ -335,7 +376,7 @@ function Console() {
         <aside
           className={`side plan-panel ${tab === "Plan" ? "mobile-open" : ""}`}
         >
-          <h2>Mission plan</h2>
+          <h2>{emergency ? "Original mission plan" : "Mission plan"}</h2>
           <span className={`status status--${status}`}>{status}</span>
           <ul>
             {(emergency
@@ -526,8 +567,15 @@ function Console() {
               <b>{name}:</b> {source}
             </p>
           ))}
+          {m.basemap && (
+            <p>
+              <b>Local basemap:</b> {m.basemap.source}
+              <br />
+              {m.basemap.credit} · {m.basemap.metersPerPixel.toFixed(2)} m/pixel
+            </p>
+          )}
           <p>
-            Basemap: NASA/JPL-Caltech Viking MDIM 2.1. Terrain:{" "}
+            Fallback imagery: NASA/JPL-Caltech Viking MDIM 2.1. Terrain:{" "}
             {m.fake
               ? "synthetic demonstration grid"
               : "see layer sources above"}

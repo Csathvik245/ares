@@ -1,4 +1,4 @@
-import type { Stop } from "./planner";
+import type { Stop, Site } from "./planner";
 
 export type DemoStop = Stop & {
   why?: string;
@@ -62,4 +62,21 @@ export function readDemoStops(value: unknown): DemoStop[] | null {
     });
   }
   return stops;
+}
+
+/** Preserve supplied science notes and image credits in the default POI mission. */
+export function demoStopsFromSite(site: Site): DemoStop[] {
+  return site.pois
+    .filter((p) => p.kind === "science")
+    .slice(0, 3)
+    .map((p) => ({
+      id: p.id,
+      label: p.name,
+      lat: p.lat,
+      lng: p.lng,
+      dwellMin: 30,
+      why: p.note,
+      photo: p.photo,
+      photoCredit: p.photoCredit,
+    }));
 }

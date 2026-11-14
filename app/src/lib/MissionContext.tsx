@@ -20,7 +20,14 @@ import {
   type LatLng,
   SOL_HOURS,
 } from "./planner";
-import { optionalJson, readDemoStops, type DemoStop } from "./data";
+import {
+  optionalJson,
+  readDemoStops,
+  demoStopsFromSite,
+  type DemoStop,
+} from "./data";
+import { returnPlaybackPlan } from "./return-playback";
+import { readBasemap, type Basemap } from "./basemap";
 import { publicAssetUrl } from "./assets";
 export type { DemoStop } from "./data";
 
@@ -28,6 +35,7 @@ function useMissionState() {
   const [site, setSite] = useState<Site | null>(null),
     [fake, setFake] = useState(false),
     [error, setError] = useState("");
+  const [basemap, setBasemap] = useState<Basemap | null>(null);
   const [stops, setStops] = useState<DemoStop[]>([]),
     [demo, setDemo] = useState<DemoStop[]>([]),
     [selected, setSelected] = useState("");
@@ -36,6 +44,8 @@ function useMissionState() {
     spe: false,
     startLmst: 13,
   });
+  const [returnElapsed, setReturnElapsed] = useState(0),
+    [returnPlaying, setReturnPlaying] = useState(false);
   const [elapsed, setElapsed] = useState(0),
     [playing, setPlaying] = useState(false),
     [emergency, setEmergency] = useState<{
@@ -47,36 +57,37 @@ function useMissionState() {
   useEffect(() => {
     const control = new AbortController();
     setError("");
-    fetch(`${import.meta.env.BASE_URL}data/site.json`, {
-      signal: control.signal,
-    })
-      .then((r) => {
-        if (!r.ok) throw Error(`Terrain HTTP ${r.status}`);
-        return r.json();
-      })
-      .then((json) => {
-        const s = loadSite(json);
-        setSite(s);
-        setFake(json.fake === true);
-        setDemo(
-          s.pois
-            .filter((p) => p.kind === "science")
-            .slice(0, 3)
-            .map((p) => ({ ...p, label: p.name, dwellMin: 30, why: p.note })),
-        );
-        const stopsUrl = publicAssetUrl("data/stops.json");
-        return stopsUrl
-          ? fetch(stopsUrl, { signal: control.signal }).catch(() => null)
-          : null;
-      })
-      .then(async (r) => {
-        const d = await optionalJson(r);
-        const stops = readDemoStops(d);
-        if (!control.signal.aborted && stops) setDemo(stops);
-      })
-      .catch((e) => {
-        if (e.name !== "AbortError") setError(String(e));
-      });
+    const optionalAsset = async (name: string) => {
+      const url = publicAssetUrl(name);
+      if (!url) return null;
+      try {
+        return await optionalJson(await fetch(url, { signal: control.signal }));
+      } catch {
+        return null;
+      }
+    };
+    const load = async () => {
+      const response = await fetch(
+        `${import.meta.env.BASE_URL}data/site.json`,
+        { signal: control.signal },
+      );
+      if (!response.ok) throw Error(`Terrain HTTP ${response.status}`);
+      const json = await response.json();
+      const loadedSite = loadSite(json);
+      const [stopData, mapData] = await Promise.all([
+        optionalAsset("data/stops.json"),
+        optionalAsset("data/basemap.json"),
+      ]);
+      if (control.signal.aborted) return;
+      setSite(loadedSite);
+      setFake(json.fake === true);
+      setDemo(readDemoStops(stopData) ?? demoStopsFromSite(loadedSite));
+      setBasemap(readBasemap(mapData, loadedSite.bounds));
+    };
+    load().catch((e: unknown) => {
+      if (!control.signal.aborted)
+        setError(e instanceof Error ? e.message : String(e));
+    });
     return () => control.abort();
   }, []);
   const cost = useMemo(
@@ -98,7 +109,7 @@ function useMissionState() {
         : null,
     [site, normalCost, stops],
   );
-  const position = useMemo(() => {
+  const plannedPosition = useMemo(() => {
     const p = plan?.legs.length ? positionAt(plan, elapsed) : null;
     return p && Number.isFinite(p.lat) && Number.isFinite(p.lng)
       ? p
@@ -127,14 +138,56 @@ function useMissionState() {
         : null,
     [site, cost, emergency],
   );
+  const returnPlan = useMemo(
+    () =>
+      abort && emergency
+        ? returnPlaybackPlan(abort, emergency.used, conditions.storm)
+        : null,
+    [abort, emergency, conditions.storm],
+  );
+  const returning = useMemo(
+    () => (returnPlan ? positionAt(returnPlan, returnElapsed) : null),
+    [returnPlan, returnElapsed],
+  );
+  const position =
+    emergency && returning
+      ? {
+          ...returning,
+          legIndex: plannedPosition.legIndex,
+          oxygenUsedSec: emergency.used + returning.oxygenUsedSec,
+        }
+      : plannedPosition;
+  const clockElapsed = emergency ? emergency.at + returnElapsed : elapsed;
+  useEffect(() => {
+    if (!returnPlaying || !returnPlan) return;
+    const timer = setInterval(
+      () =>
+        setReturnElapsed((t) => {
+          const next = Math.min(returnPlan.totalSec, t + 60);
+          if (next >= returnPlan.totalSec) setReturnPlaying(false);
+          return next;
+        }),
+      250,
+    );
+    return () => clearInterval(timer);
+  }, [returnPlaying, returnPlan]);
+  const toggleReturnPlayback = () => {
+    if (
+      !returnPlan?.ok ||
+      returnPlan.totalSec <= 0 ||
+      returnElapsed >= returnPlan.totalSec
+    )
+      return;
+    setReturnPlaying((p) => !p);
+  };
   const env = envAt(
-    conditions.startLmst + ((elapsed / 3600) * 24) / SOL_HOURS,
+    conditions.startLmst + ((clockElapsed / 3600) * 24) / SOL_HOURS,
     conditions.spe,
   );
   const dose =
     (envAt(0, false).doseRateMsvPerHr * (emergency ? emergency.at : elapsed)) /
       3600 +
-    (emergency ? (env.doseRateMsvPerHr * (elapsed - emergency.at)) / 3600 : 0);
+    (emergency ? (env.doseRateMsvPerHr * returnElapsed) / 3600 : 0);
   useEffect(() => {
     if (!playing || !plan) return;
     const id = setInterval(
@@ -158,6 +211,8 @@ function useMissionState() {
     setElapsed(0);
     setPlaying(false);
     setEmergency(null);
+    setReturnElapsed(0);
+    setReturnPlaying(false);
     setConditions((c) => ({ ...c, storm: false, spe: false }));
   };
   const edit = (next: DemoStop[]) => {
@@ -187,14 +242,23 @@ function useMissionState() {
     setSelected(id);
   };
   const trigger = (kind: "storm" | "spe", at = elapsed) => {
-    const snapshot = plan?.legs.length ? positionAt(plan, at) : position;
-    setElapsed(at);
+    const incidentAt = plan ? Math.max(0, Math.min(plan.totalSec, at)) : 0;
+    const candidate = plan?.legs.length
+      ? positionAt(plan, incidentAt)
+      : position;
+    const snapshot =
+      Number.isFinite(candidate.lat) && Number.isFinite(candidate.lng)
+        ? candidate
+        : plannedPosition;
+    setElapsed(incidentAt);
     setPlaying(false);
+    setReturnElapsed(0);
+    setReturnPlaying(false);
     setEmergency({
       kind,
       from: snapshot,
       used: snapshot.oxygenUsedSec,
-      at,
+      at: incidentAt,
     });
     const nextConditions = {
       ...conditions,
@@ -213,6 +277,7 @@ function useMissionState() {
   };
   return {
     site,
+    basemap,
     fake,
     error,
     stops,
@@ -224,6 +289,11 @@ function useMissionState() {
     conditions,
     setConditions,
     elapsed,
+    clockElapsed,
+    returnPlan,
+    returnElapsed,
+    returnPlaying,
+    toggleReturnPlayback,
     setElapsed,
     playing,
     togglePlayback,
