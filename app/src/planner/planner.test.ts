@@ -15,6 +15,7 @@ import {
   loadSite,
   pathTo,
   planRoute,
+  safeZone,
 } from "./index";
 import type { Conditions, CostGrid, LatLng, Plan, Site, Stop } from "./index";
 
@@ -276,6 +277,50 @@ describe("path smoothing", () => {
   });
 });
 
+const countInside = (zone: Uint8Array) => zone.reduce((n, v) => n + v, 0);
+
+describe("safeZone", () => {
+  const site = makeSite(80, 80, (r, c) => (c === 40 && r > 10 ? 60 : 0));
+  const cost = buildCostGrid(site, CALM);
+  const habitat = cellCenter(site, idx(site, 60, 20));
+
+  it("covers the habitat and last stop, and only passable cells", () => {
+    const plan = planRoute(site, cost, habitat, [stopAt(site, 40, 30, 330)]);
+    expect(plan.status).not.toBe("NO-GO");
+    const zone = safeZone(site, cost, plan);
+    expect(zone).toBeInstanceOf(Uint8Array);
+    expect(zone.length).toBe(site.width * site.height);
+    expect(zone[idx(site, 60, 20)]).toBe(1);
+    expect(zone[idx(site, 40, 30)]).toBe(1);
+    for (let i = 0; i < zone.length; i++) if (zone[i]) expect(cost.secPerM[i]).not.toBe(Infinity);
+    // Some of the map is out of reach: the zone is a real boundary, not the whole grid.
+    expect(countInside(zone)).toBeLessThan(zone.length * 0.9);
+  });
+
+  it("shrinks when a stop is added", () => {
+    const one = planRoute(site, cost, habitat, [stopAt(site, 40, 30, 300)]);
+    const two = planRoute(site, cost, habitat, [stopAt(site, 40, 30, 300), stopAt(site, 50, 10, 30)]);
+    expect(two.marginSec).toBeGreaterThan(0);
+    const a = countInside(safeZone(site, cost, one));
+    const b = countInside(safeZone(site, cost, two));
+    expect(b).toBeGreaterThan(0);
+    expect(b).toBeLessThan(a);
+  });
+
+  it("is empty when the margin is negative", () => {
+    const plan = planRoute(site, cost, habitat, [stopAt(site, 40, 30, 600)]);
+    expect(plan.marginSec).toBeLessThan(0);
+    expect(countInside(safeZone(site, cost, plan))).toBe(0);
+  });
+
+  it("with no stops is every cell whose round trip fits the usable budget", () => {
+    const plan = planRoute(site, cost, habitat, []);
+    const zone = safeZone(site, cost, plan);
+    const home = dijkstraField(cost, idx(site, 60, 20)).cost;
+    for (let i = 0; i < zone.length; i++) expect(zone[i]).toBe(2 * home[i] * WALK_BURN <= plan.marginSec ? 1 : 0);
+  });
+});
+
 describe("impossible plans return NO-GO", () => {
   it("when a stop is walled in", () => {
     // A closed ring of cliff around cell (10, 10).
@@ -410,6 +455,38 @@ describe("fake Jezero site.json", () => {
       if (field.cost[cell] === Infinity) expect(a).toBe(Infinity);
       else expect(a).toBeCloseTo(field.cost[cell], 6);
     }
+  });
+
+  it("safeZone on the 320 × 240 grid runs in under 100 ms, even with no cached fields", () => {
+    // carb-1 → clay-1 fits (≈75 min margin); all three science POIs do not.
+    const stops: Stop[] = ["carb-1", "clay-1"]
+      .map((id) => site.pois.find((p) => p.id === id)!)
+      .map((p) => ({ id: p.id, label: p.name, lat: p.lat, lng: p.lng, dwellMin: 20 }));
+    const warmUp = buildCostGrid(site, CALM);
+    safeZone(site, warmUp, planRoute(site, warmUp, site.habitat, stops)); // JIT warm-up
+
+    const cold: number[] = [];
+    const warm: number[] = [];
+    let inside = 0;
+    for (let i = 0; i < 5; i++) {
+      const grid = buildCostGrid(site, CALM); // new grid = empty field cache
+      const plan = planRoute(site, grid, site.habitat, stops);
+      let t0 = performance.now();
+      const zone = safeZone(site, grid, plan); // computes both fields
+      cold.push(performance.now() - t0);
+      t0 = performance.now();
+      safeZone(site, grid, plan); // both fields cached
+      warm.push(performance.now() - t0);
+      inside = countInside(zone);
+    }
+    cold.sort((a, b) => a - b);
+    warm.sort((a, b) => a - b);
+    console.log(
+      `safeZone (${stops.length} stops, ${inside} cells inside): cold median ${cold[2].toFixed(1)} ms ` +
+        `(max ${cold[4].toFixed(1)}), cached median ${warm[2].toFixed(1)} ms`,
+    );
+    expect(inside).toBeGreaterThan(0);
+    expect(cold[2]).toBeLessThan(100);
   });
 
   it("full-field Dijkstra over 76,800 cells runs in under 100 ms", () => {
