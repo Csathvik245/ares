@@ -207,7 +207,11 @@ def main():
     elif not pois:
         print("  [WARN] no POIs yet")
     for p in pois:
-        need = {"id", "name", "lat", "lng", "kind", "note"} | ({"photo", "photoCredit"} if p.get("kind") == "science" else set())
+        # A photo is optional (some real stops were never visited by a rover), but a
+        # photo must always come with a credit. The fake fixture keeps the old rule.
+        need = {"id", "name", "lat", "lng", "kind", "note"}
+        if (is_fake and p.get("kind") == "science") or "photo" in p:
+            need |= {"photo", "photoCredit"}
         check(need <= set(p), f"POI {p.get('id')}: required fields present (missing: {sorted(need - set(p)) or 'none'})")
     for p in [hab] + pois:
         inside = b["south"] <= p["lat"] <= b["north"] and b["west"] <= p["lng"] <= b["east"]

@@ -1,10 +1,103 @@
 {
-  "_about": "Habitat and points of interest written into site.json by pipeline/build_site.py. Coordinates are planetocentric latitude and east longitude in degrees. Every entry names where its coordinates came from.",
+  "_about": "Habitat and points of interest written into site.json by pipeline/build_site.py. Coordinates are planetocentric latitude and east longitude in degrees. Every entry names where its coordinates came from. Keys starting with _ are notes and are not copied into site.json. The FIRST THREE science POIs are the demo mission, in walking order.",
+  "_sources": {
+    "waypoints": "NASA 'Where is Perseverance' waypoints file, https://mars.nasa.gov/mmgis-maps/M20/Layers/json/M20_waypoints.json",
+    "ir1": "Farley, K. & Stack, K. (2022). Mars 2020 Initial Reports Volume 1, Crater Floor Campaign. NASA PDS, doi:10.17189/68tf-re13",
+    "ir2": "Farley, K. & Stack, K. (2023). Mars 2020 Initial Reports Volume 2, Delta Front Campaign. NASA PDS, doi:10.17189/49zd-2k55",
+    "crism": "MRO CRISM MTRDR HRL000040FF summary parameters (the science layer of site.json)"
+  },
   "habitat": {
     "name": "HAB-1",
     "lat": 18.4446,
     "lng": 77.4509,
-    "_source": "Perseverance landing site (Octavia E. Butler Landing). NASA 'Where is Perseverance' waypoints file, first waypoint (sol 13, no motion since landing): lat 18.44462715, lon 77.45088572. https://mars.nasa.gov/mmgis-maps/M20/Layers/json/M20_waypoints.json"
+    "_source": "Perseverance landing site (Octavia E. Butler Landing). First waypoint in the NASA waypoints file (sol 13, no motion since landing): lat 18.44462715, lon 77.45088572."
   },
-  "pois": []
+  "pois": [
+    {
+      "id": "seitah-brac",
+      "name": "Séítah outcrop (Brac)",
+      "lat": 18.43397,
+      "lng": 77.44301,
+      "kind": "science",
+      "note": "Olivine-rich igneous rock altered by water, with carbonate. Perseverance cored samples Salette and Coulettes here (sols 262-271).",
+      "photo": "photos/seitah-brac.jpg",
+      "photoCredit": "NASA/JPL-Caltech",
+      "_source": "ir1: coordinates and lithology of the Brac outcrop samples"
+    },
+    {
+      "id": "delta-toe",
+      "name": "Delta front toe",
+      "lat": 18.4594,
+      "lng": 77.4228,
+      "kind": "science",
+      "note": "Flat ground at the foot of the delta scarp with a strong clay signature in CRISM orbital data. Not visited by Perseverance.",
+      "_source": "crism: chosen by us as the nearest flat, firm ground to the habitat with science value above 0.6 (0.66 here). No rover photo exists for this spot."
+    },
+    {
+      "id": "maaz-sid",
+      "name": "Máaz lava rock (Sid)",
+      "lat": 18.44386,
+      "lng": 77.45242,
+      "kind": "science",
+      "note": "Crater-floor lava rock with minor carbonate from later alteration. Perseverance cored samples Hahonih and Atsah here (sols 371-377).",
+      "photo": "photos/maaz-sid.jpg",
+      "photoCredit": "NASA/JPL-Caltech",
+      "_source": "ir1: coordinates and lithology of the Sid rock samples"
+    },
+    {
+      "id": "maaz-rochette",
+      "name": "Rochette (Artuby ridge)",
+      "lat": 18.43074,
+      "lng": 77.44437,
+      "kind": "science",
+      "note": "Crater-floor basalt with iron oxides, sulfate and minor carbonate. Perseverance cored samples Montdenier and Montagnac here (sols 190-196).",
+      "photo": "photos/maaz-rochette.jpg",
+      "photoCredit": "NASA/JPL-Caltech",
+      "_source": "ir1: coordinates and lithology of the Rochette samples"
+    },
+    {
+      "id": "seitah-issole",
+      "name": "Séítah outcrop (Issole)",
+      "lat": 18.43264,
+      "lng": 77.44133,
+      "kind": "science",
+      "note": "Olivine-rich igneous rock with carbonate and sulfate. Perseverance cored samples Robine and Malay here (sols 295-337).",
+      "photo": "photos/seitah-issole.jpg",
+      "photoCredit": "NASA/JPL-Caltech",
+      "_source": "ir1: coordinates and lithology of the Issole samples"
+    },
+    {
+      "id": "delta-wildcat-ridge",
+      "name": "Wildcat Ridge (Hawksbill Gap)",
+      "lat": 18.45864,
+      "lng": 77.40589,
+      "kind": "science",
+      "note": "Delta-front mudstone with sulfate and small amounts of clay minerals. Perseverance cored samples Hazeltop and Bearwallow here (sols 509-516).",
+      "photo": "photos/delta-wildcat-ridge.jpg",
+      "photoCredit": "NASA/JPL-Caltech",
+      "_source": "ir2: coordinates and lithology of the Wildcat Ridge samples"
+    },
+    {
+      "id": "delta-amalik",
+      "name": "Amalik (Cape Nukshak)",
+      "lat": 18.45069,
+      "lng": 77.40143,
+      "kind": "science",
+      "note": "Delta-front rock with olivine grains altered by water. Perseverance cored samples Shuyak and Mageik here (sols 575-579).",
+      "photo": "photos/delta-amalik.jpg",
+      "photoCredit": "NASA/JPL-Caltech",
+      "_source": "ir2: coordinates and lithology of the Amalik samples"
+    },
+    {
+      "id": "delta-hidden-harbor",
+      "name": "Hidden Harbor (Yori Pass)",
+      "lat": 18.45364,
+      "lng": 77.39911,
+      "kind": "science",
+      "note": "Delta-front sandstone with sulfate and small amounts of clay minerals. Perseverance cored sample Kukaklek here (sol 623).",
+      "photo": "photos/delta-hidden-harbor.jpg",
+      "photoCredit": "NASA/JPL-Caltech",
+      "_source": "ir2: coordinates and lithology of the Hidden Harbor sample"
+    }
+  ]
 }
