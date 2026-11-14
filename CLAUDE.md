@@ -9,7 +9,7 @@
 - **Challenge:** *Interplanetary Survival Guide: Martian Map*
 - **Product:** **ARES — Astronaut Route & EVA Safety system**
 - **Tagline:** Science first. Safety always.
-- **Repo:** `github.com/Csathvik245/ares` (public, MIT license)
+- **Repo:** public GitHub repo, MIT license (URL: `git remote get-url origin`)
 
 ## Rules for any AI working in this repo
 
@@ -21,6 +21,19 @@
 6. Keep the planner free of UI code so tests and the AI backend can reuse it.
 7. Explain things simply — the team is learning as it builds.
 8. Never add Co-Authored-By lines, 'Generated with Claude Code', or any AI attribution to commits or pull requests.
+9. Never add team members' real names to any file. Use 'The Ares Initiative'.
+
+---
+
+## Submission rules
+
+Full details and links to the official pages are in [`docs/submission.md`](docs/submission.md). These override anything older in this file.
+
+- **Deadline:** Sunday Nov 15, 2026, 11:59 pm, local event time. Click "Submit for Judging" before then.
+- **Feature freeze:** Sunday 2 pm. After that: bug fixes, video, slides and the project page only.
+- **Demo video: 30 seconds or less.** Longer makes the project ineligible for Global Judging.
+- **No names, faces or voices of anyone under 18** in the app, README, slides, video or submission. The whole team is under 18, so use "The Ares Initiative" and role names everywhere.
+- **AI use must be disclosed honestly** in the submission: which tools were used and for what.
 
 ---
 
@@ -47,7 +60,8 @@ The astronaut picks science stops. ARES plans the safest walking route around st
 | Callsign | ARES-1 EVA |
 | Site | Jezero Crater delta front (Perseverance's region), bounds **18.40–18.50 N, 77.36–77.50 E** (~6 × 8 km) |
 | Science objective | Sample **carbonate and clay** layers at the ancient river delta — top targets for preserved signs of past life |
-| Habitat | HAB-1 at **18.4446 N, 77.4509 E** (the Perseverance landing site) |
+| Habitat | HAB-1 at **18.4446 N, 77.4509 E**: the Perseverance landing site, from NASA's "Where is Perseverance" waypoints file. Flat, firm ground. |
+| Demo mission | Séítah outcrop "Brac" (rover sampling site) → **delta front toe** (new science target selected from the CRISM clay signal, not visited by Perseverance) → Máaz lava rock "Sid" (rover sampling site) → habitat. 30 min at each stop: **4.97 km, 3 h 35 min, 192 min oxygen margin, GO.** |
 | User | Astronaut planning in the habitat, then walking with a tablet or helmet HUD |
 | Why Jezero | Strong life-search story, high-res NASA terrain data from the Perseverance landing, thousands of rover photos. NASA's own example is Mount Sharp, so most teams will pick that — Jezero sets us apart. |
 
@@ -57,12 +71,14 @@ We don't just toggle layers; we combine them into: **where it's safe to walk, wh
 
 | Data type | Source | What it tells us | Combined into |
 |---|---|---|---|
-| Optical | HiRISE (Mars Reconnaissance Orbiter) | Ground appearance, boulders | Walking difficulty; basemap |
-| Topographic | HiRISE DTM; MOLA (Mars Global Surveyor) | Elevation, slope, cliffs | Walking difficulty |
-| Thermal | THEMIS (Mars Odyssey) | Thermal inertia: low = soft sand, high = bedrock | Walking difficulty |
-| Spectral | CRISM (MRO) | Carbonates and clays | Science value |
-| Atmospheric | MEDA (Perseverance) | Temperature, dust, wind over the sol | Conditions over the day |
+| Optical | HiRISE orthomosaic, 25 cm (MRO), USGS Mars 2020 TRN mosaic | What the ground looks like | Basemap (`basemap.png`) |
+| Topographic | HiRISE DTM mosaic, 1 m (MRO), USGS Mars 2020 TRN mosaic | Elevation, slope, cliffs, ground roughness | Walking difficulty |
+| Thermal | THEMIS thermal inertia, 100 m (Mars Odyssey), Edwards & Buz 2021 | Low = soft sand, high = firm ground | Walking difficulty |
+| Spectral | CRISM observation HRL000040FF, 36 m (MRO) | Clay and carbonate signatures | Science value |
+| Atmospheric | MEDA (Perseverance) | Temperature over the sol | Conditions over the day. **Not loaded yet: the temperature curve is a placeholder.** |
 | Radiation | RAD (Curiosity, at Gale Crater) | Surface dose ~0.64 mSv/sol | Conditions over the day |
+
+The first four are real data in the app today. Exact products, DOIs and links: `docs/sources.md`. How each layer is made: `pipeline/README.md`.
 
 Note: RAD is on Curiosity, not Perseverance. Label it "surface baseline measured by Curiosity RAD, applied to Jezero."
 
@@ -73,7 +89,7 @@ Note: RAD is on Curiosity, not Perseverance. Label it "surface baseline measured
 3. **Oxygen budget + safe-return zone** — gauge for oxygen at return; glowing cyan boundary that shrinks as stops are added.
 4. **Status light** — GO / CAUTION / NO-GO with the reason written out.
 5. **Sol timeline** — play/scrub; astronaut marker moves; sun, temperature, radiation update.
-6. **Emergencies** — Dust Storm and Solar Particle Event buttons: status red, zone collapses, red abort route home from current position.
+6. **Emergencies** — Dust Storm and Solar Particle Event buttons: the **EVA** status goes NO-GO (the EVA is aborted), the zone collapses, and a red abort route home is drawn from the current position with its own **Return home** status (CAUTION if she can make it with the oxygen reserve intact, NO-GO if not). See Contract 3.
 7. **Helmet HUD** — full-screen minimal view: heading arrow, distance to next stop, oxygen, margin, dose.
 8. **Ground view** — real Perseverance photo at each stop.
 
@@ -101,8 +117,9 @@ Note: RAD is on Curiosity, not Perseverance. Label it "surface baseline measured
 - **Frontend:** React + Vite + TypeScript in `/app`. CSS variables for design tokens. State in React context or Zustand (one source of truth for the plan).
 - **Map: Leaflet with `L.CRS.EPSG4326`.** *Not MapLibre* — MapLibre only supports Web Mercator, and Mars Trek tiles are equirectangular (lat/lng).
 - **Mars Trek tiles:** `https://trek.nasa.gov/tiles/Mars/EQ/<LAYER_ID>/1.0.0/default/default028mm/{z}/{y}/{x}.jpg` (layer IDs from the Mars Trek site). **Test this in hour 1.** Always keep a fallback basemap: a hillshade drawn from the elevation layer.
+- **Site basemap:** `app/public/data/basemap.png` is the real HiRISE orthomosaic of exactly the site bounds (2400 × 1714, about 3.5 m/pixel, 2.6 MB; source and credit in `basemap.json`). Show it as a Leaflet image overlay over the site bounds: `L.imageOverlay("data/basemap.png", [[18.40, 77.36], [18.50, 77.50]])`. It needs no network, so it also works when Mars Trek is down.
 - **Frontend basemap check:** `Mars_Viking_MDIM21_ClrMosaic_global_232m` WMTS capabilities list native levels **0–7**, 256 px tiles. Use `maxNativeZoom: 7` (level 9 requests returned 404). Jezero tile `7/50/183.jpg` returned HTTP 200, and production Chrome review displayed imagery with terrain overlays. This is coarse Viking imagery, not HiRISE; closer map zooms enlarge the level-7 tiles. Elevation hillshade remains the outage fallback.
-- **Frontend deployment:** https://ares-mission-console.vercel.app (`?frontend` skips briefing/HUD). Vercel project `ares-mission-console`, root directory `app`. Production currently uses CLI deployment. GitHub auto-deploy is pending Vercel access to `Csathvik245/ares`; the CLI connection attempt failed.
+- **Frontend deployment:** https://ares-mission-console.vercel.app (`?frontend` skips briefing/HUD). Vercel project `ares-mission-console`, root directory `app`. Production currently uses CLI deployment. GitHub auto-deploy is pending Vercel access to the GitHub repo; the CLI connection attempt failed.
 - **Planner:** TypeScript in `/app/src/planner`, optionally in a Web Worker. Pure functions, no UI code.
 - **Data pipeline:** Python (numpy, GDAL, rasterio) in `/pipeline`; QGIS for visual checks.
 - **Backend (stretch, AI only):** FastAPI or one Vercel serverless function in `/backend`.
@@ -130,28 +147,16 @@ Note: RAD is on Curiosity, not Perseverance. Label it "surface baseline measured
 | `/app` | React frontend |
 | `/app/src/planner` | Routing, oxygen, safe zone, abort, environment model |
 | `/app/src/styles` | `tokens.css` and global CSS |
-| `/app/public/data/site.json` | Terrain grid (Contract 1) |
+| `/app/public/data/site.json` | Terrain grid (Contract 1), built from real NASA data |
+| `/app/public/data/basemap.png` | HiRISE image of the site bounds (+ `basemap.json` with its source) |
+| `/app/src/planner/__fixtures__` | Fake terrain used **only** by planner unit tests |
 | `/app/public/photos` | Rover photos for each stop |
-| `/pipeline` | Python data processing scripts + README |
+| `/pipeline` | Python scripts that build `site.json` and `basemap.png` from NASA data + README |
 | `/backend` | AI assistant API (stretch) |
 | `/ml` | Boulder detection notebooks (stretch) |
 | `/docs` | `sources.md`, `assumptions.md`, slides, video script |
 
-**Current repo state:** only `README.md`, `LICENSE` (MIT) and a Node `.gitignore`. Add Python and data lines to `.gitignore`:
-
-```
-.venv/
-__pycache__/
-*.pyc
-.ipynb_checkpoints/
-.env
-.env.*
-data/raw/
-*.tif
-*.tiff
-*.IMG
-*.zip
-```
+`.gitignore` already covers Python (`.venv/`, `__pycache__/`), secrets (`.env`) and raw data downloads (`data/raw/`, `*.tif`, `*.IMG`, `*.zip`). Source data is never committed; the pipeline fetches it.
 
 ---
 
@@ -171,7 +176,7 @@ Produced by the data pipeline; read by the planner and the frontend.
   "layers": {
     "elevation":      [ "width*height numbers, meters" ],
     "slope":          [ "degrees, 0 to 90" ],
-    "rock":           [ "boulder density, 0 to 1" ],
+    "rock":           [ "ground roughness, 0 to 1 (stand-in for boulders)" ],
     "thermalInertia": [ "J m-2 K-1 s-1/2" ],
     "science":        [ "science value, 0 to 1" ]
   },
@@ -182,11 +187,11 @@ Produced by the data pipeline; read by the planner and the frontend.
       "photo": "photos/seitah-brac.jpg", "photoCredit": "NASA/JPL-Caltech" }
   ],
   "sources": {
-    "elevation": "Mars 2020 HiRISE DTM mosaic, USGS Astrogeology",
-    "slope": "Derived from elevation",
-    "rock": "Derived from DTM roughness / HiRISE",
-    "thermalInertia": "THEMIS thermal inertia",
-    "science": "CRISM mineral maps"
+    "elevation": "Mars 2020 Terrain Relative Navigation HiRISE DTM Mosaic, 1 m/pixel (Fergason et al. 2020, ...)",
+    "slope": "Derived from elevation: 90th percentile of 5 m slopes in each 25 m cell (...)",
+    "rock": "Roughness proxy, not a boulder count: ... (HiRISE DTM mosaic, ...)",
+    "thermalInertia": "THEMIS-derived Thermal Inertia of Jezero Crater, Mars, 100 m/pixel (Edwards & Buz 2021, ...)",
+    "science": "MRO CRISM MTRDR HRL000040FF (36 m/pixel) refined summary parameters ... Relative 0-1 index"
   }
 }
 ```
@@ -195,7 +200,17 @@ Produced by the data pipeline; read by the planner and the frontend.
 
 **Click → cell:** `col = floor((lng - west) / (east - west) * width)`, `row = floor((north - lat) / (north - south) * height)`.
 
-The app's `site.json` is built from real NASA data by `pipeline/build_site.py` (see `pipeline/README.md`). A POI's `photo` and `photoCredit` are optional (one demo stop was never visited by a rover). The fake test fixture (`app/src/planner/__fixtures__/fake-site.json`) has an extra `"fake": true` key; consumers ignore unknown keys.
+**Real data.** `site.json` is built from real NASA data by `pipeline/build_site.py`; every `sources` entry names the exact dataset (full strings are in the file). What the layers mean:
+
+- `elevation`: mean of the 1 m HiRISE DTM in each cell.
+- `slope`: 90th percentile of ~5 m slopes inside the cell, so a small cliff is not averaged away.
+- `rock`: ground roughness (bumpiness left after removing the cell's tilt; 1.0 m = 1.0). It is **not** a boulder count.
+- `thermalInertia`: THEMIS, 100 m detail resampled to the grid.
+- `science`: relative clay/carbonate index from CRISM. Not a mineral abundance.
+
+**POIs.** The first three `science` POIs are the demo mission, in walking order. Seven POIs are Perseverance sampling sites; `delta-toe` is a new science target selected from the CRISM clay signal, not visited by Perseverance. A POI's `photo` and `photoCredit` are optional (`delta-toe` has no rover photo).
+
+**Test fixture.** Planner unit tests use a synthetic terrain file, `app/src/planner/__fixtures__/fake-site.json` (made by `pipeline/fixtures/make_fake_site.py`). It has an extra `"fake": true` key; consumers ignore unknown keys. The app never loads it.
 
 ### Contract 2 — suit and mission constants (`/app/src/planner/constants.ts`)
 
@@ -209,7 +224,7 @@ The app's `site.json` is built from real NASA data by `pipeline/build_site.py` (
 | `MAX_SLOPE_DEG` | 25 | Steeper = no-go |
 | `SAND_TI_THRESHOLD` | 175 | Thermal inertia below = soft sand |
 | `SAND_SPEED_FACTOR` | 0.55 | Speed multiplier in sand |
-| `ROCK_NO_GO` | 0.75 | Boulder density above = no-go |
+| `ROCK_NO_GO` | 0.75 | Rock (roughness) value above = no-go |
 | `STORM_SPEED_FACTOR` | 0.55 | Speed multiplier in dust storm |
 | `STORM_EXTRA_RESERVE_MIN` | 30 | Extra reserve during storm |
 | `DOSE_MSV_PER_SOL` | 0.64 | Avg surface dose (Curiosity RAD) |
@@ -228,13 +243,26 @@ Cells with slope > `MAX_SLOPE_DEG` or rock > `ROCK_NO_GO` are impassable.
 
 ### Contract 3 — status rules
 
+**EVA status** (the plan as a whole; from `planRoute`, plus the emergency rule below):
+
 | Status | When | Shown as |
 |---|---|---|
-| NO-GO | Margin < 0, or any stop unreachable | Red, pulsing, with reason |
-| CAUTION | Margin < 25% of the **usable budget**, sun < 10° during walk, or active storm/SPE | Amber, with reason |
+| NO-GO | Margin < 0, any stop unreachable, **or a dust storm or solar particle event is active (the EVA is aborted)** | Red, pulsing, with reason |
+| CAUTION | Margin < 25% of the **usable budget**, or sun < 10° at any time during the EVA | Amber, with reason |
 | GO | Everything else | Green |
 
 **Usable budget** = `CONSUMABLE_HOURS × 3600 − reserveSec`, where `reserveSec = RESERVE_MIN × 60`, plus `STORM_EXTRA_RESERVE_MIN × 60` when a storm is active. Example (calm): 28,800 − 2,700 = 26,100 s, so CAUTION below 6,525 s (≈109 min) of margin. Helpers: `oxygenBudget(storm)` and `isLowMargin(marginSec, budget)` in `oxygen.ts`.
+
+#### Emergencies
+
+During a dust storm or SPE there are **two** statuses, and the UI shows both, labelled:
+
+| Label | What it describes | Status |
+|---|---|---|
+| **EVA** | The mission plan | Always **NO-GO**: the EVA is aborted |
+| **Return home** | The abort route from `abortRoute` | **CAUTION** if home is reachable with margin ≥ 0; **NO-GO** if the margin is negative or home is unreachable |
+
+The return-home status is never GO: walking home through an emergency always needs attention. Each status is shown with its own reasons (`abortRoute` returns `reasons`).
 
 Status must never rely on color alone — always show the word and reason.
 
@@ -268,10 +296,12 @@ explainSegment(site, plan, legIndex): { maxSlopeDeg, sandFraction, rockMax, deto
 Behaviour notes (implemented in `/app/src/planner`):
 
 - **Leg paths** are smoothed (section 6, step 9). Each starts and ends at the exact habitat/stop coordinates. A waypoint is dropped only if the straight line crosses passable cells **and** is no slower than the grid path it replaces, so a drawn leg never cuts across sand the route went around. `walkSec`/`distM` come from the grid path.
+- **planRoute, sun rule:** the sun elevation is checked once a minute from `conditions.startLmst` to the end of the EVA (walking and science), using `sunElevationSeries`. Below 10° at any point → at least CAUTION, with the time (LMST) and elevation in the reason. NO-GO still wins. An empty plan is not checked.
 - **Fields** (full-field Dijkstra) are cached per `CostGrid` object. Build a new grid when conditions change; never edit `secPerM` in place. Build the storm grid **once** when a storm starts and reuse it for every `abortRoute` call.
 - **safeZone:** "oxygen left after reserve" = oxygen left when leaving the last stop = `plan.marginSec + lastLeg.walkSec × WALK_BURN`. No stops → every cell with a round trip inside the usable budget. Empty if `!plan.ok` or `marginSec < 0`. Pass the same `cost` the plan was built with.
-- **positionAt:** `t` is clamped to `[0, totalSec]`; both ends are the habitat. Even pace along each leg (assumption). During science `legIndex` is the leg that just arrived. Empty plan → `lat/lng = NaN`, `legIndex = −1`.
-- **abortRoute:** home = `site.habitat`; reserve follows `stormCost.conditions`. Unreachable → `path: []`, `sec: Infinity`, `marginSec: −Infinity`, NO-GO. `reasons` added so the status always has a reason (Contract 3).
+- **positionAt:** `t` is clamped to `[0, totalSec]`; both ends are the habitat. Even pace along each leg (assumption). During science `legIndex` is the leg that just arrived. **Empty plan → `lat` and `lng` are `NaN` and `legIndex = −1`**, so check before drawing a marker.
+- **abortRoute:** home = `site.habitat`; reserve follows `stormCost.conditions`. Returns `reasons` as well as `status`, so the return-home status always has a reason (Contract 3). Unreachable → `path: []`, `sec: Infinity`, `marginSec: −Infinity`, NO-GO. **It has no sun check** (it is not given the time of day).
+- **envAt:** exported from `index.ts` with `sunElevationSeries(startLmst, durationSec, stepSec)`. Sun from Mars24 at 18.45 N for a fixed season (Ls 0°); `tSec` is Earth seconds.
 - **explainSegment:** facts are for the cells the drawn leg crosses. Throws `RangeError` for a bad `legIndex`.
 - **Extra helpers** (additive): `oxygenBudget`, `isLowMargin`, `walkHomeSec` (cursor probe), `fieldFrom`, `smoothPath`, `segmentTimeSec`, `distanceM`, `polylineLengthM`.
 
@@ -336,7 +366,7 @@ Do **not** use the NASA logo in our branding. Credit images "NASA/JPL-Caltech" (
 9. **Path smoothing** before drawing: drop a waypoint when the straight line between its neighbors crosses only passable cells.
 10. **Performance target:** well under 100 ms on 76,800 cells.
 
-**Unit tests required:** flat ground gives expected walk time; a no-go wall forces a detour; an impossible plan returns NO-GO. On the fake `site.json`, a route from the habitat to `carb-1` must pass through one of the two cliff ramps (~18.435 N or ~18.472 N).
+**Unit tests required:** flat ground gives expected walk time; a no-go wall forces a detour; an impossible plan returns NO-GO. On the test fixture (`__fixtures__/fake-site.json`), a route from the habitat to `carb-1` must pass through one of the two cliff ramps (~18.435 N or ~18.472 N). On the real `site.json`, `real-site.test.ts` checks that every layer names a real source and that the demo mission stays a 4–5 km GO loop.
 
 ### `envAt` (sol model)
 
@@ -350,10 +380,10 @@ Do **not** use the NASA logo in our branding. Credit images "NASA/JPL-Caltech" (
 
 - **Top bar:** logo, site name, objective, LMST clock, status pill.
 - **Left panel:** layer cards (toggle, name, data-type chip, source-mission chip, legend) + cursor probe (elevation, slope, sand risk, science value, walk-home time).
-- **Center:** map. Layers drawn once to a canvas → image overlay (cache; don't redraw per frame). Route = orange line; safe zone = cyan glow; habitat = cyan square; stops = numbered orange markers.
+- **Center:** map. Background = `basemap.png` (HiRISE) as an image overlay over the site bounds, hillshade as the fallback. Layers drawn once to a canvas → image overlay (cache; don't redraw per frame). Route = orange line; safe zone = cyan glow; habitat = cyan square; stops = numbered orange markers.
 - **Right panel:** oxygen ring gauge; stats (distance, duration, walk time, science time, margin, dose); status with reasons; stop cards (drag to reorder, set dwell, delete).
 - **Bottom (floating):** timeline — play/pause/scrub, start-time selector, track colored walking orange / science violet / reserve grey.
-- **Emergency buttons:** Dust Storm, Solar Particle Event → alert banner, red abort route, updated status.
+- **Emergency buttons:** Dust Storm, Solar Particle Event → alert banner, red abort route, and two labelled statuses: **EVA: NO-GO** and **Return home: CAUTION / NO-GO** with the abort route's reasons (Contract 3).
 - **Other screens:** opening briefing (slow pan over Jezero, "ARES-1 EVA, JEZERO DELTA FRONT", Begin planning), stop detail card (photo, why it matters, time, tools, oxygen cost), helmet HUD (visor vignette, big cyan heading arrow, NEXT stop + distance, oxygen / margin / dose, turns red in NO-GO), "Data sources" panel, tablet layout ≤ 1024 px (full map + bottom sheet with Plan / Layers / Conditions tabs).
 - **"Load demo mission"** button with three preset stops.
 - **Shortcuts:** Space play/pause, H HUD, Delete removes selected stop.
@@ -361,18 +391,19 @@ Do **not** use the NASA logo in our branding. Credit images "NASA/JPL-Caltech" (
 
 ---
 
-## 8. Data pipeline (real data, replaces the fake file)
+## 8. Data pipeline (real NASA data)
 
-1. Bounding box + habitat + stops agreed with the science lead.
-2. **Elevation:** Mars 2020 HiRISE DTM mosaic of Jezero (USGS Astrogeology, ~1 m). Backup: CTX DTM, then MOLA. **Start this download immediately — it's large.**
-3. HiRISE or CTX orthoimage for checks/basemap.
-4. **Thermal inertia:** THEMIS (ASU JMARS or PDS), ~100 m — resample to grid.
-5. **Minerals:** CRISM (PDS Geosciences Node / Mars Orbital Data Explorer). Fallback: digitize published Jezero mineral maps as polygons in QGIS and cite the paper. **Decide by hour 8.**
-6. Reproject everything to `+proj=longlat +R=3396190 +no_defs`, resample to the 320 × 240 grid. **Clip early** (files can be GBs).
-7. Slope in degrees using real meters (longitude spacing × cos(lat)).
-8. Rock 0–1 from DTM roughness (cell minus neighbor mean, normalized); use HiRISE rock abundance or the ML map if available. Also flag cells containing steep 1 m sub-pixels so small cliffs aren't averaged away.
-9. Science 0–1: carbonate/clay detections high.
-10. Export `site.json`, write `/pipeline/README.md`, check in QGIS against Mars Trek (cliffs = high slope, dunes = low TI), export layer PNGs for slides.
+Done and reproducible: `python pipeline/build_site.py`, then `python pipeline/check_site.py`. Full steps, links and limits are in `pipeline/README.md`. Source files are read over HTTPS (only our window) and cached in `data/raw/`, which is not committed.
+
+1. **Elevation, slope, rock:** USGS Mars 2020 Terrain Relative Navigation HiRISE DTM mosaic, 1 m (Fergason et al. 2020, doi:10.5066/P9REJ9JN). Slope = 90th percentile of ~5 m slopes in each cell. Rock = roughness of the 1 m DTM inside each cell.
+2. **Thermal inertia:** *THEMIS-derived Thermal Inertia of Jezero Crater, Mars*, 100 m (Edwards & Buz 2021, doi:10.5281/zenodo.4931348). About 9% of cells are soft sand (under 175).
+3. **Science value:** CRISM MTRDR observation HRL000040FF, 36 m (PDS Geosciences Node): parameters D2300 (clay), MIN2295_2480 and MIN2345_2537 (carbonate), defined in Viviano-Beck et al. 2014 (doi:10.1002/2014JE004627).
+4. **Habitat and POIs:** `pipeline/data/site_meta.json`, each with the source of its coordinates. Habitat from NASA's waypoints file; seven rover sampling sites from the Mars 2020 Initial Reports; one new science target selected from the CRISM clay signal, not visited by Perseverance.
+5. **Basemap:** `python pipeline/build_basemap.py` → `app/public/data/basemap.png` from the USGS HiRISE orthomosaic (doi:10.5066/P9QJDP48).
+6. Everything is reprojected to `+proj=longlat +R=3396190 +no_defs` on the 320 × 240 grid; each source file's own projection is read from the file.
+7. Layer previews for slides: `docs/images/`.
+
+Still open: Perseverance MEDA temperatures (the curve in `env.ts` is a placeholder) and rover photos for the stops.
 
 ---
 
@@ -382,24 +413,27 @@ Do **not** use the NASA logo in our branding. Credit images "NASA/JPL-Caltech" (
 - Useful sources: NASA Human Integration Design Handbook, Apollo EVA records, Curiosity RAD papers (Hassler et al. 2014 for 0.64 mSv/sol), Perseverance MEDA data (PDS Atmospheres Node), NASA DONKI space weather database, Mars Climate Database, Perseverance traverse map, AI4Mars dataset, Apollo traverse maps (Lunar and Planetary Institute), Tobler's hiking function, Mars24 (NASA GISS).
 - Rover photos: Mars Perseverance Raw Images gallery. Raw images are tagged by site/drive, not coordinates — match against the traverse data, or hand-pick 5–8 photos and place them manually.
 
-### Demo video (60 s)
+### Demo video (30 s or less)
+
+The full script, captions and shot list are in `docs/video-script.md`; that file is the one to follow. Outline:
 
 | Time | On screen |
 |---|---|
-| 0–8 s | Opening over Jezero: "8 hours of oxygen. 4 km of unknown terrain." |
-| 8–18 s | Data layers appear one at a time, each with its source |
-| 18–32 s | Three stops added; route draws in, safe zone shrinks, status GO |
-| 32–45 s | Walk plays; dust storm hits: NO-GO, zone collapses, abort route, she makes it home |
-| 45–55 s | Switch to helmet HUD with rover photo of next stop |
-| 55–60 s | "ARES, by The Ares Initiative. Science first. Safety always." |
+| 0–7 s | Opening briefing over Jezero: "2040. Jezero Crater. 8 hours of oxygen." Begin planning |
+| 7–12 s | Real data layers switch on, each with its NASA source |
+| 12–19 s | Load demo mission: three stops, route draws in, safe zone, **EVA: GO** |
+| 19–26 s | Walk plays; dust storm hits: **EVA: NO-GO** (aborted), zone collapses, red abort route, **Return home: CAUTION** — she makes it home inside the reserve |
+| 26–30 s | Helmet HUD, then end card: "ARES, by The Ares Initiative. Science first. Safety always." |
+
+No names, faces or voices of anyone under 18: screen recording and captions only.
 
 ---
 
 ## 10. Build order and schedule
 
-**First milestone (by ~hour 6): a walking skeleton.** Fake `site.json` loads in the app, click two stops, an orange route draws on the map. Everything after that improves something that already runs.
+**First milestone (by ~hour 6): a walking skeleton.** The terrain file loads in the app, click two stops, an orange route draws on the map. Everything after that improves something that already runs.
 
-1. Fake `site.json` (`pipeline/fixtures/make_fake_site.py`, now a test fixture only) ← **first**
+1. Terrain file `site.json` ← **first** (now real NASA data from `pipeline/build_site.py`; the first stand-in survives only as the planner test fixture)
 2. `/app` scaffold + Vercel deploy + Mars Trek tile test in Leaflet
 3. `tokens.css`
 4. Planner: `constants.ts` → `loadSite` → `buildCostGrid` → Dijkstra/A* → `planRoute` → tests
@@ -407,11 +441,11 @@ Do **not** use the NASA logo in our branding. Credit images "NASA/JPL-Caltech" (
 6. Oxygen model, safe zone, status, mission panel → **MVP done (~hour 24)**
 7. Timeline + `envAt`, emergencies + `abortRoute`, HUD, photos, opening screen → **Core done (~hour 36)**
 8. Stretch only if core is solid
-9. Feature freeze ~hour 36–44: video, slides, project page. Submit early.
+9. Feature freeze **Sunday 2 pm**: video, slides, project page. Submit early (deadline Sunday Nov 15, 11:59 pm local event time).
 
 ### Biggest risks
 
-1. Data downloads (especially CRISM) — fallbacks above; decide by hour 8.
+1. Data downloads — done: all four terrain data types are real, with no fallbacks used.
 2. Mars Trek tiles misaligned — hillshade fallback; test early.
 3. Scope — if behind at hour 24, make the HUD a static screen and limit photos to 3 stops.
 
@@ -419,7 +453,9 @@ Do **not** use the NASA logo in our branding. Credit images "NASA/JPL-Caltech" (
 
 - Live demo link works in a fresh browser
 - Public GitHub repo with README
-- Demo video ≤ 60 s
+- Demo video ≤ 30 s, with no names, faces or voices of anyone under 18
 - Slides incl. sources and model assumptions
 - Project page text crediting every NASA source
-- Submitted before the deadline
+- AI use disclosed honestly
+- No team members' real names anywhere in the app, README, slides, video or submission
+- Submitted before Sunday Nov 15, 2026, 11:59 pm local event time

@@ -118,10 +118,8 @@ Delete a file in `data/raw/` to fetch it again.
 - **The first three POIs are the demo mission**, in walking order: Séítah outcrop
   (Brac) → delta front toe → Máaz lava rock (Sid). Measured with the real planner,
   30 min at each stop: **4.97 km, 3 h 35 min, 192 min oxygen margin, GO.**
-- The delta front toe was **not** visited by Perseverance. The rover's own
-  delta-front sampling sites are 2.6–3.1 km from the landing site each way, so a loop
-  through them is about 6.5 km (still GO, 134 min margin). They are in the file as
-  extra POIs.
+- The delta front toe is a **new science target selected from the CRISM clay signal, not visited by Perseverance**. That is deliberate: the challenge asks for new science, and this is where the orbital clay signal is strongest within walking range.
+- The rover's own delta-front sampling sites are 2.6–3.1 km from the landing site each way, so a loop through them is about 6.5 km (still GO, 134 min margin). They are in the file as extra POIs.
 
 ## `build_basemap.py`
 

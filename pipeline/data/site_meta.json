@@ -30,8 +30,8 @@
       "lat": 18.4594,
       "lng": 77.4228,
       "kind": "science",
-      "note": "Flat ground at the foot of the delta scarp with a strong clay signature in CRISM orbital data. Not visited by Perseverance.",
-      "_source": "crism: chosen by us as the nearest flat, firm ground to the habitat with science value above 0.6 (0.66 here). No rover photo exists for this spot."
+      "note": "New science target selected from the CRISM clay signal, not visited by Perseverance. Flat, firm ground at the foot of the delta scarp.",
+      "_source": "crism: new science target selected from the CRISM clay signal, not visited by Perseverance. Chosen as the nearest flat, firm ground to the habitat with science value above 0.6 (0.66 here). No rover photo exists for this spot."
     },
     {
       "id": "maaz-sid",

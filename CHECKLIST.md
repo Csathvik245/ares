@@ -13,14 +13,14 @@ Every role can finish **all of its items without waiting for anyone's commits**.
 2. **If you need something that doesn't exist yet, make a stand-in in *your own* folder.** For example, the frontend makes stub planner functions, and the HUD uses mock numbers. When the real thing lands, you swap one import. Stand-ins are never deleted by other roles.
 3. **Own your folders.** Only edit files you own. Shared files are listed below; tell the group chat before touching them.
 
-| Role | Person | Owns (only you edit these) |
+| Role | Owner | Owns (only you edit these) |
 |---|---|---|
-| Data & GIS | Sathvik (took over from Anish) | `pipeline/`, `app/public/data/site.json`, `app/public/data/basemap.png` |
-| Planner + backend | Sathvik | `app/src/planner/`, `backend/` |
-| Frontend | Viren | `app/src/` (everything except `planner/`, `styles/`, `design/`, `ai/`), `app/index.html`, Vite config |
+| Data & GIS | Data & GIS lead | `pipeline/`, `app/public/data/site.json`, `app/public/data/basemap.png` |
+| Planner + backend | Planner lead | `app/src/planner/`, `backend/` |
+| Frontend | Frontend lead | `app/src/` (everything except `planner/`, `styles/`, `design/`, `ai/`), `app/index.html`, Vite config |
 | UI/UX design | _unassigned_ | `app/src/styles/`, `app/src/design/` (HUD, opening screen, stop card), Figma |
 | Science & story | _unassigned_ | `docs/`, `app/public/photos/`, `app/public/data/stops.json`, `README.md` |
-| AI assistant (stretch) | Sathvik | `backend/`, `app/src/ai/` |
+| AI assistant (stretch) | Planner lead | `backend/`, `app/src/ai/` |
 
 **Shared files (announce before editing):** `CLAUDE.md`, `CHECKLIST.md` (tick only your own section), `app/package.json`, `app/package-lock.json`, `.gitignore`.
 
@@ -28,11 +28,11 @@ Every role can finish **all of its items without waiting for anyone's commits**.
 
 | # | When | What happens | Who does it |
 |---|---|---|---|
-| I1 | Real `site.json` pushed | Nothing to change. Same shape, so the app and planner just get real terrain | Anish pushes; everyone pulls |
-| I2 | A planner function lands | Frontend swaps its stub import for the real one in `app/src/lib/planner.ts` | Viren |
-| I3 | Design components land | Frontend renders `<Hud>`, `<OpeningScreen>`, `<StopCard>` instead of placeholders | Viren |
-| I4 | `stops.json` + photos land | Frontend reads demo stops and photos from files | Viren |
-| I5 | AI assistant ready | Frontend mounts `<ChatPanel>` | Viren |
+| I1 | Real `site.json` pushed | Nothing to change. Same shape, so the app and planner just get real terrain | Data & GIS lead pushes; everyone pulls |
+| I2 | A planner function lands | Frontend swaps its stub import for the real one in `app/src/lib/planner.ts` | Frontend lead |
+| I3 | Design components land | Frontend renders `<Hud>`, `<OpeningScreen>`, `<StopCard>` instead of placeholders | Frontend lead |
+| I4 | `stops.json` + photos land | Frontend reads demo stops and photos from files | Frontend lead |
+| I5 | AI assistant ready | Frontend mounts `<ChatPanel>` | Frontend lead |
 
 ---
 
@@ -46,7 +46,7 @@ Every role can finish **all of its items without waiting for anyone's commits**.
 
 ---
 
-## Data & GIS: Sathvik (took over from Anish)
+## Data & GIS
 
 Needs nothing from anyone. Your output is checked by your own `check_site.py`.
 
@@ -71,19 +71,19 @@ Needs nothing from anyone. Your output is checked by your own `check_site.py`.
 
 ---
 
-## Planner + backend: Sathvik
+## Planner + backend
 
-Needs nothing from anyone. Test everything with Vitest on the fake `site.json` that's already on `main`.
+Needs nothing from anyone. Test everything with Vitest: unit tests use the fixture `app/src/planner/__fixtures__/fake-site.json`; `real-site.test.ts` checks the real `site.json`.
 
 **Planner (`app/src/planner`)**
 - [x] 🟥 `constants.ts`, `loadSite`, `buildCostGrid`, Dijkstra/A*, `planRoute`
-- [ ] 🟥 CAUTION rule: margin < 25% of usable budget (8 h − reserve, incl. storm reserve); update Contract 3
-- [ ] 🟥 Document the `CostGrid` type in Contract 4
-- [ ] 🟥 Path smoothing; leg endpoints = exact stop/habitat coordinates
-- [ ] 🟥 `safeZone` (cached habitat field + last-stop field)
-- [ ] 🟥 `positionAt(plan, tSec)`
-- [ ] 🟧 `abortRoute` (cached storm-cost field)
-- [ ] 🟧 `explainSegment`
+- [x] 🟥 CAUTION rule: margin < 25% of usable budget (8 h − reserve, incl. storm reserve); update Contract 3
+- [x] 🟥 Document the `CostGrid` type in Contract 4
+- [x] 🟥 Path smoothing; leg endpoints = exact stop/habitat coordinates
+- [x] 🟥 `safeZone` (cached habitat field + last-stop field)
+- [x] 🟥 `positionAt(plan, tSec)`
+- [x] 🟧 `abortRoute` (cached storm-cost field)
+- [x] 🟧 `explainSegment`
 - [x] 🟧 `envAt`: Mars24 sun elevation at 18.45 N for a fixed Ls; temperature curve (placeholder −83 to −23 °C, flagged in a comment); dose rate (+SPE). Constants live in `planner/` so you don't wait for MEDA values
 - [x] 🟧 Sun < 10° CAUTION rule
 - [ ] 🟧 Tests for every function; each < 100 ms
@@ -94,7 +94,7 @@ Needs nothing from anyone. Test everything with Vitest on the fake `site.json` t
 **AI assistant (stretch, only after planner Core)**
 - [ ] 🟦 `backend/`: Vercel function `/assistant`; API key in env var only
 - [ ] 🟦 Contract 5 tools as function-calling schemas
-- [ ] 🟦 **Test without the frontend:** a Node script `backend/try.ts` runs the tool loop against the planner directly on the fake `site.json`
+- [ ] 🟦 **Test without the frontend:** a Node script `backend/try.ts` runs the tool loop against the planner directly on the real `site.json`
 - [ ] 🟦 System prompt: every number comes from tools; never declares a plan safe
 - [ ] 🟦 `app/src/ai/ChatPanel.tsx` takes `plan` + `onToolCall` as props (works standalone with a mock plan)
 - [ ] 🟦 Passes: "Why this route?", "Can I add another clay sample?", "What if a dust storm hits at stop 2?"
@@ -103,9 +103,9 @@ Needs nothing from anyone. Test everything with Vitest on the fake `site.json` t
 
 ---
 
-## Frontend: Viren
+## Frontend
 
-Needs nothing from anyone. The fake `site.json` and planner core are already on `main`. For anything not built yet, use your own stubs.
+Needs nothing from anyone. The real `site.json`, `basemap.png` and the planner are already on `main`. For anything not built yet, use your own stubs.
 
 **Frontend verification update:** Production: https://ares-mission-console.vercel.app/?frontend. Checked items below are existing code already on main and exercised by automated checks or Chrome review. New local fixes still need the user's commit/push. Vercel root is now `app`, but GitHub connection failed; the current production release was uploaded by CLI. Chrome review confirmed demo mission, 4.87 km route, GO status, 174-minute margin, oxygen gauge, hillshade fallback and playback clock/dose changes. A missing optional `stops.json` 404 was found and fixed locally using a public-asset inventory. A later real-terrain Chrome pass verified stop add/drag/reorder/delete, dwell edits, all five layer toggles, playback/scrubbing, both emergencies, missing-photo details and dialog Escape. No app errors were observed in that pass. Exact desktop/tablet dimensions, all keyboard shortcuts, and the final science demo still need verification.
 
@@ -217,7 +217,7 @@ Needs nothing from anyone. Research and docs stand alone. Use Mars Trek screensh
 
 - [ ] Live demo link works in a fresh browser
 - [ ] Public GitHub repo with README
-- [ ] Demo video ≤ 60 s
+- [ ] Demo video ≤ 30 s (no names, faces or voices of anyone under 18)
 - [ ] Slides incl. sources and model assumptions
 - [ ] Project page text crediting every NASA source
 - [ ] AI tool use disclosed if the rules ask
