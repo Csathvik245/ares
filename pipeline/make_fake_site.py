@@ -30,7 +30,7 @@ WIDTH, HEIGHT = 320, 240
 # The team must use the SAME radius in planner/constants.ts.
 MARS_RADIUS_M = 3396190
 
-HABITAT = {"name": "HAB-1", "lat": 18.444, "lng": 77.472}
+HABITAT = {"name": "HAB-1", "lat": 18.445, "lng": 77.451}
 OUT_PATH = os.path.join("app", "public", "data", "site.json")
 
 rng = np.random.default_rng(42)  # fixed seed so everyone gets the same fake file
@@ -102,11 +102,11 @@ slope = np.degrees(np.arctan(np.hypot(dz_dx, dz_dy)))
 roughness = np.abs(elevation - smooth(elevation, 1))
 boulder_noise = normalize(smooth(rng.normal(0, 1, (HEIGHT, WIDTH)), 4))
 below_scarp = np.exp(-np.maximum(dist_to_scarp_m, 0) / 300.0) * (dist_to_scarp_m > 0)
-# Small boulder field on the crater floor, on the straight line between the
-# habitat and clay-1, so the planner has to route around boulders (not just the
-# cliff). Deterministic blob: uses no random numbers, so the seed's sequence and
+# Small boulder field on the crater floor, on the straight lines from the habitat
+# to clay-1 and to carb-1, so the planner has to route around boulders (not just
+# the cliff). Deterministic blob: uses no random numbers, so the seed's sequence and
 # every other layer stay the same.
-BOULDER_FIELD = (18.461, 77.4485, 220.0)  # lat, lng, radius in meters
+BOULDER_FIELD = (18.4416, 77.4440, 220.0)  # lat, lng, radius in meters
 bf_lat, bf_lng, bf_rad_m = BOULDER_FIELD
 bf_d = np.hypot((lat - bf_lat) * cell_y * HEIGHT / (NORTH - SOUTH),
                 (lng - bf_lng) * cell_x * WIDTH / (EAST - WEST))
@@ -133,7 +133,7 @@ thermal_inertia = np.clip(thermal_inertia, 90, 480)
 # Highest along the delta front (carbonate/clay stand-in), plus a few hotspots.
 front = np.exp(-(dist_to_scarp_m / 350.0) ** 2)
 hotspots = np.zeros_like(elevation)
-for hlat, hlng, rad_m in [(18.462, 77.402, 300), (18.478, 77.425, 250), (18.425, 77.418, 220)]:
+for hlat, hlng, rad_m in [(18.4365, 77.421, 300), (18.434, 77.436, 250), (18.444, 77.4285, 220)]:
     d = np.hypot((lat - hlat) * cell_y * HEIGHT / (NORTH - SOUTH),
                  (lng - hlng) * cell_x * WIDTH / (EAST - WEST))
     hotspots = np.maximum(hotspots, np.exp(-(d / rad_m) ** 2))
@@ -142,17 +142,17 @@ science = np.clip(0.55 * front + 0.6 * hotspots + 0.05 * boulder_noise, 0, 1)
 # ---- Points of interest ---------------------------------------------------------
 pois = [
     {
-        "id": "carb-1", "name": "Delta front carbonates", "lat": 18.462, "lng": 77.402,
+        "id": "carb-1", "name": "Delta front carbonates", "lat": 18.4365, "lng": 77.421,
         "kind": "science", "note": "Carbonate layers record ancient lake chemistry",
         "photo": "photos/carb-1.jpg", "photoCredit": "NASA/JPL-Caltech, Perseverance Mastcam-Z",
     },
     {
-        "id": "clay-1", "name": "Upper delta clay beds", "lat": 18.478, "lng": 77.425,
+        "id": "clay-1", "name": "Upper delta clay beds", "lat": 18.434, "lng": 77.436,
         "kind": "science", "note": "Clay minerals can trap and preserve organic molecules",
         "photo": "photos/clay-1.jpg", "photoCredit": "NASA/JPL-Caltech, Perseverance Mastcam-Z",
     },
     {
-        "id": "scarp-1", "name": "Delta scarp outcrop", "lat": 18.425, "lng": 77.418,
+        "id": "scarp-1", "name": "Delta scarp outcrop", "lat": 18.444, "lng": 77.4285,
         "kind": "science", "note": "Exposed layers show how the delta was built over time",
         "photo": "photos/scarp-1.jpg", "photoCredit": "NASA/JPL-Caltech, Perseverance Mastcam-Z",
     },

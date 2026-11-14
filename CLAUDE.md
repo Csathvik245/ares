@@ -47,7 +47,7 @@ The astronaut picks science stops. ARES plans the safest walking route around st
 | Callsign | ARES-1 EVA |
 | Site | Jezero Crater delta front (Perseverance's region), bounds **18.40–18.50 N, 77.36–77.50 E** (~6 × 8 km) |
 | Science objective | Sample **carbonate and clay** layers at the ancient river delta — top targets for preserved signs of past life |
-| Habitat | HAB-1 at **18.444 N, 77.472 E** |
+| Habitat | HAB-1 at **18.445 N, 77.451 E** |
 | User | Astronaut planning in the habitat, then walking with a tablet or helmet HUD |
 | Why Jezero | Strong life-search story, high-res NASA terrain data from the Perseverance landing, thousands of rover photos. NASA's own example is Mount Sharp, so most teams will pick that — Jezero sets us apart. |
 
@@ -173,9 +173,9 @@ Produced by the data pipeline; read by the planner and the frontend.
     "thermalInertia": [ "J m-2 K-1 s-1/2" ],
     "science":        [ "science value, 0 to 1" ]
   },
-  "habitat": { "name": "HAB-1", "lat": 18.444, "lng": 77.472 },
+  "habitat": { "name": "HAB-1", "lat": 18.445, "lng": 77.451 },
   "pois": [
-    { "id": "carb-1", "name": "Delta front carbonates", "lat": 18.462, "lng": 77.402,
+    { "id": "carb-1", "name": "Delta front carbonates", "lat": 18.4365, "lng": 77.421,
       "kind": "science", "note": "Carbonate layers record ancient lake chemistry",
       "photo": "photos/carb-1.jpg", "photoCredit": "NASA/JPL-Caltech, Perseverance Mastcam-Z" }
   ],

@@ -41,19 +41,19 @@ Wrote app/public/data/site.json  (2.35 MB)
 Grid 320 x 240, cells 24.6 m x 24.7 m
 Elevation -2533 to -2403 m
 Slope max 56.1 deg, cells over 25 deg: 609
-Rock > 0.75 (no-go): 288 cells
+Rock > 0.75 (no-go): 299 cells
 Soft sand (TI < 175): 9893 cells
 ```
 
-(The "288" counts unrounded values. After rounding to 2 decimals, 283 cells are
+(The "299" counts unrounded values. After rounding to 2 decimals, 293 cells are
 strictly above 0.75 in the file — that's expected. `TASK_fake_site.md` still says
 211; that was before the crater-floor boulder field was added.)
 
 What the fake terrain contains: a delta scarp cliff (no-go wall) with two gentle
 ramps near 18.435 N and 18.472 N, a boulder apron at the cliff foot, soft-sand
 patches, science hotspots at the POIs, and one **small boulder field on the crater
-floor** (centered 18.461 N, 77.4485 E, ~230 m across) sitting on the straight line
-from HAB-1 to `clay-1`, so the planner must route around boulders too. The boulder
+floor** (centered 18.4416 N, 77.4440 E, ~230 m across) sitting on the straight lines
+from HAB-1 to `clay-1` and to `carb-1`, so the planner must route around boulders too. The boulder
 field uses no random numbers, so all other layers are unchanged.
 
 ### 2. Check
