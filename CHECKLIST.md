@@ -107,9 +107,11 @@ Needs nothing from anyone. Test everything with Vitest on the fake `site.json` t
 
 Needs nothing from anyone. The fake `site.json` and planner core are already on `main`. For anything not built yet, use your own stubs.
 
-**Frontend verification update:** Production: https://ares-mission-console.vercel.app/?frontend. Checked items below are existing code already on main and exercised by automated checks or Chrome review. New local fixes still need the user's commit/push. Vercel root is now `app`, but GitHub connection failed; the current production release was uploaded by CLI. Chrome review confirmed demo mission, 4.87 km route, GO status, 174-minute margin, oxygen gauge, hillshade fallback and playback clock/dose changes. A missing optional `stops.json` 404 was found and fixed locally using a public-asset inventory. Full interaction/console QA remains in progress.
+**Frontend verification update:** Production: https://ares-mission-console.vercel.app/?frontend. Checked items below are existing code already on main and exercised by automated checks or Chrome review. New local fixes still need the user's commit/push. Vercel root is now `app`, but GitHub connection failed; the current production release was uploaded by CLI. Chrome review confirmed demo mission, 4.87 km route, GO status, 174-minute margin, oxygen gauge, hillshade fallback and playback clock/dose changes. A missing optional `stops.json` 404 was found and fixed locally using a public-asset inventory. A later real-terrain Chrome pass verified stop add/drag/reorder/delete, dwell edits, all five layer toggles, playback/scrubbing, both emergencies, missing-photo details and dialog Escape. No app errors were observed in that pass. Exact desktop/tablet dimensions, all keyboard shortcuts, and the final science demo still need verification.
 
 I3: adapters are ready; no `app/src/design` files exist. I4: parser and image handling are ready; final `stops.json` and rover photos are absent. I5: lazy ChatPanel mount and Contract 5 frontend tool handlers are implemented locally; the AI component/backend are absent, so end-to-end verification remains pending. No other role's checklist section was changed.
+
+**Latest local fixes (deployed; await user push):** empty-demo button disabled with explanation, no-start guard for empty playback, out-of-bounds marker restore, real-terrain integration tests, and NASA native zoom cap corrected from 9 to 7 (actual Jezero tile verified HTTP 200 and visible in Chrome). Missing design/science/AI deliverables were not invented.
 
 **Setup**
 - [x] 🟥 React + Vite + TS in `/app`. **Keep** `src/planner/`, `public/data/`, and the existing deps in `package.json`
@@ -131,18 +133,18 @@ I3: adapters are ready; no `app/src/design` files exist. I4: parser and image ha
 - [x] 🟥 Habitat (cyan square), POIs, numbered orange stop markers
 
 **Planning**
-- [ ] 🟥 Click to add a stop; drag to move; delete; set dwell time; reorder
-- [ ] 🟥 Recompute plan + safe zone on every change; orange route line, cyan safe-zone glow
+- [x] 🟥 Click to add a stop; drag to move; delete; set dwell time; reorder
+- [x] 🟥 Recompute plan + safe zone on every change; orange route line, cyan safe-zone glow
 - [x] 🟥 Mission panel: oxygen ring gauge, distance, duration, walk/science time, margin, dose
 - [x] 🟥 Status pill GO / CAUTION / NO-GO **with reasons**
-- [ ] 🟥 Layers panel: toggle, name, data-type chip, source chip (read from `site.json` `sources`), legend
+- [x] 🟥 Layers panel: toggle, name, data-type chip, source chip (read from `site.json` `sources`), legend
 - [ ] 🟧 Cursor probe: elevation, slope, sand risk, science value, walk-home time
 - [x] 🟧 "Load demo mission" button
 
 **Time & emergencies**
-- [ ] 🟧 Timeline: play / pause / scrub, start-time selector, colored track
-- [ ] 🟧 Astronaut marker (`positionAt`) and conditions panel (`envAt`)
-- [ ] 🟧 Dust Storm + Solar Particle Event buttons → banner, red abort route, status change
+- [x] 🟧 Timeline: play / pause / scrub, start-time selector, colored track
+- [x] 🟧 Astronaut marker (`positionAt`) and conditions panel (`envAt`)
+- [x] 🟧 Dust Storm + Solar Particle Event buttons → banner, red abort route, status change
 
 **Polish**
 - [ ] 🟧 Data sources panel

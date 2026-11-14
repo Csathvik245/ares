@@ -66,7 +66,7 @@ function Console() {
         setScreen((s) => (s === "hud" ? "plan" : "hud"));
       if (e.code === "Space" && !emergency) {
         e.preventDefault();
-        m.setPlaying((v) => !v);
+        m.togglePlayback();
       }
       if (e.key === "Delete") remove();
     };
@@ -259,10 +259,7 @@ function Console() {
             <div>
               <button
                 disabled={!plan.ok || !plan.legs.length || !!emergency}
-                onClick={() => {
-                  if (m.elapsed >= plan.totalSec) m.setElapsed(0);
-                  m.setPlaying((p) => !p);
-                }}
+                onClick={m.togglePlayback}
               >
                 {m.playing ? "Pause" : "Play"} · Space
               </button>
@@ -396,13 +393,25 @@ function Console() {
             <dd>{m.dose.toFixed(3)} mSv</dd>
           </dl>
           <div className="button-row">
-            <button disabled={!!emergency} onClick={() => m.edit(m.demo)}>
+            <button
+              disabled={!!emergency || m.demo.length === 0}
+              aria-describedby={
+                m.demo.length === 0 ? "demo-unavailable" : undefined
+              }
+              onClick={() => m.edit(m.demo)}
+            >
               Load demo mission
             </button>
             <button disabled={!!emergency} onClick={() => m.edit([])}>
               Clear
             </button>
           </div>
+          {m.demo.length === 0 && (
+            <p id="demo-unavailable" className="hint" role="status">
+              Demo science stops have not been supplied for this terrain yet.
+              Click the map to plan your own stops.
+            </p>
+          )}
           <details>
             <summary>Current leg terrain</summary>
             {explanation && (

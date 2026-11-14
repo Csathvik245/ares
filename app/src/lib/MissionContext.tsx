@@ -148,6 +148,12 @@ function useMissionState() {
     );
     return () => clearInterval(id);
   }, [playing, plan]);
+  const togglePlayback = () => {
+    if (emergency || !plan?.ok || !plan.legs.length || plan.totalSec <= 0)
+      return;
+    if (elapsed >= plan.totalSec) setElapsed(0);
+    setPlaying((current) => !current);
+  };
   const reset = () => {
     setElapsed(0);
     setPlaying(false);
@@ -220,6 +226,7 @@ function useMissionState() {
     elapsed,
     setElapsed,
     playing,
+    togglePlayback,
     setPlaying,
     emergency,
     trigger,

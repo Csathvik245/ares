@@ -17,3 +17,15 @@ CLAUDE.md now records the verified root tile, production URL, fallback limitatio
 Dialogs trap keyboard focus, close with Escape, and restore focus to the opener. Vercel login and production CLI deployment succeeded. The public app shell and terrain file both returned HTTP 200, and the terrain JSON parsed correctly. GitHub auto-deployment remains pending because Vercel rejected the repository connection. Native Chrome access worked on the latest attempt: demo mission, route, gauge, status, fallback and playback changes were observed. Console review found an optional stops.json 404; a public-file inventory now avoids absent optional requests. Final interaction and clean-console review remains in progress.
 
 Vite builds an inventory of public files. Missing optional stops/photos are not requested, preventing browser 404 errors. Rebuild/restart Vite when adding public assets. No final science files are invented.
+
+## Real-terrain release verification
+
+The production release now includes the current real USGS HiRISE, THEMIS and CRISM site.json. Its POIs are empty and final stops.json is absent. Load Demo Mission is disabled with an explanation; no science coordinates were invented. Manual map planning works. Empty/invalid plans cannot be started by Space, and dragging outside site bounds restores the marker.
+
+NASA WMTS metadata for the Viking layer lists levels 0–7 only (256 px tiles). The old maxNativeZoom=9 caused 404 responses. maxNativeZoom is now 7; the actual Jezero tile 7/50/183 returned HTTP 200, and Chrome displayed the imagery. Local hillshade remains beneath it for outages.
+
+Chrome production checks: real-data loading; empty-demo explanation; add two manual stops; drag a marker and observe updated distance/time/oxygen; reorder with arrow controls; delete a stop; edit dwell to 15 minutes; toggle all five overlays; play/pause and scrub to a science stop; dust and SPE alerts; return guidance; missing-photo fallback; Escape closing the detail dialog; tablet Plan/Layers/Conditions tabs. Tested SPE return guidance showed a 36-minute return, and dose rate changed from 0.026 to 0.779 mSv/h (rounded display, illustrative multiplier). No app resource/runtime errors appeared in the console after these checks; one extension-generated Redirect Blocker log remained. Exact 1024×768 and full desktop viewport review, keyboard H/Space/Delete coverage, and final science-demo video flow are still unverified.
+
+Automated real-terrain tests verify passable habitat, reachable local QA cells, route/dwell changes, endpoint return, storm abort, blocked stops and oxygen exhaustion. Test-selected locations are not published as science stops. All 85 tests, TypeScript and production build pass.
+
+Vercel GitHub connection was retried and again rejected the repository. The repository owner must authorize the Vercel GitHub integration for Csathvik245/ares. CLI production deploy is working with rootDirectory=app. Local changes are deployed but require the user's commit and push; no GitHub push was made by the agent.

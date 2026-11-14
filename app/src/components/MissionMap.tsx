@@ -67,7 +67,7 @@ export function MissionMap({
     const tiles = L.tileLayer(
       `https://trek.nasa.gov/tiles/Mars/EQ/${TREK_LAYER}/1.0.0/default/default028mm/{z}/{y}/{x}.jpg`,
       {
-        maxNativeZoom: 9,
+        maxNativeZoom: 7,
         maxZoom: 17,
         attribution: "NASA/JPL-Caltech · Viking MDIM 2.1",
       },
@@ -138,7 +138,11 @@ export function MissionMap({
     stops.forEach((s, i) => {
       const mk = marker(s, String(i + 1), "stop").addTo(g);
       mk.dragging?.enable();
-      mk.on("dragend", () => callbacks.current.onMove(s.id, mk.getLatLng()));
+      mk.on("dragend", () => {
+        const point = mk.getLatLng();
+        if (cellIndexOf(site, point) < 0) mk.setLatLng([s.lat, s.lng]);
+        else callbacks.current.onMove(s.id, point);
+      });
       mk.on("click", () => callbacks.current.onSelect(s.id));
     });
     plan.legs.forEach((leg) => {
