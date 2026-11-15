@@ -1,6 +1,6 @@
 import { useMission } from "../lib/MissionContext";
 import { layers, type OverlayName } from "../lib/layers";
-import { SAND_TI_THRESHOLD } from "../lib/planner";
+import { SAND_TI_THRESHOLD, cellIndexOf } from "../lib/planner";
 import { clock } from "../lib/presentation";
 export function LayerRail({
   active,
@@ -15,6 +15,7 @@ export function LayerRail({
 }) {
   const m = useMission(),
     site = m.site!;
+  const cell = probe >= 0 ? probe : cellIndexOf(site, m.position);
   return (
     <aside className="layer-rail" aria-label="Terrain layers">
       <div className="panel-heading">
@@ -93,22 +94,25 @@ export function LayerRail({
       </div>
       <section className="cursor-probe">
         <h3>CURSOR PROBE</h3>
-        {probe >= 0 ? (
+        {probe < 0 && (
+          <p className="probe-hint">Current position · point to inspect</p>
+        )}
+        {cell >= 0 ? (
           <dl>
             <dt>Elevation</dt>
-            <dd>{site.layers.elevation[probe].toFixed(0)} m</dd>
+            <dd>{site.layers.elevation[cell].toFixed(0)} m</dd>
             <dt>Slope</dt>
-            <dd>{site.layers.slope[probe].toFixed(1)}°</dd>
+            <dd>{site.layers.slope[cell].toFixed(1)}°</dd>
             <dt>Ground</dt>
             <dd>
-              {site.layers.thermalInertia[probe] < SAND_TI_THRESHOLD
+              {site.layers.thermalInertia[cell] < SAND_TI_THRESHOLD
                 ? "Soft sand risk"
                 : "Firm ground proxy"}
             </dd>
             <dt>Science signal</dt>
-            <dd>{site.layers.science[probe].toFixed(2)}</dd>
+            <dd>{site.layers.science[cell].toFixed(2)}</dd>
             <dt>Walk home</dt>
-            <dd>{clock(m.home?.cost[probe] ?? Infinity)}</dd>
+            <dd>{clock(m.home?.cost[cell] ?? Infinity)}</dd>
           </dl>
         ) : (
           <p>Point to terrain to inspect.</p>

@@ -67,6 +67,7 @@ export function MissionMap({
       minZoom: 8,
       maxZoom: 17,
       zoomControl: true,
+      zoomSnap: 0.1,
     });
     map.current = m;
     const b = L.latLngBounds(
@@ -79,7 +80,17 @@ export function MissionMap({
           (p) => [p.lat, p.lng] as [number, number],
         ),
       ),
-      { padding: [60, 70], maxZoom: 14 },
+      {
+        paddingTopLeft: [
+          Math.max(60, m.getSize().x * 0.12),
+          Math.max(160, m.getSize().y * 0.12),
+        ],
+        paddingBottomRight: [
+          Math.max(60, m.getSize().x * 0.12),
+          Math.max(60, m.getSize().y * 0.12),
+        ],
+        maxZoom: 14,
+      },
     );
     m.attributionControl.setPrefix(false);
     for (const [name, z] of [
@@ -172,9 +183,84 @@ export function MissionMap({
           (p) => [p.lat, p.lng] as [number, number],
         ),
       ),
-      { padding: [60, 70], maxZoom: 14 },
+      {
+        paddingTopLeft: [
+          Math.max(60, m.getSize().x * 0.12),
+          Math.max(160, m.getSize().y * 0.12),
+        ],
+        paddingBottomRight: [
+          Math.max(60, m.getSize().x * 0.12),
+          Math.max(60, m.getSize().y * 0.12),
+        ],
+        maxZoom: 14,
+      },
     );
   }, [site, basemap, viewRequest]);
+  useEffect(() => {
+    const m = map.current;
+    if (!m) return;
+    const group = L.layerGroup().addTo(m);
+    const update = () => {
+      group.clearLayers();
+      const b = m.getBounds(),
+        size = m.getSize();
+      const label = (point: L.LatLng, text: string) =>
+        L.marker(point, {
+          interactive: false,
+          keyboard: false,
+          icon: L.divIcon({
+            className: "coordinate-tick",
+            html: text,
+            iconSize: [62, 12],
+            iconAnchor: [31, 6],
+          }),
+        }).addTo(group);
+      for (
+        let lat = Math.ceil(b.getSouth() * 100) / 100;
+        lat < b.getNorth();
+        lat += 0.01
+      ) {
+        L.polyline(
+          [
+            [lat, b.getWest()],
+            [lat, b.getEast()],
+          ],
+          { weight: 0.6, opacity: 0.28, color: "#eceae6", interactive: false },
+        ).addTo(group);
+        const y = m.latLngToContainerPoint([lat, b.getEast()]).y;
+        if (y > 65 && y < size.y - 60)
+          label(
+            m.containerPointToLatLng([size.x - 28, y]),
+            lat.toFixed(2) + "°N",
+          );
+      }
+      for (
+        let lng = Math.ceil(b.getWest() * 100) / 100;
+        lng < b.getEast();
+        lng += 0.01
+      ) {
+        L.polyline(
+          [
+            [b.getSouth(), lng],
+            [b.getNorth(), lng],
+          ],
+          { weight: 0.6, opacity: 0.28, color: "#eceae6", interactive: false },
+        ).addTo(group);
+        const x = m.latLngToContainerPoint([b.getSouth(), lng]).x;
+        if (x > 80 && x < size.x - 65)
+          label(
+            m.containerPointToLatLng([x, size.y - 48]),
+            lng.toFixed(2) + "°E",
+          );
+      }
+    };
+    m.on("moveend resize", update);
+    update();
+    return () => {
+      m.off("moveend resize", update);
+      group.remove();
+    };
+  }, [site, basemap]);
   useEffect(() => {
     const m = map.current;
     if (!m) return;
@@ -203,13 +289,13 @@ export function MissionMap({
     const m = map.current;
     if (!m) return;
     const g = L.layerGroup().addTo(m);
-    const marker = (p: LatLng, text: string, cls: string) =>
+    const marker = (p: LatLng, text: string, cls: string, dx = 0, dy = 0) =>
       L.marker([p.lat, p.lng], {
         icon: L.divIcon({
           className: `map-marker ${cls}`,
           html: text,
           iconSize: [28, 28],
-          iconAnchor: [14, 14],
+          iconAnchor: [14 - dx, 14 - dy],
         }),
         pane: cls === "poi" ? "pois" : "stops",
         keyboard: true,
@@ -219,6 +305,12 @@ export function MissionMap({
         Object.assign(document.createElement("span"), {
           textContent: site.habitat.name,
         }),
+        {
+          permanent: true,
+          direction: "top",
+          offset: [0, -20],
+          className: "stop-label habitat-label",
+        },
       )
       .addTo(g);
     site.pois.forEach((p) => {
@@ -232,7 +324,38 @@ export function MissionMap({
       mk.on("click", () => callbacks.current.onAdd(p));
     });
     stops.forEach((s, i) => {
-      const mk = marker(s, String(i + 1), "stop").addTo(g);
+      const closeToHabitat =
+        m
+          .latLngToContainerPoint([s.lat, s.lng])
+          .distanceTo(
+            m.latLngToContainerPoint([site.habitat.lat, site.habitat.lng]),
+          ) < 60;
+      const dx = closeToHabitat ? 34 : 0,
+        dy = closeToHabitat ? 26 : 0;
+      const mk = marker(
+        s,
+        String(i + 1).padStart(2, "0"),
+        "stop",
+        dx,
+        dy,
+      ).addTo(g);
+      if (closeToHabitat) {
+        const shifted = m.containerPointToLatLng(
+          m.latLngToContainerPoint([s.lat, s.lng]).add([dx, dy]),
+        );
+        L.polyline([[s.lat, s.lng], shifted], {
+          pane: "stops",
+          color: "#ff6b35",
+          weight: 1,
+          interactive: false,
+        }).addTo(g);
+        L.circleMarker([s.lat, s.lng], {
+          pane: "stops",
+          radius: 2,
+          color: "#ff6b35",
+          interactive: false,
+        }).addTo(g);
+      }
       mk.bindTooltip(
         Object.assign(document.createElement("span"), {
           textContent:
@@ -241,8 +364,8 @@ export function MissionMap({
         }),
         {
           permanent: true,
-          direction: s.lng > site.habitat.lng - 0.005 ? "left" : "right",
-          offset: [s.lng > site.habitat.lng - 0.005 ? -14 : 14, 0],
+          direction: closeToHabitat ? "bottom" : "right",
+          offset: closeToHabitat ? [dx, dy + 18] : [14, 0],
           className: "stop-label",
         },
       );
@@ -319,9 +442,13 @@ export function MissionMap({
         <span>― Edge of safe return</span>
         <span>● Rover sample site</span>
       </div>
+      <span className="map-north" aria-label="North">
+        ↑<b>N</b>
+      </span>
+      <div className="map-corners" aria-hidden="true" />
       {children}
       <div className="mars-scale" style={{ width: scaleWidth }}>
-        500 m
+        <span>500 m</span>
       </div>
       <span className="map-caption">{baseLabel}</span>
     </div>
