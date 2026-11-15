@@ -177,3 +177,47 @@ describe("tablet touch targets", () => {
     expect(demo).toMatch(/button\.guided-demo__next \{[^}]*background: var\(--ds-blue-fill\);[^}]*color: #ffffff;/);
   });
 });
+
+describe("sidebar fit: nothing hidden behind the pinned emergency block", () => {
+  const css = read("../styles/sidebar-fit.css");
+  const panel = read("../components/MissionPanel.tsx");
+  const block = panel.slice(panel.indexOf('<footer className="emergency-controls">'), panel.indexOf("</footer>"));
+
+  it("the emergency block is one row and one small line; the hint lives in tooltips", () => {
+    expect(block).not.toContain('className="emergency-hint"');
+    // The hint is still there for everyone: the (?) beside the title, and the button's own tooltip.
+    expect(block).toContain('aria-label={emergencyHint}');
+    expect(block.match(/title=\{emergencyHint\}/g)).toHaveLength(2); // Trigger and Reset
+    expect(panel).toContain("Starts at the playback time unless you type another.");
+    expect(panel).toContain("Add a route first: an emergency needs a walk to interrupt.");
+    // Nothing was dropped: title, evidence tag, both demo links and the SPE explanation.
+    for (const kept of ["Emergency simulation", "EVIDENCE_LABELS.emergency", "Demo: storm at T+1:16", "Demo: SPE at Wildcat Ridge", '<Jargon term="SPE" />'])
+      expect(block).toContain(kept);
+    expect(css).toMatch(/\.emergency-demos \{[^}]*flex-wrap: nowrap;/);
+    expect(css).toMatch(/\.emergency-controls \.jargon__tip \{\s*top: auto;\s*bottom:/); // tooltips open upward, into view
+  });
+
+  it("the scrolling area keeps air above the block, and the block is a flex child, not an overlay", () => {
+    expect(css).toMatch(/\.telemetry-scroll \{\s*padding-bottom: 16px;/);
+    expect(css).not.toMatch(/\.emergency-controls \{[^}]*position: (absolute|fixed|sticky)/);
+  });
+
+  it("short screens: the four tiles become one compact row", () => {
+    const short = css.slice(css.indexOf("@media (max-height: 759px)"), css.indexOf("/* ---------- 5."));
+    expect(short).toMatch(/\.stat-tiles \{\s*grid-template-columns: repeat\(4, minmax\(0, 1fr\)\);/);
+    expect(short).toMatch(/\.stat-tiles dd \{[^}]*font: 600 13px/);
+    expect(short).toMatch(/\.tile-long::after \{\s*content: attr\(data-short\);/);
+  });
+
+  it("the duration tile's sub-line wraps between its two parts and is never cut", () => {
+    expect(panel).toMatch(/<small className="tile-parts">\s*<span>\{clock\(display\.walkSec\)\} walk<\/span>/);
+    expect(panel).toContain('<span className="tile-long" data-short="sci">science</span>');
+    expect(css).toMatch(/\.tile-parts > span \{\s*white-space: nowrap;/);
+    expect(css).toMatch(/\.stat-tiles small \{[^}]*text-overflow: clip;/);
+  });
+
+  it("the empty-plan card sits at the top and the map fits below it, clear of HAB-1", () => {
+    expect(css).toMatch(/\.empty-plan-card \{\s*top: 12px;\s*transform: translateX\(-50%\);/);
+    expect(read("../components/MissionMap.tsx")).toContain('bottomOf(".empty-plan-card", 44)');
+  });
+});

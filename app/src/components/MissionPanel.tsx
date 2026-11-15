@@ -220,7 +220,16 @@ export function MissionPanel({
           <div>
             <dt>Total duration</dt>
             <dd>{display ? clock(display.totalSec) : "—"}</dd>
-            {display && <small>{clock(display.walkSec)} walk + {clock(display.workSec)} science</small>}
+            {display && (
+              // Two parts that each stay whole: the line wraps between them instead of being cut.
+              // On short screens the tiles are narrow and CSS shows "sci" for "science" (data-short).
+              <small className="tile-parts">
+                <span>{clock(display.walkSec)} walk</span>{" "}
+                <span>
+                  + {clock(display.workSec)} <span className="tile-long" data-short="sci">science</span>
+                </span>
+              </small>
+            )}
           </div>
           <div>
             <dt>Margin</dt>
@@ -403,7 +412,18 @@ export function MissionPanel({
   const emergencyFooter = (
       <footer className="emergency-controls">
         <div className="panel-heading">
-          <span>Emergency simulation</span>
+          <span>
+            Emergency simulation
+            {/* The hint that used to take a line of its own: here, and in the Trigger button's tooltip. */}
+            <span className="jargon emergency-help">
+              <button type="button" className="jargon__button" aria-label={emergencyHint} aria-describedby="emergency-hint-tip">
+                ?
+              </button>
+              <span className="jargon__tip" role="tooltip" id="emergency-hint-tip">
+                {emergencyHint}
+              </span>
+            </span>
+          </span>
           <small>{EVIDENCE_LABELS.emergency}</small>
         </div>
         <div className="emergency-row">
@@ -435,12 +455,13 @@ export function MissionPanel({
             />
           </label>
           {running ? (
-            <button className="emergency-trigger" onClick={m.reset}>
+            <button className="emergency-trigger" title={emergencyHint} onClick={m.reset}>
               Reset
             </button>
           ) : (
             <button
               className="emergency-trigger"
+              title={emergencyHint}
               disabled={!canTrigger || !timeOk}
               onClick={() => {
                 // Same calls as the old buttons: no time given means "now" (the playback time).
@@ -453,13 +474,6 @@ export function MissionPanel({
             </button>
           )}
         </div>
-        <p className="emergency-hint">
-          {emergencyHint}{" "}
-          <span className="jargon-term">
-            SPE
-            <Jargon term="SPE" />
-          </span>
-        </p>
         <div className="emergency-demos">
           <button
             className="text-button storm-preset"
@@ -471,6 +485,7 @@ export function MissionPanel({
           <button className="text-button" disabled={!m.wildcat || running} onClick={m.loadWildcatSpe}>
             Demo: SPE at Wildcat Ridge
           </button>
+          <Jargon term="SPE" />
         </div>
       </footer>
   );

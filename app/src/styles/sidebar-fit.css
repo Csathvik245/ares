@@ -1,0 +1,188 @@
+/* Sidebar fit: nothing is ever hidden behind the pinned emergency block.
+ *
+ * The block is the last flex child of the column, and the scrolling area above it ends
+ * where the block begins, so the block never lies over the list. This file makes the
+ * block small, keeps a little air above it, and tightens the column on short screens.
+ * Loaded last (main.tsx). Theme variables only (Mono theme).
+ */
+
+/* ---------- 1. The pinned emergency block: heading, one row, one small line ---------- */
+html[data-theme] .console-app .telemetry-col > .emergency-controls {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 6px;
+  padding: 8px var(--sb-pad, 16px) 10px;
+}
+html[data-theme] .console-app .telemetry-col > .emergency-controls > .panel-heading,
+html[data-theme] .console-app .telemetry-col > .emergency-controls > .emergency-row {
+  margin: 0;
+}
+html[data-theme] .console-app .telemetry-col .emergency-row {
+  margin: 0;
+}
+html[data-theme] .console-app .telemetry-col .emergency-demos {
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: center;
+  gap: 12px;
+  margin: 0;
+  min-height: 16px;
+}
+html[data-theme] .console-app .telemetry-col .emergency-demos .text-button {
+  min-height: 16px;
+  padding: 0;
+  white-space: nowrap;
+}
+html[data-theme] .console-app .emergency-demos .jargon {
+  margin-left: -6px;
+}
+/* The block is at the bottom of the page: its tooltips open upward and stay inside the column. */
+html[data-theme] .console-app .emergency-controls .jargon__tip {
+  top: auto;
+  bottom: calc(100% + 8px);
+}
+html[data-theme] .console-app .emergency-demos .jargon__tip {
+  left: auto;
+  right: 0;
+}
+
+/* ---------- 2. Air under the last tiles ---------- */
+/* The scrolling area stops at the block's top edge, so its whole height is reachable.
+   This padding keeps the last tile clear of that edge. */
+html[data-theme] .console-app .telemetry-col .telemetry-scroll {
+  padding-bottom: 16px;
+  scroll-padding-bottom: 16px;
+}
+
+/* ---------- 4. "2:05 walk + 1:30 science" is never cut: it wraps between its two parts ---------- */
+.console-app .stat-tiles .tile-parts {
+  display: flex;
+  flex-wrap: wrap;
+  column-gap: 0.5ch;
+  overflow: visible;
+  white-space: normal;
+  text-overflow: clip;
+}
+.console-app .stat-tiles .tile-parts > span {
+  white-space: nowrap;
+}
+.console-app .stat-tiles small {
+  overflow: visible;
+  white-space: normal;
+  text-overflow: clip;
+  overflow-wrap: anywhere;
+}
+
+/* ---------- 3. Short screens (under 760 px tall): a tighter column ---------- */
+@media (max-height: 759px) and (min-width: 1025px) {
+  html[data-theme] .console-app .telemetry-col {
+    --sb-pad: 12px;
+    --sb-gap: 8px;
+  }
+  html[data-theme] .console-app .telemetry-col .telemetry-scroll > section {
+    padding-top: 8px;
+    padding-bottom: 8px;
+  }
+  html[data-theme] .console-app .telemetry-col .mission-actions button {
+    min-height: 30px;
+    padding-block: 0;
+  }
+  html[data-theme] .console-app .telemetry-col .oxygen-headline strong {
+    font-size: 22px;
+    line-height: 26px;
+  }
+  html[data-theme] .console-app .telemetry-col .budget-key {
+    margin-top: 4px;
+  }
+  html[data-theme] .console-app .telemetry-col .telemetry-scroll {
+    padding-bottom: 8px;
+    scroll-padding-bottom: 8px;
+  }
+  /* Status: the word a little smaller, its lines closer. */
+  html[data-theme] .console-app .telemetry-col .large-status {
+    font-size: 22px !important;
+    line-height: 26px !important;
+  }
+  html[data-theme] .console-app .telemetry-col .rail-status summary {
+    min-height: 0;
+    padding-block: 0;
+    margin-top: 2px;
+  }
+  /* Stops: one line less of padding per stop. */
+  html[data-theme] .console-app .telemetry-col .stop-list {
+    margin-top: 6px;
+    gap: 0;
+  }
+  html[data-theme] .console-app .telemetry-col .stop-list > li {
+    padding-top: 3px;
+    padding-bottom: 3px;
+  }
+  html[data-theme] .console-app .telemetry-col .mission-actions {
+    margin-top: 6px;
+  }
+  /* Oxygen: the four tiles become one row, label above value, smaller value. */
+  html[data-theme] .console-app .telemetry-col .oxygen-headline {
+    margin-top: 4px;
+  }
+  html[data-theme] .console-app .telemetry-col .budget-bar {
+    margin-top: 6px;
+  }
+  html[data-theme] .console-app .telemetry-col .stat-tiles {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    grid-auto-rows: auto;
+    gap: 6px;
+    margin-top: 8px;
+  }
+  html[data-theme] .console-app .telemetry-col .stat-tiles > div {
+    min-height: 0;
+    padding: 5px 6px;
+  }
+  html[data-theme] .console-app .telemetry-col .stat-tiles dt {
+    font: 400 10px/14px var(--font-mono);
+    white-space: nowrap;
+  }
+  html[data-theme] .console-app .telemetry-col .stat-tiles dd {
+    margin: 0;
+    font: 600 13px/18px var(--font-mono);
+    white-space: nowrap;
+  }
+  html[data-theme] .console-app .telemetry-col .stat-tiles small {
+    margin-top: 0;
+    font: 400 10px/13px var(--font-mono);
+  }
+  /* Narrow tiles: "science" is shown as "sci" (the full word stays in the page for screen readers). */
+  html[data-theme] .console-app .telemetry-col .stat-tiles .tile-long {
+    font-size: 0;
+  }
+  html[data-theme] .console-app .telemetry-col .stat-tiles .tile-long::after {
+    content: attr(data-short);
+    font-size: 10px;
+  }
+  /* The emergency block loses a few more pixels. */
+  html[data-theme] .console-app .telemetry-col > .emergency-controls {
+    gap: 4px;
+    padding-top: 6px;
+    padding-bottom: 8px;
+  }
+}
+
+/* ---------- 5. Empty Plan: the "Plan a walk on Mars" card sits at the top of the map ---------- */
+/* The map then fits the walkable area below the card (MissionMap reads the card's real
+   bottom edge), so the card never covers HAB-1. */
+html[data-theme] .console-app .empty-plan-card {
+  top: 12px;
+  transform: translateX(-50%);
+  padding: 16px 20px;
+}
+html[data-theme] .console-app .empty-plan-card .empty-plan-card__actions {
+  margin: 12px 0 8px;
+}
+
+/* ---------- Tablet: the bottom sheet lies over the map tools too ---------- */
+@media (max-width: 1024px) {
+  .console-app .layer-rail,
+  .console-app .mission-rail {
+    z-index: 1070;
+  }
+  /* Short labels would not help here: the tiles are wide. Keep two per row. */
+}

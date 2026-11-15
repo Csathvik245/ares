@@ -104,7 +104,7 @@ describe("empty state: no stops, no route", () => {
 
   it("the emergency block says why it cannot be triggered yet", () => {
     const html = panel([], "emergency");
-    expect(html).toMatch(/<button class="emergency-trigger" disabled="">Trigger<\/button>/);
+    expect(html).toMatch(/<button class="emergency-trigger" title="Add a route first[^"]*" disabled="">Trigger<\/button>/);
     expect(text(html)).toContain("Add a route first");
     // The Wildcat Ridge demo loads its own route, so it stays available.
     expect(html).toMatch(/<button class="text-button">Demo: SPE at Wildcat Ridge<\/button>/);
@@ -195,12 +195,13 @@ describe("with the demo mission", () => {
     ]);
     expect(html).toMatch(/<span>T\+<\/span><input[^>]*value="0:00"/); // defaults to the playback time
     expect(html.match(/emergency-trigger/g)).toHaveLength(1);
-    expect(html).toMatch(/<button class="emergency-trigger">Trigger<\/button>/); // enabled
+    expect(html).toMatch(/<button class="emergency-trigger" title="Starts at the playback time[^"]*">Trigger<\/button>/); // enabled
     expect(text(html)).toContain("Demo: storm at T+1:16");
     expect(text(html)).toContain("Demo: SPE at Wildcat Ridge");
     expect(html).not.toContain("disabled");
-    // The old row of seven buttons is gone: Trigger, the two demo links, and the (?) that explains SPE.
-    expect(html.match(/<button/g)).toHaveLength(4);
+    // The old row of seven buttons is gone: Trigger, the two demo links, the (?) that explains SPE,
+    // and the (?) beside the title that now holds the hint line.
+    expect(html.match(/<button/g)).toHaveLength(5);
     expect(html).toContain('aria-label="SPE: solar particle event: a burst of radiation"');
   });
 });

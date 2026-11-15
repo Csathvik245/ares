@@ -63,7 +63,9 @@ function fitMissionView(map: L.Map, site: Site, stops: Stop[], extras: ViewExtra
     return rect && rect.height > 0 ? rect.bottom - top + gap : 0;
   };
   // A stop marker is 34 px tall and centred on its stop, so the gap under the legend is more than half of that.
-  const padTop = Math.max(padY, bottomOf(".map-legend", 28), bottomOf(".storm-alert", 24));
+  // With no plan yet, the "Plan a walk on Mars" card sits at the top of the map: fit below it too,
+  // so it never covers the habitat.
+  const padTop = Math.max(padY, bottomOf(".map-legend", 28), bottomOf(".storm-alert", 24), bottomOf(".empty-plan-card", 44));
   map.fitBounds(bounds, {
     animate: false,
     paddingTopLeft: [padX, Math.min(padTop, size.y * 0.5)],

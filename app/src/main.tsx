@@ -11,6 +11,8 @@ import "./styles/theme-mono.css";
 import "./styles/console-column.css";
 // Tablet: 44 px touch targets. Last, so it outranks the compact desktop sizes.
 import "./styles/tablet-touch.css";
+// Sidebar fit: compact pinned emergency block, short-screen layout. Last, so it outranks the rest.
+import "./styles/sidebar-fit.css";
 
 // ?theme=mono (default) | deep-space | classic. "classic" is the Contract 6 palette and the old layout.
 const requested = new URLSearchParams(window.location.search).get("theme");
