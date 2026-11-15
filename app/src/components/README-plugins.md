@@ -254,3 +254,19 @@ import { alternativeLine } from "../lib/emergency-run";
 ```
 
 It prints, for example, "Riskier option: continue to Delta front toe, 31 min margin".
+
+## 9. Science page
+
+`SciencePage.tsx` is a readable explainer for judges: eight short sections (why Jezero, the data, how the route is picked, the Perseverance check, uncertainty, emergencies, evidence levels and limits, related work), each with a table or picture. It takes no props and reads no app state.
+
+**To mount it** (for example as a "Science" tab; give its parent a fixed height, since the page scrolls on its own):
+
+```tsx
+import { SciencePage } from "./components/SciencePage";
+
+<SciencePage />
+```
+
+- Text column up to 760 px; a sticky table of contents appears beside it from 1180 px wide. Styles are in `science-page.css` and use only the theme variables.
+- Numbers: constants are imported from the planner; result numbers are copied from `docs/demo-numbers.md` through `lib/scienceNumbers.ts`, and a test fails if one stops matching.
+- The validation picture is `app/public/images/validation_traverse.jpg`, a smaller copy of `docs/images/validation_traverse.png`.
