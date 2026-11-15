@@ -659,3 +659,161 @@ html[data-theme] .console-app .play-hint {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
+
+/* ---------- Laptop and desktop: one centred column, content in the middle of the screen ---------- */
+/* Tablet and phone keep the sizes above; everything here starts at 1025 px. */
+@media (min-width: 1025px) {
+  .guide {
+    display: flex;
+    flex-direction: column;
+    max-width: 1100px;
+    padding-top: var(--space-12);
+  }
+  .guide__head,
+  .guide__tabs {
+    flex: none;
+  }
+  /* The tab's content takes the space that is left and sits in the middle of it. */
+  .guide__panel {
+    flex: 1 1 auto;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
+  /* Inside the Plan console a general button rule sets a small minimum height. These
+     longer selectors keep the cards and chips at their real size on every tab. */
+  html[data-theme] .guide-overlay .guide .guide-card {
+    min-height: 220px;
+  }
+  html[data-theme] .guide-overlay .guide .guide-chip {
+    min-height: 96px;
+  }
+  html[data-theme] .guide-overlay .guide .guide__tabs button {
+    min-height: var(--touch-target);
+  }
+}
+
+/* ---------- 1280 px and wider: about 1.3 times larger ---------- */
+@media (min-width: 1280px) {
+  .guide {
+    padding-top: calc(var(--space-12) + var(--space-6));
+  }
+  .guide-overlay {
+    font-size: 16px;
+  }
+  .guide-overlay h2 {
+    font-size: 44px;
+  }
+  .guide-overlay h3 {
+    margin-bottom: var(--space-4);
+    font-size: 13px;
+    line-height: 18px;
+  }
+  .guide__tabs {
+    margin: var(--space-8) 0 var(--space-10);
+  }
+  html[data-theme] .guide-overlay .guide .guide__tabs button {
+    min-height: 52px;
+    padding: 0 var(--space-5);
+    font-size: 15px;
+  }
+  .guide__tabs button.is-current::after {
+    left: var(--space-5);
+    right: var(--space-5);
+  }
+  html[data-theme] .guide-overlay .guide .guide__close {
+    min-height: 44px;
+    padding: var(--space-2) var(--space-5);
+    font-size: 14px;
+    line-height: 20px;
+  }
+  .guide-lead {
+    font-size: 18px;
+  }
+  .guide-note {
+    font-size: 15px;
+  }
+
+  /* Get started: taller cards with more room inside. */
+  .guide-cards {
+    gap: var(--space-5);
+  }
+  html[data-theme] .guide-overlay .guide .guide-card {
+    gap: var(--space-4);
+    min-height: 260px;
+    padding: var(--space-8);
+    font-size: 16px;
+  }
+  .guide-card strong {
+    font-size: 20px;
+  }
+  .guide-next {
+    margin-top: var(--space-8);
+    font-size: 16px;
+  }
+
+  /* Read the screen. */
+  html[data-theme] .guide-overlay .guide .guide-primary {
+    min-height: 52px;
+    padding: var(--space-3) var(--space-8);
+    font-size: 16px;
+  }
+  .guide-strip {
+    gap: var(--space-4);
+  }
+  .guide-strip li {
+    padding: var(--space-4);
+    font-size: 15px;
+  }
+  .guide-strip b {
+    font-size: 15px;
+  }
+
+  /* What the colours mean. */
+  .guide-colours {
+    gap: var(--space-12);
+  }
+  /* The three pills share one row. */
+  .guide-pills {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: var(--space-4);
+  }
+  .guide-pills figure {
+    max-width: none;
+  }
+  .guide-pills figcaption,
+  .guide-swatches li,
+  .guide-tags li {
+    font-size: 16px;
+  }
+  .guide-swatches,
+  .guide-tags {
+    gap: var(--space-4);
+  }
+  .guide-swatch {
+    width: 72px;
+    height: 24px;
+  }
+  .guide-bar {
+    max-width: 520px;
+  }
+  .guide-bar__labels span {
+    font-size: 13px;
+  }
+
+  /* Words: taller chips, larger type. */
+  .guide-chips {
+    gap: var(--space-4);
+  }
+  html[data-theme] .guide-overlay .guide .guide-chip {
+    min-height: 136px;
+    padding: var(--space-4) var(--space-5);
+  }
+  .guide-chip__word {
+    font-size: 24px;
+  }
+  .guide-chip__meaning {
+    font-size: 16px;
+  }
+}
