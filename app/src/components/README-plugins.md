@@ -61,9 +61,41 @@ In `App.tsx`, in place of the current `{selected && <StopCard … />}` block (`s
 - `poi` is optional. A stop clicked on the map (not a POI) shows the orbital view and a short "no science note" line.
 - Camera and sol come from `lib/photoCredits.ts`. Add a line there when a photo is added.
 
+## 4. Science per oxygen-minute
+
+Planner functions in `planner/science.ts`. They are not exported from `planner/index.ts` yet (the backend owner adds the exports), so import from the file for now.
+
+```ts
+import { scienceScore, suggestStops } from "../planner/science";
+```
+
+**Score per stop card** (stop list in the mission panel, or the stop detail card). One entry per stop, in order: `{ id, science, extraO2Min, score }`.
+
+```ts
+const scores = scienceScore(site, plan, { stops: m.stops, cost });
+```
+
+- `science` is the mean science value (0 to 1) within 50 m of the stop. It is a relative CRISM index, not a mineral abundance.
+- `extraO2Min` is the oxygen the stop adds: the walking detour compared with skipping it, plus its science time.
+- `score` = `science / extraO2Min`. It is a small number (0.004 to 0.005 for the demo stops), so show it per oxygen-hour (`score * 60`, about 0.23 to 0.31) or show the two parts side by side ("science 0.54 · 131 O2-min").
+- Demo mission: the delta front toe has by far the highest science (0.54) but costs the most oxygen; Sid scores best per minute because it is almost on the way home.
+
+**"Suggest stops" button** (mission panel, next to "Load demo mission"). Up to 3 stops that keep the plan GO, best score first. About 100 ms the first time, about 35 ms after.
+
+```ts
+const ideas = suggestStops(site, site.habitat, m.stops, 3, { startLmst: m.conditions.startLmst });
+```
+
+To add one where it is cheapest: `const next = [...m.stops]; next.splice(idea.insertAt, 0, idea); m.edit(next);`
+
+- Each idea is a full `Stop` plus `science`, `extraO2Min`, `score`, `insertAt` and `marginMin` (the margin after adding it).
+- Each idea is checked on its own. After adding one, call `suggestStops` again rather than adding a second from the old list.
+- It returns `[]` when the current plan is not GO, and during a storm or solar event.
+- The suggested spots are picked from orbital CRISM data only. Label them as suggestions: the planner suggests, the astronaut decides.
+
 ## Tests
 
-`npm test` runs `lib/zoneCleanup.test.ts`, `lib/profile.test.ts` and `components/plugins.test.tsx` (the components are rendered to HTML and checked on the real `site.json`).
+`npm test` runs `lib/zoneCleanup.test.ts`, `lib/profile.test.ts`, `planner/science.test.ts` and `components/plugins.test.tsx` (the components are rendered to HTML and checked on the real `site.json`).
 
 ## Not checked
 
