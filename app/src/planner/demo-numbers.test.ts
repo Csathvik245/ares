@@ -13,6 +13,9 @@ import { readFileSync, writeFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
 import {
+  DEFAULT_BLOCK_RADIUS_M,
+  DEFAULT_OXYGEN_LOSS_FRACTION,
+  DEFAULT_SLOW_WALK_FACTOR,
   SOL_HOURS,
   buildCostGrid,
   formatDose,
@@ -27,9 +30,10 @@ import {
   planRoute,
   readSkyView,
   roundHalfUp,
+  scenarioAt,
   stormAt,
 } from "./index";
-import type { Conditions, Plan, Stop } from "./index";
+import type { Conditions, Plan, ScenarioKind, ScenarioOptions, ScenarioOutcome, Stop } from "./index";
 import { PARAMS, simulateMission } from "./montecarlo";
 
 const file = (relative: string) => fileURLToPath(new URL(relative, import.meta.url));
@@ -48,7 +52,8 @@ const toStop = (p: (typeof site.pois)[number], dwellMin: number): Stop => ({ id:
 
 // The demo mission: the first three science POIs, 30 min each (Contract 1).
 const demoPois = site.pois.filter((p) => p.kind === "science").slice(0, 3);
-const demo = planRoute(site, cost, site.habitat, demoPois.map((p) => toStop(p, 30)));
+const demoStops = demoPois.map((p) => toStop(p, 30));
+const demo = planRoute(site, cost, site.habitat, demoStops);
 
 // The Wildcat Ridge SPE demo, as the app's "SPE at Wildcat Ridge" button runs it:
 // one stop, no science time, and the event starts on arrival.
@@ -68,6 +73,16 @@ const stretchStops = [toStop(demoPois[0], 30), toStop(wildcatPoi, STRETCH_DWELL_
 const stretchCost = buildCostGrid(site, { ...CALM, startLmst: STRETCH_START_LMST });
 const stretch = planRoute(site, stretchCost, site.habitat, stretchStops);
 const stretchSim = simulateMission(site, stretch, { seed: 42, startLmst: STRETCH_START_LMST });
+
+// The new emergencies (section 8), on the demo mission at T+1:16. `stops` only gives the
+// dropped stops their real names; every size is the planner's default unless stated.
+const scenario = (kind: ScenarioKind, extra: ScenarioOptions = {}): ScenarioOutcome =>
+  scenarioAt(site, demo, INCIDENT_SEC, kind, { startLmst: START_LMST, stops: demoStops, ...extra });
+// The "demo" oxygen loss for the slides: big enough to drop a stop, small enough that the
+// EVA goes on and she still gets home with the reserve. With the default 25% no stop is
+// dropped; from about 60% the EVA is aborted. A test below keeps this setting honest.
+const DEMO_LOSS_FRACTION = 0.5;
+const demoLoss = scenario("oxygen-loss", { lossFraction: DEMO_LOSS_FRACTION });
 
 const lmstAt = (sec: number) => formatLmst(START_LMST + ((sec / 3600) * 24) / SOL_HOURS);
 /** A percentage with one decimal, half up (formatPct shows whole percents, which would turn 99.8% into 100%). */
@@ -143,6 +158,62 @@ function monteCarloBlock(r = simulateMission(site, demo, { seed: 42, startLmst: 
       const p = PARAMS.find((x) => x.name === s.param)!;
       return `| ${s.label} | ${range(p)} ${p.unit} | ${min(s.lowMarginMin)} | ${min(s.highMarginMin)} | ${min(s.swingMin)} |`;
     }),
+  ].join("\n");
+}
+
+const names = (stops: Stop[]) => (stops.length ? stops.map((s) => s.label).join(", ") : "none");
+const beforeAfter = (o: ScenarioOutcome) => `${formatMinutes(o.before.marginSec)} → ${formatMinutes(o.after.marginSec)}`;
+
+function newEmergenciesBlock(): string {
+  const cases: [string, string, ScenarioOutcome][] = [
+    ["Oxygen loss", `${formatPct(DEFAULT_OXYGEN_LOSS_FRACTION * 100)} of the oxygen left is lost`, scenario("oxygen-loss")],
+    ["Slower walking", `walking speed drops to ${formatPct(DEFAULT_SLOW_WALK_FACTOR * 100)} of normal`, scenario("slow-walk")],
+    ["Path blocked", `ground within ${roundHalfUp(DEFAULT_BLOCK_RADIUS_M)} m of a point on the route ahead is impassable`, scenario("blocked-path")],
+  ];
+  const d = demoLoss;
+  const dropped = d.droppedStops;
+  const droppedText =
+    dropped.length === 1 ? `the ${dropped[0].label} stop` : `${dropped.length} stops (${names(dropped)})`;
+  const via = d.keptStops.length ? `through ${names(d.keptStops)} and home` : "straight home";
+  return [
+    `Each emergency starts at ${formatMet(INCIDENT_SEC)} of the demo mission (walking to stop 2), and ARES re-plans the rest of the EVA.`,
+    "The sizes are **illustrative** demo values, not measured failure data.",
+    "",
+    '"Before" is the rest of the plan with no emergency, re-planned from where she is at that moment; it can',
+    "differ by a couple of minutes from the margin in section 1.",
+    "",
+    "### The three default cases",
+    "",
+    "| Emergency | Size (planner default) | Kept stops | Dropped stops | Oxygen margin before → after | EVA status | Return-home status |",
+    "|---|---|---|---|---|---|---|",
+    ...cases.map(
+      ([label, size, o]) =>
+        `| ${label} | ${size} | ${names(o.keptStops)} | ${names(o.droppedStops)} | ${beforeAfter(o)} | **${o.evaStatus}** | **${o.abort.status}** |`,
+    ),
+    "",
+    "### Demo case: a bigger oxygen loss that drops a stop",
+    "",
+    "| | |",
+    "|---|---|",
+    `| Setting | \`lossFraction\` = ${roundHalfUp(DEMO_LOSS_FRACTION, 2)} (${formatPct(DEMO_LOSS_FRACTION * 100)} of the oxygen left is lost) |`,
+    `| Kept stops | ${names(d.keptStops)} |`,
+    `| Dropped stops | ${names(dropped)} |`,
+    `| New route | astronaut's position → ${[...d.keptStops.map((s) => s.label), "HAB-1"].join(" → ")} |`,
+    `| Oxygen margin before → after | ${beforeAfter(d)} |`,
+    `| New plan ends | ${formatMet(d.after.endSec)} (${lmstAt(d.after.endSec)} LMST) |`,
+    `| Oxygen on arrival | ${formatPct(d.oxygenOnArrivalPct)} |`,
+    `| EVA status | **${d.evaStatus}** |`,
+    `| Return-home status (if she walked straight home instead) | **${d.abort.status}**, ${formatMinutes(d.abort.marginSec)} margin |`,
+    "",
+    "Reasons, as the app shows them:",
+    "",
+    list(d.evaReasons),
+    "",
+    "**Sentence for the slides:**",
+    "",
+    `> A ${formatPct(DEMO_LOSS_FRACTION * 100)} oxygen loss at ${formatMet(INCIDENT_SEC)} drops ${droppedText}; ARES re-plans ${via} with ${formatMinutes(d.after.marginSec)} of margin.`,
+    "",
+    `The app's "Oxygen loss" button uses the default ${formatPct(DEFAULT_OXYGEN_LOSS_FRACTION * 100)}, which drops no stop on the demo mission. This demo case needs \`lossFraction\` passed to \`scenarioAt\`.`,
   ].join("\n");
 }
 
@@ -255,6 +326,10 @@ ${list(stretch.reasons)}
 ${monteCarloBlock(stretchSim)}
 
 Top sensitivity: **${stretchSim.sensitivity[0].label}** (a swing of ${formatMinutes(stretchSim.sensitivity[0].swingMin * 60)} in the margin).
+
+## 8. New emergencies
+
+${newEmergenciesBlock()}
 `;
 }
 
@@ -322,6 +397,22 @@ describe("docs/demo-numbers.md", () => {
     // The numbers quoted in the doc.
     expect(stretchSim.successCount).toBe(721);
     expect(roundHalfUp(1 / (1 - stretchSim.pReturnAtAll))).toBe(50); // "about 1 in 50" run out of oxygen
+  });
+
+  it("the demo oxygen loss drops at least one stop and still gets home with the reserve", () => {
+    expect(demoLoss.kind).toBe("oxygen-loss");
+    expect(demoLoss.droppedStops.length).toBeGreaterThanOrEqual(1);
+    // The EVA goes on along a new plan that can be walked...
+    expect(demoLoss.aborted).toBe(false);
+    expect(demoLoss.route.ok).toBe(true);
+    expect(demoLoss.keptStops.length + demoLoss.droppedStops.length).toBe(2); // stops 2 and 3 were ahead
+    // ...and ends at home with the 45 min reserve intact.
+    expect(demoLoss.after.marginSec).toBeGreaterThanOrEqual(0);
+    expect(demoLoss.after.marginSec).toBeLessThan(demoLoss.before.marginSec);
+    expect(Number.isFinite(demoLoss.after.endSec)).toBe(true);
+    expect(demoLoss.evaStatus).not.toBe("NO-GO");
+    // The default-size loss drops nothing, which is why the slides use this bigger one.
+    expect(scenario("oxygen-loss").droppedStops).toHaveLength(0);
   });
 
   it("the demo mission is the one in CLAUDE.md", () => {

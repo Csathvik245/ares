@@ -7,7 +7,7 @@ the real `site.json` and formatted with `format.ts`, so they match what the app 
 and route-learning numbers are read from the pipeline's output files. `npm test` fails if this
 file and the code stop agreeing.
 
-**Numbers taken from commit `eb91fb1`** (the planner and data at that commit).
+**Numbers taken from commit `44c3a51`** (the planner and data at that commit).
 
 <!-- numbers start -->
 ## 1. Demo mission
@@ -204,3 +204,45 @@ What moves the margin most (one input at a time, the others as planned):
 | Time at each stop | -5 to 5 (planned 0) min added to each stop's planned science time, drawn separately for each stop | 36 min | 0 min | 36 min |
 
 Top sensitivity: **Oxygen use while walking** (a swing of 91 min in the margin).
+
+## 8. New emergencies
+
+Each emergency starts at T+1:16 of the demo mission (walking to stop 2), and ARES re-plans the rest of the EVA.
+The sizes are **illustrative** demo values, not measured failure data.
+
+"Before" is the rest of the plan with no emergency, re-planned from where she is at that moment; it can
+differ by a couple of minutes from the margin in section 1.
+
+### The three default cases
+
+| Emergency | Size (planner default) | Kept stops | Dropped stops | Oxygen margin before → after | EVA status | Return-home status |
+|---|---|---|---|---|---|---|
+| Oxygen loss | 25% of the oxygen left is lost | Delta front toe, Máaz lava rock (Sid) | none | 194 min → 96 min | **CAUTION** | **CAUTION** |
+| Slower walking | walking speed drops to 70% of normal | Delta front toe, Máaz lava rock (Sid) | none | 194 min → 151 min | **GO** | **CAUTION** |
+| Path blocked | ground within 75 m of a point on the route ahead is impassable | Delta front toe, Máaz lava rock (Sid) | none | 194 min → 193 min | **GO** | **CAUTION** |
+
+### Demo case: a bigger oxygen loss that drops a stop
+
+| | |
+|---|---|
+| Setting | `lossFraction` = 0.5 (50% of the oxygen left is lost) |
+| Kept stops | Delta front toe |
+| Dropped stops | Máaz lava rock (Sid) |
+| New route | astronaut's position → Delta front toe → HAB-1 |
+| Oxygen margin before → after | 194 min → 31 min |
+| New plan ends | T+2:58 (15:53 LMST) |
+| Oxygen on arrival | 16% |
+| EVA status | **CAUTION** |
+| Return-home status (if she walked straight home instead) | **CAUTION**, 111 min margin |
+
+Reasons, as the app shows them:
+
+  - Oxygen loss at T+1:16: 50% of the oxygen left is gone (197 min of life support).
+  - Dropped 1 stop to keep the 45 min reserve: Máaz lava rock (Sid).
+  - Oxygen margin is low: 31 min above reserve, under 25% of the 435 min usable budget (480 min minus the 45 min reserve).
+
+**Sentence for the slides:**
+
+> A 50% oxygen loss at T+1:16 drops the Máaz lava rock (Sid) stop; ARES re-plans through Delta front toe and home with 31 min of margin.
+
+The app's "Oxygen loss" button uses the default 25%, which drops no stop on the demo mission. This demo case needs `lossFraction` passed to `scenarioAt`.

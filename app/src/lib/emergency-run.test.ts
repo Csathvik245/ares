@@ -96,6 +96,7 @@ describe("the three new emergency buttons", () => {
 
     // What the screens add up: oxygen used (or lost) before + oxygen of the playback plan.
     const usedAtEnd = outcome.position.oxygenUsedSec + playback.oxygenUsedSec;
+    const homeAbort = outcome.abort;
     if (isReplanned(outcome)) {
       expect(usedAtEnd).toBeCloseTo(outcome.route.oxygenUsedSec, 3);
       expect(course.abort.sec).toBe(outcome.route.totalSec);
@@ -103,7 +104,7 @@ describe("the three new emergency buttons", () => {
       expect(course.abort.status).toBe(outcome.evaStatus);
       expect(outcome.keptStops.length + outcome.droppedStops.length).toBe(2); // stops 2 and 3 were still ahead
     } else {
-      expect(course.abort).toBe(outcome.abort);
+      expect(course.abort).toBe(homeAbort);
     }
     expect(Number.isFinite(usedAtEnd)).toBe(true);
     // The end of the playback plan's timeline is at the habitat.

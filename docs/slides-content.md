@@ -37,7 +37,7 @@ The Ares Initiative · NASA Space Apps 2026 · *Interplanetary Survival Guide: M
 
 *Visual:* data → grid → planner → app diagram, plus layer thumbnails. Credit: NASA/JPL-Caltech/University of Arizona (HiRISE), NASA/JPL-Caltech/ASU (THEMIS), NASA/JPL-Caltech/JHUAPL (CRISM).
 
-## Slide 4 — The demo: a normal plan, then a storm
+## Slide 4 — The demo: a normal plan, then emergencies
 
 **Normal plan:** Brac → delta front toe → Sid → home
 - 4.97 km, 3 h 35 min, 49% oxygen at return, 192 min above reserve: **GO**
@@ -47,14 +47,23 @@ The Ares Initiative · NASA Space Apps 2026 · *Interplanetary Survival Guide: M
 - **EVA: NO-GO**: the plan is aborted; the zone collapses.
 - **Return home: CAUTION**: red route home, 57 min walk, 244 min margin, 66% oxygen on arrival.
 
-*Visual:* console with the demo GO plan; console mid-storm with both statuses. Credit: NASA/JPL-Caltech/University of Arizona (HiRISE basemap).
+**Oxygen loss at T+1:16 (ARES re-plans instead of aborting):**
+- A 50% oxygen loss drops the Máaz lava rock (Sid) stop; ARES re-plans through Delta front toe and home with 31 min of margin (was 194 min). **EVA: CAUTION**.
+- The size of the loss is illustrative, not measured failure data.
 
-## Slide 5 — Checked against Perseverance
+*Visual:* console with the demo GO plan; console mid-storm with both statuses; if there is room, the re-planned route after the oxygen loss. Credit: NASA/JPL-Caltech/University of Arizona (HiRISE basemap).
 
+## Slide 5 — Checked against Perseverance, and against our own assumptions
+
+**Against the rover:**
 - We compared ARES with 20.57 km of Perseverance's real drives (NASA traverse file). None of it was used to build the map.
-- ARES rates 99.8% of the rover's path as walkable.
-- Our slope agrees with the rover's own tilt sensor (correlation 0.82).
+- ARES rates 99.8% of the rover's path as walkable, and our slope agrees with the rover's own tilt sensor (correlation 0.82).
 - ARES routes are 24.8 m from the drivers' real routes, against 35.3 m for a straight line. A model trained on 31 of their routes could not do better, so the planner stays deterministic.
+
+**Reliability (Monte Carlo): each plan re-run 1000 times with our assumptions varied:**
+- Demo plan: 1000 of 1000 trials home with the reserve (0 failures: failure rate likely below 0.3%).
+- Stretch plan (one more stop, Wildcat Ridge, with 120 min of sampling; 6.87 km, 6:25): on paper CAUTION with 18 min of margin, but in about 1 in 4 versions (279 of 1000 trials) she gets home below the 45-minute reserve.
+- This is a simulation of our own assumptions in calm conditions, not a measured mission success rate.
 
 *Visual:* `docs/images/route_learning.png` or `docs/images/validation_traverse.png`. Credit: NASA/JPL-Caltech (traverse); NASA/JPL-Caltech/University of Arizona/USGS (HiRISE).
 
@@ -110,3 +119,13 @@ Every number on the slides and where it comes from. `demo-numbers.md` is checked
 | N20 | Team size | six | README.md |
 | N21 | SPE multiplier (illustrative) | ×30 | `SPE_MULTIPLIER`, constants.ts |
 | N22 | Measured 2017 SPE peak | ×1.5 | `SPE_MEASURED_2017_PEAK_MULTIPLIER`, constants.ts |
+| N23 | Demo oxygen loss | 50% at T+1:16 | demo-numbers.md §8 (demo case) |
+| N24 | Stop dropped / stop kept | Máaz lava rock (Sid) / Delta front toe | demo-numbers.md §8 (demo case) |
+| N25 | Margin before → after the oxygen loss | 194 min → 31 min | demo-numbers.md §8 (demo case) |
+| N26 | EVA status after the oxygen loss | CAUTION | demo-numbers.md §8 (demo case) |
+| N27 | Demo plan reliability | 1000 of 1000 trials; failure rate likely below 0.3% | demo-numbers.md §6 |
+| N28 | Stretch plan: extra stop and sampling time | Wildcat Ridge, 120 min | demo-numbers.md §7 |
+| N29 | Stretch plan: distance, total time | 6.87 km, 6:25 | demo-numbers.md §7 |
+| N30 | Stretch plan: status and margin on paper | CAUTION, 18 min | demo-numbers.md §7 |
+| N31 | Stretch plan: home below the reserve | about 1 in 4 (279 of 1000 trials) | demo-numbers.md §7 |
+| N32 | Reserve | 45 min | `RESERVE_MIN`, constants.ts |
