@@ -22,6 +22,7 @@
 7. Explain things simply — the team is learning as it builds.
 8. Never add Co-Authored-By lines, 'Generated with Claude Code', or any AI attribution to commits or pull requests.
 9. Never add team members' real names to any file. Use 'The Ares Initiative'.
+10. The AI assistant (`backend/`, `app/src/ai/`) is NOT part of the submission. Don't mount it or deploy the backend unless the team decides otherwise.
 
 ---
 
@@ -305,6 +306,12 @@ Behaviour notes (implemented in `/app/src/planner`):
 - **abortRoute:** home = `site.habitat`; reserve follows `stormCost.conditions`. Returns `reasons` as well as `status`, so the return-home status always has a reason (Contract 3). Unreachable → `path: []`, `sec: Infinity`, `marginSec: −Infinity`, NO-GO. **It has no sun check** (it is not given the time of day).
 - **envAt:** exported from `index.ts` with `sunElevationSeries(startLmst, durationSec, stepSec)`. Sun from Mars24 at 18.45 N for a fixed season (Ls 0°); `tSec` is Earth seconds.
 - **explainSegment:** facts are for the cells the drawn leg crosses. Throws `RangeError` for a bad `legIndex`.
+- **format.ts:** one formatter for every number the UI shows: `formatMinutes(sec)`, `formatDuration(sec)` (h:mm), `formatKm(m)`, `formatPct(pct)`, `formatDose(mSv)`, `formatLmst(hours)`, `formatMet(sec)`. One rule, round half up; missing values show "—".
+- **stormAt**`(site, plan, tSec, "dust" | "spe", startLmst?)`: everything the UI shows in an emergency: `evaStatus`, `evaReasons`, `abort` (the return-home route and its status), `position`, `oxygenNowPct`, `oxygenOnArrivalPct`, `walkHomeMin`, `marginMin`, `arriveSec`.
+- **computeBriefing**`(site, plan, conditions)`: five rows for the opening page (TERRAIN, CONSUMABLES, RADIATION, LIGHTING, WEATHER), each with a status, ready-to-show text and an evidence tag (MEAS / CALC / ASSUMED), plus an overall Contract 3 status.
+- **scienceScore**`(site, plan, options?)`: for each stop, its science value, the extra oxygen it costs and science per oxygen-minute.
+- **suggestStops**`(site, habitat, existingStops, n?, options?)`: up to `n` extra stops worth adding, ranked by science per oxygen-minute, each keeping the plan GO. The planner suggests; the astronaut decides.
+- **worker.ts / plannerClient:** `app/src/planner/worker.ts` runs the planner in a Web Worker (loads `site.json` once, keeps the plan); `app/src/lib/plannerClient.ts` gives it a typed promise API (`plan`, `safeZone`, `abort`, `positionAt`, `suggestStops`, `walkHome`) where the latest request wins. Same pure functions, off the main thread.
 - **Extra helpers** (additive): `oxygenBudget`, `isLowMargin`, `walkHomeSec` (cursor probe), `fieldFrom`, `smoothPath`, `segmentTimeSec`, `distanceM`, `polylineLengthM`.
 
 ### Contract 5 — AI assistant tools (stretch)

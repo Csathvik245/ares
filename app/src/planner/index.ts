@@ -58,3 +58,5 @@ export { stormAt } from "./storm";
 export type { EmergencyKind, StormOutcome } from "./storm";
 export { computeBriefing } from "./briefing";
 export type { Briefing, BriefingRow, BriefingStatus, Evidence } from "./briefing";
+export { scienceScore, suggestStops } from "./science";
+export type { StopScience, StopSuggestion, ScoreOptions, SuggestOptions } from "./science";
