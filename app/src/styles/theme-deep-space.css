@@ -1,0 +1,727 @@
+/*
+ * Deep Space theme: navy, silver blue and a copper accent.
+ *
+ * DESIGN PROPOSAL, ported from the Stitch project "ARES Mission Console", screen "ARES Flight Software
+ * Mission Console (Left Telemetry, Center Map)". Sizes, colors, spacing and corner radii below were read
+ * from that screen's rendered DOM, not guessed. It changes the Contract 6 palette and the heading font
+ * (Space Grotesk -> Inter + JetBrains Mono), so the team must agree before this ships.
+ *
+ * Scoped to <html data-theme="deep-space">. Additive: it does not edit the team's CSS.
+ * Add ?theme=classic to the URL (or delete the import in main.tsx) to go back.
+ * Status colors (GO / CAUTION / NO-GO) keep their meaning.
+ */
+
+:is([data-theme="deep-space"], [data-theme="mono"]) {
+  --void: #0a0f1e;
+  --void-deep: #060913;
+  --console: #0d1527;
+  --console-2: #111b30;
+  --hairline: rgba(var(--ds-tint), 0.2);
+  --text: #e2e8f0;
+  --muted: #8fa3c7;
+  --mars: #e8743b; /* copper: the plan */
+  --safe: #22d3ee; /* cyan: safety */
+  --science: #a855f7;
+  --font-heading: Inter, -apple-system, "Segoe UI", sans-serif;
+  /* measured from the Stitch DOM */
+  --ds-value: #f1f5f9;
+  --ds-label: rgba(var(--ds-tint), 0.6);
+  --ds-sub: rgba(var(--ds-tint), 0.5);
+  --ds-faint: rgba(var(--ds-tint), 0.4);
+  --ds-line: rgba(var(--ds-tint), 0.2);
+  --ds-line-soft: rgba(var(--ds-tint), 0.12);
+  --ds-tile: rgba(var(--ds-deep-rgb), 0.6);
+  --ds-red-text: #f87171;
+  --ds-red-bg: rgba(69, 10, 10, 0.3);
+  --ds-red-line: rgba(239, 68, 68, 0.3);
+  /* raw channels so other palettes can swap them */
+  --ds-tint: 143, 163, 199;
+  --ds-deep-rgb: 6, 9, 19;
+  --ds-void-rgb: 10, 15, 30;
+  --ds-accent-rgb: 232, 116, 59;
+  --ds-text-rgb: 226, 232, 240;
+  --ds-track: #0f172a;
+  --ds-science-text: #c4a1f7;
+}
+
+:is([data-theme="deep-space"], [data-theme="mono"]) body {
+  background: var(--void);
+  color: var(--text);
+}
+
+/* ---------- Shell ---------- */
+:is([data-theme="deep-space"], [data-theme="mono"]) .console-app {
+  --line: var(--ds-line);
+  --muted: #8fa3c7;
+  background: var(--void);
+  color: var(--text);
+  font: 12px var(--font-body);
+}
+:is([data-theme="deep-space"], [data-theme="mono"]) .console-app button,
+:is([data-theme="deep-space"], [data-theme="mono"]) .design-exit {
+  min-height: 0;
+  padding: 4px 10px;
+  background: rgba(var(--ds-void-rgb), 0.6);
+  color: var(--muted);
+  border: 1px solid var(--ds-line);
+  border-radius: 0;
+  font: 400 12px/16px var(--font-mono);
+  transition:
+    border-color 150ms,
+    color 150ms;
+}
+:is([data-theme="deep-space"], [data-theme="mono"]) .console-app button:hover {
+  border-color: var(--mars);
+  color: var(--ds-value);
+}
+:is([data-theme="deep-space"], [data-theme="mono"]) :focus-visible {
+  outline-color: var(--safe);
+}
+/* The team's borderless text buttons (stop names, Edit) stay borderless. */
+:is([data-theme="deep-space"], [data-theme="mono"]) .console-app .text-button {
+  border: 0;
+  background: none;
+  padding: 0;
+  min-height: 20px;
+}
+
+/* ---------- Header ---------- */
+:is([data-theme="deep-space"], [data-theme="mono"]) .console-header {
+  background: var(--void-deep);
+  border-bottom: 1px solid var(--ds-line);
+}
+:is([data-theme="deep-space"], [data-theme="mono"]) .console-brand > b {
+  color: var(--mars);
+  font: 700 16px/24px var(--font-mono);
+  letter-spacing: 0.8px;
+}
+:is([data-theme="deep-space"], [data-theme="mono"]) .console-brand > span {
+  color: rgba(var(--ds-tint), 0.7);
+  font: 400 12px/16px var(--font-mono);
+  letter-spacing: 0.3px;
+}
+:is([data-theme="deep-space"], [data-theme="mono"]) .console-brand small {
+  display: none;
+}
+:is([data-theme="deep-space"], [data-theme="mono"]) .brand-context {
+  display: none;
+}
+:is([data-theme="deep-space"], [data-theme="mono"]) .header-actions {
+  gap: 12px;
+}
+:is([data-theme="deep-space"], [data-theme="mono"]) .header-clock {
+  color: var(--ds-sub);
+  font: 400 11px/16px var(--font-body);
+}
+:is([data-theme="deep-space"], [data-theme="mono"]) .status,
+:is([data-theme="deep-space"], [data-theme="mono"]) .return-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 10px;
+  border-radius: 0;
+  font: 700 12px/16px var(--font-mono);
+  letter-spacing: 0.6px;
+  background: color-mix(in srgb, currentColor 10%, transparent);
+  animation: none;
+}
+:is([data-theme="deep-space"], [data-theme="mono"]) .status::before,
+:is([data-theme="deep-space"], [data-theme="mono"]) .return-status::before {
+  content: "";
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+}
+:is([data-theme="deep-space"], [data-theme="mono"]) .status--NO-GO {
+  background: var(--ds-red-bg);
+  color: var(--ds-red-text);
+  border-color: rgba(239, 68, 68, 0.6);
+}
+
+@media (min-width: 1025px) {
+  :is([data-theme="deep-space"], [data-theme="mono"]) .console-header {
+    height: 48px;
+    padding: 0 20px;
+  }
+  :is([data-theme="deep-space"], [data-theme="mono"]) .console-brand {
+    gap: 12px;
+  }
+  :is([data-theme="deep-space"], [data-theme="mono"]) .brand-context {
+    display: block;
+    padding-left: 12px;
+    border-left: 1px solid var(--ds-line);
+    color: rgba(var(--ds-tint), 0.9);
+    font: 400 12px/16px var(--font-mono);
+    letter-spacing: 0.3px;
+  }
+  :is([data-theme="deep-space"], [data-theme="mono"]) .console-body {
+    height: calc(100% - 48px);
+  }
+  /* Consolidated layout: one 410px telemetry column and the map. */
+  :is([data-theme="deep-space"], [data-theme="mono"]) .console-body.consolidated {
+    grid-template-columns: 410px minmax(0, 1fr);
+  }
+}
+@media (min-width: 1025px) and (max-width: 1300px) {
+  :is([data-theme="deep-space"], [data-theme="mono"]) .console-body.consolidated {
+    grid-template-columns: 360px minmax(0, 1fr);
+  }
+  :is([data-theme="deep-space"], [data-theme="mono"]) .brand-context {
+    display: none;
+  }
+}
+
+/* ---------- Left telemetry column ---------- */
+:is([data-theme="deep-space"], [data-theme="mono"]) .telemetry-col {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  overflow-y: auto;
+  background: var(--void);
+  border-right: 1px solid var(--ds-line);
+  scrollbar-width: thin;
+  scrollbar-color: rgba(var(--ds-tint), 0.25) var(--void);
+}
+:is([data-theme="deep-space"], [data-theme="mono"]) .telemetry-col > * {
+  flex-shrink: 0;
+}
+:is([data-theme="deep-space"], [data-theme="mono"]) .telemetry-col > section,
+:is([data-theme="deep-space"], [data-theme="mono"]) .telemetry-col > div,
+:is([data-theme="deep-space"], [data-theme="mono"]) .telemetry-col > footer {
+  border-bottom: 1px solid var(--ds-line);
+  padding: 16px 20px;
+}
+:is([data-theme="deep-space"], [data-theme="mono"]) .panel-heading {
+  font: 400 10px/16px var(--font-mono);
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  color: var(--ds-label);
+}
+:is([data-theme="deep-space"], [data-theme="mono"]) .panel-heading small {
+  font: 400 10px/16px var(--font-mono);
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  color: var(--ds-faint);
+}
+
+/* Mission status */
+:is([data-theme="deep-space"], [data-theme="mono"]) .status-line {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 6px 0 8px;
+}
+:is([data-theme="deep-space"], [data-theme="mono"]) .large-status {
+  margin: 0;
+  font: 700 30px/30px var(--font-mono);
+  letter-spacing: -0.75px;
+}
+:is([data-theme="deep-space"], [data-theme="mono"]) .ink-NO-GO {
+  color: #ef4444;
+}
+:is([data-theme="deep-space"], [data-theme="mono"]) .status-descriptor {
+  font: 400 11px/16px var(--font-mono);
+  color: var(--ds-label);
+  text-align: right;
+}
+:is([data-theme="deep-space"], [data-theme="mono"]) .rail-status p {
+  color: rgba(var(--ds-text-rgb), 0.88);
+  font: 400 12px/18px var(--font-body);
+}
+:is([data-theme="deep-space"], [data-theme="mono"]) .rail-status details {
+  color: var(--ds-label);
+  font: 400 10px var(--font-mono);
+}
+:is([data-theme="deep-space"], [data-theme="mono"]) .return-readout {
+  color: var(--mars);
+  font-family: var(--font-mono);
+}
+
+/* Oxygen budget */
+:is([data-theme="deep-space"], [data-theme="mono"]) .oxygen-headline {
+  align-items: baseline;
+  gap: 8px;
+  margin: 10px 0 12px;
+}
+:is([data-theme="deep-space"], [data-theme="mono"]) .oxygen-headline strong {
+  font: 700 30px/36px var(--font-mono);
+  color: var(--ds-value);
+}
+:is([data-theme="deep-space"], [data-theme="mono"]) .oxygen-headline strong span {
+  color: var(--mars);
+  font: 700 12px var(--font-mono);
+  margin-left: 2px;
+}
+:is([data-theme="deep-space"], [data-theme="mono"]) .oxygen-headline p {
+  color: var(--ds-label);
+  font: 400 12px var(--font-body);
+}
+:is([data-theme="deep-space"], [data-theme="mono"]) .budget-bar {
+  height: 8px;
+  padding: 1px;
+  background: var(--ds-track);
+  border: 0;
+  border-radius: 0;
+  gap: 1px;
+}
+:is([data-theme="deep-space"], [data-theme="mono"]) .budget-bar span {
+  height: 6px;
+}
+:is([data-theme="deep-space"], [data-theme="mono"]) .budget-used {
+  background: var(--mars);
+}
+:is([data-theme="deep-space"], [data-theme="mono"]) .budget-margin {
+  background: var(--safe);
+}
+:is([data-theme="deep-space"], [data-theme="mono"]) .budget-reserve {
+  background: rgba(var(--ds-accent-rgb), 0.15)
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='6' height='6'%3E%3Cpath d='M-1 1L1-1M0 6L6 0M5 7L7 5' stroke='%23e8743b'/%3E%3C/svg%3E");
+}
+:is([data-theme="deep-space"], [data-theme="mono"]) .budget-labels {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  margin-top: 14px;
+}
+:is([data-theme="deep-space"], [data-theme="mono"]) .budget-labels span {
+  background: rgba(var(--ds-deep-rgb), 0.5);
+  border: 1px solid var(--ds-line-soft);
+  padding: 6px;
+  text-align: center;
+  font: 400 10px/16px var(--font-body);
+  color: var(--ds-sub);
+}
+:is([data-theme="deep-space"], [data-theme="mono"]) .budget-labels b {
+  margin-top: 2px;
+  font: 500 12px/16px var(--font-mono);
+  color: var(--text);
+}
+:is([data-theme="deep-space"], [data-theme="mono"]) .budget-labels .ink-NO-GO b {
+  color: var(--ds-red-text);
+}
+
+/* Stat tiles */
+:is([data-theme="deep-space"], [data-theme="mono"]) .telemetry-col > .telemetry-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  padding: 16px 20px;
+}
+:is([data-theme="deep-space"], [data-theme="mono"]) .telemetry-grid > div,
+:is([data-theme="deep-space"], [data-theme="mono"]) .telemetry-grid > div:nth-child(odd) {
+  background: var(--ds-tile);
+  border: 1px solid rgba(var(--ds-tint), 0.15);
+  padding: 10px;
+}
+:is([data-theme="deep-space"], [data-theme="mono"]) .telemetry-grid dt {
+  font: 400 10px/16px var(--font-body);
+  text-transform: uppercase;
+  color: var(--ds-label);
+}
+:is([data-theme="deep-space"], [data-theme="mono"]) .telemetry-grid dd {
+  margin: 4px 0 6px;
+  font: 600 14px/20px var(--font-mono);
+  color: var(--ds-value);
+}
+:is([data-theme="deep-space"], [data-theme="mono"]) .telemetry-grid small {
+  font: 400 10px/14px var(--font-body);
+  color: var(--ds-faint);
+}
+
+/* Layers */
+:is([data-theme="deep-space"], [data-theme="mono"]) .layers-section .panel-heading {
+  margin-bottom: 10px;
+}
+:is([data-theme="deep-space"], [data-theme="mono"]) .layer-row {
+  border-bottom: 0;
+  padding: 6px 0;
+  gap: 2px;
+}
+:is([data-theme="deep-space"], [data-theme="mono"]) .layer-row > span:first-child {
+  font: 400 12px/15px var(--font-body);
+  color: var(--text);
+}
+:is([data-theme="deep-space"], [data-theme="mono"]) .layer-row input {
+  width: 14px;
+  height: 14px;
+  accent-color: var(--mars);
+  border-radius: 0;
+}
+:is([data-theme="deep-space"], [data-theme="mono"]) .layer-row small {
+  font: 400 10px/16px var(--font-mono);
+  color: var(--ds-sub);
+}
+:is([data-theme="deep-space"], [data-theme="mono"]) .layer-row em {
+  color: var(--safe);
+  font: 400 10px var(--font-mono);
+}
+:is([data-theme="deep-space"], [data-theme="mono"]) .start-lmst {
+  justify-content: space-between;
+  margin-top: 12px;
+  font: 400 12px var(--font-body);
+  color: var(--text);
+}
+:is([data-theme="deep-space"], [data-theme="mono"]) .console-app input[type="number"],
+:is([data-theme="deep-space"], [data-theme="mono"]) .console-app input:not([type]) {
+  background: var(--void-deep);
+  color: var(--ds-value);
+  border: 1px solid var(--ds-line);
+  border-radius: 0;
+  font: 400 12px var(--font-mono);
+}
+
+/* Stops */
+:is([data-theme="deep-space"], [data-theme="mono"]) .stop-section {
+  overflow: visible;
+  flex: none;
+  padding: 16px 20px;
+}
+:is([data-theme="deep-space"], [data-theme="mono"]) .stop-list > li {
+  border-bottom: 1px solid var(--ds-line-soft);
+}
+:is([data-theme="deep-space"], [data-theme="mono"]) .stop-number {
+  border: 1px solid rgba(var(--ds-accent-rgb), 0.55);
+  border-radius: 0;
+  background: transparent;
+  color: var(--mars);
+  font: 700 11px var(--font-mono);
+}
+:is([data-theme="deep-space"], [data-theme="mono"]) .stop-name {
+  font: 400 12px/16px var(--font-body) !important;
+  color: var(--text);
+}
+:is([data-theme="deep-space"], [data-theme="mono"]) .stop-why {
+  color: var(--ds-science-text);
+  font: 400 10px var(--font-mono);
+}
+:is([data-theme="deep-space"], [data-theme="mono"]) .stop-arrival {
+  color: var(--mars);
+  font: 600 11px var(--font-mono);
+}
+:is([data-theme="deep-space"], [data-theme="mono"]) .stop-arrival span {
+  color: var(--ds-sub);
+  font-weight: 400;
+}
+:is([data-theme="deep-space"], [data-theme="mono"]) .stop-list > li.is-selected {
+  background: rgba(var(--ds-accent-rgb), 0.07);
+  box-shadow: inset 2px 0 0 var(--mars);
+  padding-left: 8px;
+}
+:is([data-theme="deep-space"], [data-theme="mono"]) .edit-stop {
+  color: var(--ds-sub) !important;
+  font: 400 10px var(--font-mono) !important;
+}
+:is([data-theme="deep-space"], [data-theme="mono"]) .mission-actions button {
+  background: var(--void-deep);
+  color: var(--text);
+  padding: 6px 8px;
+}
+
+/* Probe, notes, sources link */
+:is([data-theme="deep-space"], [data-theme="mono"]) .probe-section {
+  display: block;
+}
+:is([data-theme="deep-space"], [data-theme="mono"]) .probe-section .cursor-probe {
+  margin-top: 0;
+  padding-top: 0;
+}
+:is([data-theme="deep-space"], [data-theme="mono"]) .cursor-probe h3,
+:is([data-theme="deep-space"], [data-theme="mono"]) .model-note > span {
+  font: 400 10px/16px var(--font-mono);
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  color: var(--ds-label);
+}
+:is([data-theme="deep-space"], [data-theme="mono"]) .cursor-probe dt {
+  color: var(--ds-label);
+}
+:is([data-theme="deep-space"], [data-theme="mono"]) .cursor-probe dd {
+  color: var(--ds-value);
+}
+:is([data-theme="deep-space"], [data-theme="mono"]) .model-note {
+  border-bottom: 0;
+  padding: 14px 0 0;
+}
+:is([data-theme="deep-space"], [data-theme="mono"]) .model-note p {
+  font: 400 12px var(--font-body);
+}
+:is([data-theme="deep-space"], [data-theme="mono"]) .source-link {
+  margin-top: 14px;
+  width: 100%;
+  text-align: center;
+  background: var(--void-deep);
+  color: var(--text);
+  padding: 6px 8px;
+}
+
+/* Emergency simulation */
+:is([data-theme="deep-space"], [data-theme="mono"]) .emergency-controls {
+  border-top: 0;
+  border-bottom: 0 !important;
+}
+:is([data-theme="deep-space"], [data-theme="mono"]) .emergency-controls > span {
+  font: 400 10px/16px var(--font-mono);
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  color: var(--ds-label);
+}
+:is([data-theme="deep-space"], [data-theme="mono"]) .emergency-controls button {
+  background: var(--ds-red-bg);
+  border-color: var(--ds-red-line);
+  color: #fca5a5;
+  padding: 4px 8px;
+}
+:is([data-theme="deep-space"], [data-theme="mono"]) .emergency-controls button:hover {
+  background: rgba(69, 10, 10, 0.55);
+  border-color: #ef4444;
+  color: #fff;
+}
+
+/* ---------- Map ---------- */
+:is([data-theme="deep-space"], [data-theme="mono"]) .mission-map {
+  background: var(--void-deep);
+}
+/* Stitch shows the terrain dark and desaturated so the route and markers carry the screen. */
+:is([data-theme="deep-space"], [data-theme="mono"]) .leaflet-localBasemap-pane,
+:is([data-theme="deep-space"], [data-theme="mono"]) .leaflet-tile-pane,
+:is([data-theme="deep-space"], [data-theme="mono"]) .leaflet-fallback-pane {
+  filter: brightness(0.6) contrast(1.05);
+}
+:is([data-theme="deep-space"], [data-theme="mono"]) .is-emergency .leaflet-localBasemap-pane,
+:is([data-theme="deep-space"], [data-theme="mono"]) .is-emergency .leaflet-tile-pane,
+:is([data-theme="deep-space"], [data-theme="mono"]) .is-emergency .leaflet-fallback-pane {
+  filter: brightness(0.42) contrast(1.05);
+}
+:is([data-theme="deep-space"], [data-theme="mono"]) .leaflet-routes-pane path[stroke="#ff6b35"] {
+  /* Only the planned route is recolored. The emergency abort route (#ff4d5a) must stay red. */
+  stroke-width: 2.5px;
+  stroke: var(--mars);
+}
+:is([data-theme="deep-space"], [data-theme="mono"]) .map-legend {
+  top: 12px;
+  left: 12px;
+  background: rgba(var(--ds-deep-rgb), 0.9);
+  border: 1px solid var(--ds-line);
+  padding: 8px 14px;
+  gap: 16px;
+  color: var(--text);
+  font: 400 12px/16px var(--font-mono);
+}
+:is([data-theme="deep-space"], [data-theme="mono"]) .map-legend span,
+:is([data-theme="deep-space"], [data-theme="mono"]) .map-legend span:first-child,
+:is([data-theme="deep-space"], [data-theme="mono"]) .map-legend span:nth-child(2),
+:is([data-theme="deep-space"], [data-theme="mono"]) .map-legend span:last-child {
+  color: var(--text);
+}
+:is([data-theme="deep-space"], [data-theme="mono"]) .legend-glyph {
+  font-style: normal;
+  font-weight: 700;
+  margin-right: 4px;
+}
+:is([data-theme="deep-space"], [data-theme="mono"]) .map-legend span:first-child .legend-glyph {
+  color: var(--mars);
+}
+:is([data-theme="deep-space"], [data-theme="mono"]) .map-legend span:nth-child(2) .legend-glyph {
+  color: var(--safe);
+}
+:is([data-theme="deep-space"], [data-theme="mono"]) .map-legend span:last-child .legend-glyph {
+  color: var(--science);
+}
+:is([data-theme="deep-space"], [data-theme="mono"]) .map-north {
+  top: 12px;
+  right: 12px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 12px;
+  background: rgba(var(--ds-deep-rgb), 0.9);
+  border: 1px solid var(--ds-line);
+  color: rgba(var(--ds-tint), 0.8);
+  opacity: 1;
+  font: 400 12px/16px var(--font-mono);
+}
+:is([data-theme="deep-space"], [data-theme="mono"]) .map-north b {
+  font-size: 12px;
+  font-weight: 400;
+}
+:is([data-theme="deep-space"], [data-theme="mono"]) .leaflet-control-zoom,
+:is([data-theme="deep-space"], [data-theme="mono"]) .leaflet-control-zoom a {
+  border-color: var(--ds-line) !important;
+  border-radius: 0 !important;
+}
+:is([data-theme="deep-space"], [data-theme="mono"]) .leaflet-control-zoom a {
+  background: rgba(var(--ds-deep-rgb), 0.9) !important;
+  color: var(--text) !important;
+}
+:is([data-theme="deep-space"], [data-theme="mono"]) .leaflet-control-attribution {
+  background: rgba(var(--ds-deep-rgb), 0.85) !important;
+  color: var(--muted) !important;
+}
+:is([data-theme="deep-space"], [data-theme="mono"]) .map-marker {
+  background: var(--void-deep);
+  border: 2px solid var(--mars);
+  color: var(--ds-value);
+  font: 700 12px var(--font-mono);
+}
+:is([data-theme="deep-space"], [data-theme="mono"]) .map-marker.habitat {
+  border: 2px solid var(--safe);
+  border-radius: 0;
+  color: var(--safe);
+}
+:is([data-theme="deep-space"], [data-theme="mono"]) .map-marker.poi {
+  background: var(--science);
+  border: 1px solid var(--void-deep);
+}
+:is([data-theme="deep-space"], [data-theme="mono"]) .stop-label {
+  background: rgba(var(--ds-deep-rgb), 0.92) !important;
+  border: 1px solid var(--ds-line) !important;
+  border-radius: 0 !important;
+  color: var(--text) !important;
+  font: 400 12px/16px var(--font-mono) !important;
+  padding: 4px 10px !important;
+}
+:is([data-theme="deep-space"], [data-theme="mono"]) .mars-scale > span,
+:is([data-theme="deep-space"], [data-theme="mono"]) .mars-scale,
+:is([data-theme="deep-space"], [data-theme="mono"]) .map-caption {
+  background: rgba(var(--ds-deep-rgb), 0.85);
+}
+:is([data-theme="deep-space"], [data-theme="mono"]) .map-caption {
+  color: var(--muted);
+}
+:is([data-theme="deep-space"], [data-theme="mono"]) .map-corners {
+  display: none;
+}
+:is([data-theme="deep-space"], [data-theme="mono"]) .coordinate-tick {
+  color: var(--muted);
+  opacity: 0.5;
+}
+/* Alert: a slim full-width bar, as in the Stitch screen. */
+:is([data-theme="deep-space"], [data-theme="mono"]) .storm-alert {
+  top: 56px;
+  left: 12px;
+  right: 12px;
+  padding: 8px 14px;
+  background: rgba(69, 10, 10, 0.85);
+  border: 1px solid rgba(239, 68, 68, 0.4);
+  border-radius: 0;
+  color: var(--text);
+}
+:is([data-theme="deep-space"], [data-theme="mono"]) .storm-alert strong {
+  color: #f87171;
+  font: 700 12px/16px var(--font-mono);
+  letter-spacing: 0.6px;
+}
+:is([data-theme="deep-space"], [data-theme="mono"]) .storm-alert p {
+  margin: 4px 0;
+  font: 400 12px/16px var(--font-body);
+}
+:is([data-theme="deep-space"], [data-theme="mono"]) .storm-alert small {
+  color: rgba(var(--ds-text-rgb), 0.65);
+  font: 400 11px var(--font-body);
+}
+:is([data-theme="deep-space"], [data-theme="mono"]) .storm-alert button {
+  background: rgba(var(--ds-void-rgb), 0.6);
+  color: var(--text);
+}
+:is([data-theme="deep-space"], [data-theme="mono"]) .storm-alert > div:last-child button:first-child {
+  background: #dc2626;
+  border-color: #dc2626;
+  color: #fff;
+  font-weight: 600;
+}
+
+/* ---------- Elevation strip and timeline ---------- */
+:is([data-theme="deep-space"], [data-theme="mono"]) .flight-timeline {
+  background: var(--void-deep);
+  border-top: 1px solid var(--ds-line);
+}
+:is([data-theme="deep-space"], [data-theme="mono"]) .timeline-controls {
+  font: 400 12px var(--font-mono);
+}
+:is([data-theme="deep-space"], [data-theme="mono"]) .timeline-controls button {
+  background: var(--void);
+  border-color: rgba(var(--ds-tint), 0.25);
+  color: var(--ds-value);
+  font-size: 11px;
+  padding: 2px 8px;
+}
+:is([data-theme="deep-space"], [data-theme="mono"]) .timeline-clock {
+  color: var(--ds-value);
+}
+:is([data-theme="deep-space"], [data-theme="mono"]) .timeline-clock > span {
+  color: var(--mars);
+}
+:is([data-theme="deep-space"], [data-theme="mono"]) .timeline-track {
+  background: rgba(var(--ds-tint), 0.14);
+  border-radius: 0;
+}
+:is([data-theme="deep-space"], [data-theme="mono"]) .track-walk {
+  background: var(--mars);
+}
+:is([data-theme="deep-space"], [data-theme="mono"]) .track-science {
+  background: var(--science);
+}
+:is([data-theme="deep-space"], [data-theme="mono"]) .track-return {
+  background: #ef4444;
+}
+:is([data-theme="deep-space"], [data-theme="mono"]) .timeline-labels b {
+  background: var(--void-deep);
+}
+:is([data-theme="deep-space"], [data-theme="mono"]) .playhead {
+  background: var(--ds-value);
+}
+:is([data-theme="deep-space"], [data-theme="mono"]) .timeline-track:focus-within {
+  outline-color: var(--safe);
+}
+
+/* ---------- Dialogs, stop detail ---------- */
+:is([data-theme="deep-space"], [data-theme="mono"]) .detail-backdrop {
+  background: rgba(var(--ds-deep-rgb), 0.85);
+}
+:is([data-theme="deep-space"], [data-theme="mono"]) .stop-detail {
+  background: var(--console);
+  color: var(--text);
+  border: 1px solid var(--ds-line);
+  border-radius: 0;
+}
+:is([data-theme="deep-space"], [data-theme="mono"]) .stop-detail figcaption,
+:is([data-theme="deep-space"], [data-theme="mono"]) .orbital-note {
+  color: var(--muted);
+}
+:is([data-theme="deep-space"], [data-theme="mono"]) .orbital-crop {
+  border-color: var(--ds-line);
+}
+:is([data-theme="deep-space"], [data-theme="mono"]) .load-state {
+  background: var(--void);
+  color: var(--text);
+}
+
+/* ---------- Opening briefing and helmet HUD ---------- */
+:is([data-theme="deep-space"], [data-theme="mono"]) .mission-briefing,
+:is([data-theme="deep-space"], [data-theme="mono"]) .helmet-hud {
+  background: var(--void-deep);
+  color: var(--text);
+}
+:is([data-theme="deep-space"], [data-theme="mono"]) .mission-briefing button {
+  background: var(--mars);
+  border-color: var(--mars);
+  color: var(--void-deep);
+}
+:is([data-theme="deep-space"], [data-theme="mono"]) .helmet-hud {
+  border-color: var(--ds-line);
+}
+:is([data-theme="deep-space"], [data-theme="mono"]) .helmet-hud button {
+  border-color: rgba(var(--ds-tint), 0.45);
+}
+:is([data-theme="deep-space"], [data-theme="mono"]) .hud-direction,
+:is([data-theme="deep-space"], [data-theme="mono"]) .hud-readouts progress {
+  color: var(--safe);
+  accent-color: var(--safe);
+}
+:is([data-theme="deep-space"], [data-theme="mono"]) .hud-readouts label,
+:is([data-theme="deep-space"], [data-theme="mono"]) .hud-readouts small,
+:is([data-theme="deep-space"], [data-theme="mono"]) .hud-guidance p {
+  color: var(--muted);
+}

@@ -1,0 +1,144 @@
+/*
+ * Mono theme: black, grey and white.
+ *
+ * DESIGN PROPOSAL. Same layout as the Deep Space theme (theme-deep-space.css, loaded before this file);
+ * only the palette changes. Copper becomes white (the plan), cyan and violet become greys (safety, science),
+ * and the map overlays are drawn in greyscale.
+ *
+ * One deliberate exception: the GO / CAUTION / NO-GO status keeps its green / amber / red, and the abort
+ * route stays red. A safety status should not depend on grey shades alone (Contract 3 also requires the
+ * word and the reason, which are always shown).
+ *
+ * Select it with ?theme=mono (the default), ?theme=deep-space or ?theme=classic.
+ */
+
+[data-theme="mono"] {
+  --void: #0a0a0a;
+  --void-deep: #050505;
+  --console: #111111;
+  --console-2: #171717;
+  --text: #ededed;
+  --muted: #a3a3a3;
+  --mars: #ffffff; /* the plan: route, stops, primary marks */
+  --safe: #b8b8b8; /* safety: zone, astronaut, margin */
+  --science: #d4d4d4; /* science sites */
+
+  --ds-value: #ffffff;
+  --ds-tint: 255, 255, 255;
+  --ds-deep-rgb: 0, 0, 0;
+  --ds-void-rgb: 10, 10, 10;
+  --ds-accent-rgb: 255, 255, 255;
+  --ds-text-rgb: 237, 237, 237;
+  --ds-track: #1c1c1c;
+  --ds-science-text: #c8c8c8;
+  /* on a white tint these alphas give 4.5:1 or better on the black panels */
+  --ds-label: rgba(255, 255, 255, 0.66);
+  --ds-sub: rgba(255, 255, 255, 0.58);
+  --ds-faint: rgba(255, 255, 255, 0.5);
+  --ds-line: rgba(255, 255, 255, 0.16);
+  --ds-line-soft: rgba(255, 255, 255, 0.1);
+  --ds-tile: rgba(0, 0, 0, 0.55);
+}
+
+[data-theme="mono"] :focus-visible {
+  outline-color: #ffffff;
+}
+/* The shared console block sets its own muted blue; make it grey here. */
+[data-theme="mono"] .console-app {
+  --muted: #a3a3a3;
+}
+
+/* ---------- Header and panels ---------- */
+[data-theme="mono"] .console-brand > b {
+  color: #ffffff;
+}
+[data-theme="mono"] .console-brand > span {
+  color: rgba(255, 255, 255, 0.7);
+}
+[data-theme="mono"] .console-app button:hover {
+  border-color: #ffffff;
+  color: #ffffff;
+}
+[data-theme="mono"] .stop-list > li.is-selected {
+  background: rgba(255, 255, 255, 0.06);
+  box-shadow: inset 2px 0 0 #ffffff;
+}
+[data-theme="mono"] .stop-number {
+  border-color: rgba(255, 255, 255, 0.6);
+}
+[data-theme="mono"] .oxygen-headline strong span {
+  color: rgba(255, 255, 255, 0.7);
+}
+
+/* ---------- Oxygen bar: used = white, margin = grey, reserve = hatched ---------- */
+[data-theme="mono"] .budget-margin {
+  background: #8c8c8c;
+}
+[data-theme="mono"] .budget-reserve {
+  background: rgba(255, 255, 255, 0.08)
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='6' height='6'%3E%3Cpath d='M-1 1L1-1M0 6L6 0M5 7L7 5' stroke='%23ffffff'/%3E%3C/svg%3E");
+}
+
+/* ---------- Map: greyscale terrain, overlays and markers ---------- */
+[data-theme="mono"] .leaflet-image-layer {
+  filter: grayscale(1) contrast(1.05);
+}
+[data-theme="mono"] .safe-zone {
+  filter: grayscale(1) brightness(1.5);
+}
+/* Planned route and the part already walked when an emergency starts. The red abort route is left alone. */
+[data-theme="mono"] .leaflet-routes-pane path[stroke="#ff6b35"] {
+  stroke: #ffffff;
+  stroke-width: 3px;
+}
+[data-theme="mono"] .leaflet-stops-pane path {
+  stroke: #ffffff;
+}
+[data-theme="mono"] .leaflet-astronaut-pane path {
+  fill: #ffffff;
+  stroke: #000000;
+}
+[data-theme="mono"] .map-marker {
+  border-color: #ffffff;
+  color: #ffffff;
+}
+[data-theme="mono"] .map-marker.habitat {
+  border-color: #d4d4d4;
+  color: #d4d4d4;
+}
+[data-theme="mono"] .map-marker.poi {
+  background: #d4d4d4;
+}
+[data-theme="mono"] .map-legend span:first-child .legend-glyph {
+  color: #ffffff;
+}
+[data-theme="mono"] .map-legend span:nth-child(2) .legend-glyph {
+  color: #b8b8b8;
+}
+[data-theme="mono"] .map-legend span:last-child .legend-glyph {
+  color: #d4d4d4;
+}
+
+/* ---------- Timeline: walking = white, science = grey ---------- */
+[data-theme="mono"] .track-walk {
+  background: #ffffff;
+}
+[data-theme="mono"] .track-science {
+  background: #7a7a7a;
+}
+[data-theme="mono"] .timeline-clock > span {
+  color: rgba(255, 255, 255, 0.7);
+}
+
+/* ---------- Opening briefing and HUD ---------- */
+[data-theme="mono"] .mission-briefing button {
+  background: #ffffff;
+  border-color: #ffffff;
+  color: #000000;
+}
+[data-theme="mono"] .hud-direction {
+  color: #ffffff;
+}
+[data-theme="mono"] .hud-readouts progress {
+  accent-color: #ffffff;
+}

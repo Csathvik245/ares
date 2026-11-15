@@ -14,6 +14,7 @@ import { routeHeading, clock, lmst, minutes } from "./lib/presentation";
 import { FlightTimeline } from "./components/FlightTimeline";
 import { MissionPanel } from "./components/MissionPanel";
 import { LayerRail } from "./components/LayerRail";
+import { useMedia } from "./lib/useMedia";
 import "./console.css";
 import {
   AssistantIntegration,
@@ -35,6 +36,11 @@ function Console() {
     [sources, setSources] = useState(false),
     [assistant, setAssistant] = useState(false),
     [detail, setDetail] = useState("");
+  // Desktop uses one consolidated left panel; tablet keeps the Map / Plan / Layers tabs.
+  const desktop = useMedia("(min-width: 1025px)");
+  // The consolidated layout belongs to the Deep Space theme; ?theme=classic keeps the three-column console.
+  const consolidated =
+    desktop && document.documentElement.dataset.theme !== "classic";
   const { site, plan, cost, position, emergency, abort } = m;
   const remove = () => {
     if (!emergency && m.selected)
@@ -147,52 +153,7 @@ function Console() {
   const changeStop = (id: string, patch: object) =>
     m.edit(m.stops.map((s) => (s.id === id ? { ...s, ...patch } : s)));
   const selected = m.stops.find((s) => s.id === detail);
-  return (
-    <main className={`console-app ${emergency ? "has-emergency" : ""}`}>
-      <header className="console-header">
-        <div className="console-brand">
-          <b>ARES</b>
-          <span>
-            ARES-1 EVA <small>Jezero delta front</small>
-          </span>
-        </div>
-        <div className="header-actions">
-          <span className="header-clock">
-            LMST{" "}
-            {lmst(
-              m.conditions.startLmst +
-                (m.clockElapsed * 24) / (SOL_HOURS * 3600),
-            )}
-          </span>
-          <span className={`status status--${status}`}>
-            EVA · {status}
-            {emergency ? " · ABORTED" : ""}
-          </span>
-          {emergency && (
-            <span className={`return-status ink-${abort?.status ?? "NO-GO"}`}>
-              RETURN HOME · {abort?.status ?? "NO-GO"}
-            </span>
-          )}
-          {assistantAvailable && (
-            <button onClick={() => setAssistant(true)}>Assistant</button>
-          )}
-          <button onClick={() => setScreen("hud")}>Helmet HUD · H</button>
-        </div>
-      </header>
-      <nav className="tablet-tabs" aria-label="Console panels">
-        {["Map", "Plan", "Layers"].map((t) => (
-          <button key={t} aria-pressed={tab === t} onClick={() => setTab(t)}>
-            {t}
-          </button>
-        ))}
-      </nav>
-      <div className={`console-body tablet-${tab.toLowerCase()}`}>
-        <LayerRail
-          active={active}
-          onChange={setActive}
-          probe={probe}
-          onSources={() => setSources(true)}
-        />
+  const mapColumn = (
         <section className="map-column" aria-label="Mission map and playback">
           <MissionMap
             site={site}
@@ -258,7 +219,95 @@ function Console() {
           />
           <FlightTimeline />
         </section>
-        <MissionPanel onDetail={setDetail} />
+  );
+  return (
+    <main className={`console-app ${emergency ? "has-emergency" : ""}`}>
+      <header className="console-header">
+        <div className="console-brand">
+          <b>ARES</b>
+          <span>
+            ARES-1 EVA <small>Jezero delta front</small>
+          </span>
+          {consolidated && (
+            <span className="brand-context">
+              Jezero delta front · Surface Traverse Software
+            </span>
+          )}
+        </div>
+        <div className="header-actions">
+          <span className="header-clock">
+            LMST{" "}
+            {lmst(
+              m.conditions.startLmst +
+                (m.clockElapsed * 24) / (SOL_HOURS * 3600),
+            )}
+          </span>
+          <span className={`status status--${status}`}>
+            EVA · {status}
+            {emergency ? " · ABORTED" : ""}
+          </span>
+          {emergency && (
+            <span className={`return-status ink-${abort?.status ?? "NO-GO"}`}>
+              RETURN HOME · {abort?.status ?? "NO-GO"}
+            </span>
+          )}
+          {assistantAvailable && (
+            <button onClick={() => setAssistant(true)}>Assistant</button>
+          )}
+          <button onClick={() => setScreen("hud")}>Helmet HUD · H</button>
+          {consolidated && (
+            <button onClick={() => setSources(true)}>Sources</button>
+          )}
+        </div>
+      </header>
+      <nav className="tablet-tabs" aria-label="Console panels">
+        {["Map", "Plan", "Layers"].map((t) => (
+          <button key={t} aria-pressed={tab === t} onClick={() => setTab(t)}>
+            {t}
+          </button>
+        ))}
+      </nav>
+      <div
+        className={`console-body ${consolidated ? "consolidated" : ""} tablet-${tab.toLowerCase()}`}
+      >
+        {consolidated ? (
+          <>
+            <aside
+              className="telemetry-col"
+              aria-label="Mission telemetry and plan"
+            >
+              <MissionPanel part="telemetry" onDetail={setDetail} />
+              <LayerRail
+                part="layers"
+                active={active}
+                onChange={setActive}
+                probe={probe}
+                onSources={() => setSources(true)}
+              />
+              <MissionPanel part="stops" onDetail={setDetail} />
+              <LayerRail
+                part="probe"
+                active={active}
+                onChange={setActive}
+                probe={probe}
+                onSources={() => setSources(true)}
+              />
+              <MissionPanel part="emergency" onDetail={setDetail} />
+            </aside>
+            {mapColumn}
+          </>
+        ) : (
+          <>
+            <LayerRail
+              active={active}
+              onChange={setActive}
+              probe={probe}
+              onSources={() => setSources(true)}
+            />
+            {mapColumn}
+            <MissionPanel onDetail={setDetail} />
+          </>
+        )}
       </div>
       {assistant && (
         <AssistantIntegration onClose={() => setAssistant(false)} />

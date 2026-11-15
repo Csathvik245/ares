@@ -313,8 +313,8 @@ export function MissionMap({
         icon: L.divIcon({
           className: `map-marker ${cls}`,
           html: text,
-          iconSize: [28, 28],
-          iconAnchor: [14 - dx, 14 - dy],
+          iconSize: [34, 34],
+          iconAnchor: [17 - dx, 17 - dy],
         }),
         pane: cls === "poi" ? "pois" : "stops",
         keyboard: true,
@@ -327,7 +327,7 @@ export function MissionMap({
         {
           permanent: true,
           direction: "top",
-          offset: [0, -20],
+          offset: [0, -24],
           className: "stop-label habitat-label",
         },
       )
@@ -384,7 +384,7 @@ export function MissionMap({
         {
           permanent: true,
           direction: closeToHabitat ? "bottom" : "right",
-          offset: closeToHabitat ? [dx, dy + 18] : [14, 0],
+          offset: closeToHabitat ? [dx, dy + 22] : [18, 0],
           className: "stop-label",
         },
       );
@@ -457,9 +457,15 @@ export function MissionMap({
         aria-label="Jezero map. Click to add stops."
       />
       <div className="map-legend">
-        <span>― Planned route</span>
-        <span>― Edge of safe return</span>
-        <span>● Rover sample site</span>
+        <span>
+          <em className="legend-glyph">―</em> Planned route
+        </span>
+        <span>
+          <em className="legend-glyph">―</em> Edge of safe return
+        </span>
+        <span>
+          <em className="legend-glyph">●</em> Rover sample site
+        </span>
       </div>
       <span className="map-north" aria-label="North">
         ↑<b>N</b>

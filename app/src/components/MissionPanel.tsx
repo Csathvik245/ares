@@ -8,7 +8,16 @@ import {
   envAt,
 } from "../lib/planner";
 
-export function MissionPanel({ onDetail }: { onDetail: (id: string) => void }) {
+/** "all" is the classic single rail. The other parts let the consolidated desktop panel interleave sections. */
+export type MissionPart = "all" | "telemetry" | "stops" | "emergency";
+
+export function MissionPanel({
+  onDetail,
+  part = "all",
+}: {
+  onDetail: (id: string) => void;
+  part?: MissionPart;
+}) {
   const m = useMission(),
     plan = m.plan!,
     display = m.emergency ? m.returnPlan : plan;
@@ -50,14 +59,25 @@ export function MissionPanel({ onDetail }: { onDetail: (id: string) => void }) {
     m.edit(next);
   };
   const pct = display?.oxygenAtReturnPct;
-  return (
-    <aside className="mission-rail" aria-label="Mission plan">
+  // The consolidated desktop layout uses the wording from the Stitch design.
+  const stitch = part !== "all";
+  const descriptor = m.emergency
+    ? "EVA aborted"
+    : status === "GO"
+      ? "Plan nominal"
+      : status === "CAUTION"
+        ? "Review reasons"
+        : "Plan not viable";
+  const statusSection = (
       <section className="rail-status">
         <div className="panel-heading">
           <span>{m.emergency ? "RETURN HOME" : "MISSION STATUS"}</span>
           <small>calculated</small>
         </div>
-        <strong className={`large-status ink-${status}`}>{status}</strong>
+        <div className="status-line">
+          <strong className={`large-status ink-${status}`}>{status}</strong>
+          {stitch && <span className="status-descriptor">{descriptor}</span>}
+        </div>
         <p>{reasons[0]}</p>
         {m.emergency && (
           <p className="return-readout">
@@ -75,6 +95,8 @@ export function MissionPanel({ onDetail }: { onDetail: (id: string) => void }) {
           </ul>
         </details>
       </section>
+  );
+  const oxygenSection = (
       <section className="oxygen-panel">
         <div className="panel-heading">
           <span>OXYGEN BUDGET</span>
@@ -115,10 +137,12 @@ export function MissionPanel({ onDetail }: { onDetail: (id: string) => void }) {
             Margin <b>{minutes(margin)} min</b>
           </span>
           <span>
-            Reserve target <b>{Math.round(budget.reserveSec / 60)} min</b>
+            {stitch ? "Reserve Target" : "Reserve target"} <b>{Math.round(budget.reserveSec / 60)} min</b>
           </span>
         </div>
       </section>
+  );
+  const statsGrid = (
       <dl className="telemetry-grid">
         {[
           [
@@ -126,15 +150,31 @@ export function MissionPanel({ onDetail }: { onDetail: (id: string) => void }) {
             display ? `${(display.distM / 1000).toFixed(2)} km` : "—",
             "calculated",
           ],
-          ["Duration", display ? clock(display.totalSec) : "—", "calculated"],
-          ["Walking", display ? clock(display.walkSec) : "—", "calculated"],
-          ["Science", display ? clock(display.workSec) : "—", "calculated"],
           [
-            "Radiation dose",
+            stitch ? "Total Duration" : "Duration",
+            display ? clock(display.totalSec) : "—",
+            "calculated",
+          ],
+          [
+            stitch ? "Walking Time" : "Walking",
+            display ? clock(display.walkSec) : "—",
+            "calculated",
+          ],
+          [
+            stitch ? "Station Science" : "Science",
+            display ? clock(display.workSec) : "—",
+            "calculated",
+          ],
+          [
+            stitch ? "Radiation Dose" : "Radiation dose",
             `${dose.toFixed(3)} mSv`,
             "projected · RAD baseline",
           ],
-          ["Lowest sun", `${lowest.toFixed(0)}°`, "calculated · Mars24"],
+          [
+            stitch ? "Lowest Sun" : "Lowest sun",
+            `${lowest.toFixed(0)}°`,
+            "calculated · Mars24",
+          ],
         ].map(([label, value, evidence]) => (
           <div key={label}>
             <dt>{label}</dt>
@@ -143,6 +183,8 @@ export function MissionPanel({ onDetail }: { onDetail: (id: string) => void }) {
           </div>
         ))}
       </dl>
+  );
+  const stopsSection = (
       <section className="stop-section">
         <div className="panel-heading">
           <span>
@@ -272,6 +314,8 @@ export function MissionPanel({ onDetail }: { onDetail: (id: string) => void }) {
           ))}
         </ol>
       </section>
+  );
+  const emergencyFooter = (
       <footer className="emergency-controls">
         <span>
           EMERGENCY SIMULATION <small>assumed response</small>
@@ -290,6 +334,24 @@ export function MissionPanel({ onDetail }: { onDetail: (id: string) => void }) {
           Storm at T+1:16
         </button>
       </footer>
+  );
+  if (part === "telemetry")
+    return (
+      <>
+        {statusSection}
+        {oxygenSection}
+        {statsGrid}
+      </>
+    );
+  if (part === "stops") return stopsSection;
+  if (part === "emergency") return emergencyFooter;
+  return (
+    <aside className="mission-rail" aria-label="Mission plan">
+      {statusSection}
+      {oxygenSection}
+      {statsGrid}
+      {stopsSection}
+      {emergencyFooter}
     </aside>
   );
 }
