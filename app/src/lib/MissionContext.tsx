@@ -328,8 +328,10 @@ function useMissionState() {
     dose,
   };
 }
-type MissionState = ReturnType<typeof useMissionState>;
+export type MissionState = ReturnType<typeof useMissionState>;
 const Context = createContext<MissionState | null>(null);
+/** For render tests only: lets a test hand a prepared mission to components that call useMission(). */
+export const MissionContextForTests = Context;
 export function MissionProvider({ children }: { children: ReactNode }) {
   return (
     <Context.Provider value={useMissionState()}>{children}</Context.Provider>

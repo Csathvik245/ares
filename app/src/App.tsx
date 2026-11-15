@@ -3,7 +3,7 @@ import { lazy, Suspense, useEffect, useMemo, useState } from "react";
 import { Hud, OpeningScreen } from "./components/DesignIntegration";
 import { ElevationProfile } from "./components/ElevationProfile";
 import { StopCard as StopDetailCard } from "./components/StopCard";
-import { WORK_BURN, computeBriefing, formatMinutes, SPE_IS_ILLUSTRATIVE, SPE_MEASURED_2017_PEAK_MULTIPLIER } from "./lib/planner";
+import { WORK_BURN, computeBriefing, formatMinutes, roundHalfUp, SPE_IS_ILLUSTRATIVE, SPE_MEASURED_2017_PEAK_MULTIPLIER } from "./lib/planner";
 import { photoCreditFor } from "./lib/photoCredits";
 import { scienceScore } from "./planner/science";
 import { MissionMap } from "./components/MissionMap";
@@ -131,6 +131,8 @@ function Console() {
   const winningShelter = emergency?.kind === "spe" && shelter?.checked && shelter.betterThanHome ? shelter : undefined;
   const target = emergency ? site.habitat : next;
   const status = m.evaStatus;
+  // No stops and no emergency: there is no plan to give a status to yet.
+  const noPlan = !emergency && plan.legs.length === 0;
   if (screen === "hud")
     return (
       <Hud
@@ -210,6 +212,7 @@ function Console() {
               setDetail(id);
             }}
             onProbe={setProbe}
+            walkHome={m.home?.cost}
           >
             {view3d && (
               <Suspense
@@ -307,10 +310,14 @@ function Console() {
                 (m.clockElapsed * 24) / (SOL_HOURS * 3600),
             )}
           </span>
-          <span className={`status status--${status}`}>
-            EVA · {status}
-            {m.replanned ? " · RE-PLANNED" : emergency ? " · ABORTED" : ""}
-          </span>
+          {noPlan ? (
+            <span className="status status--NONE">NO PLAN</span>
+          ) : (
+            <span className={`status status--${status}`}>
+              EVA · {status}
+              {m.replanned ? " · RE-PLANNED" : emergency ? " · ABORTED" : ""}
+            </span>
+          )}
           {emergency && abort && (
             <span className={`return-status ink-${abort.status}`}>
               {m.replanned ? "NEW PLAN" : "RETURN HOME"} · {abort.status}{abort.reasons.length ? ` · ${abort.reasons.filter((r) => !r.startsWith("Shelter")).join(" · ")}` : ""}
@@ -344,22 +351,27 @@ function Console() {
               hidden={sidebarCollapsed}
               aria-label="Mission telemetry and plan"
             >
-              <MissionPanel part="telemetry" onDetail={setDetail} />
-              <LayerRail
-                part="layers"
-                active={active}
-                onChange={setActive}
-                probe={probe}
-                onSources={() => setSources(true)}
-              />
-              <MissionPanel part="stops" onDetail={setDetail} />
-              <LayerRail
-                part="probe"
-                active={active}
-                onChange={setActive}
-                probe={probe}
-                onSources={() => setSources(true)}
-              />
+              {/* The one scroll container of the column. The emergency block sits under it, always visible. */}
+              <div className="telemetry-scroll">
+                <MissionPanel part="status" onDetail={setDetail} />
+                <MissionPanel part="stops" onDetail={setDetail} />
+                <MissionPanel part="budget" onDetail={setDetail} />
+                <MissionPanel part="reliability" onDetail={setDetail} />
+                <LayerRail
+                  part="layers"
+                  active={active}
+                  onChange={setActive}
+                  probe={probe}
+                  onSources={() => setSources(true)}
+                />
+                <LayerRail
+                  part="start"
+                  active={active}
+                  onChange={setActive}
+                  probe={probe}
+                  onSources={() => setSources(true)}
+                />
+              </div>
               <MissionPanel part="emergency" onDetail={setDetail} />
             </aside>
             {mapColumn}
@@ -383,6 +395,14 @@ function Console() {
       {sources && (
         <Dialog title="Data sources" onClose={() => setSources(false)}>
           <h2>Data sources & assumptions</h2>
+          <h3>Data and model</h3>
+          <p>
+            Map image: HiRISE · MRO local orthomosaic ·{" "}
+            {m.basemap ? `${roundHalfUp(m.basemap.metersPerPixel, 1)} m / pixel` : "elevation fallback"}.
+            <br />
+            Routing model: Tobler variant · 25 m grid · speed and burn rates assumed.
+          </p>
+          <h3>Layer sources</h3>
           {Object.entries(site.sources).map(([name, source]) => (
             <p key={name}>
               <b>{name}:</b> {source}

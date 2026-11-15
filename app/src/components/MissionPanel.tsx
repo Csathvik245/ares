@@ -9,7 +9,7 @@ import {
   envAt,
 } from "../lib/planner";
 import {
-  formatDose,
+  formatDuration,
   formatKm,
   formatMinutes,
   formatPct,
@@ -21,10 +21,33 @@ import {
 import { scienceScore, suggestStops } from "../planner/science";
 import { EVIDENCE_LABELS } from "../lib/evidenceLabels";
 import { ReliabilityPanel } from "./ReliabilityPanel";
-import { SCENARIO_BUTTONS } from "../lib/emergency-run";
+import { SCENARIO_BUTTONS, type UiEmergencyKind } from "../lib/emergency-run";
 
-/** "all" is the classic single rail. The other parts let the consolidated desktop panel interleave sections. */
-export type MissionPart = "all" | "telemetry" | "stops" | "emergency";
+/**
+ * "all" is the single rail (tablet, classic theme). The other parts let the
+ * consolidated desktop column place each block: status, stops and budget scroll
+ * together; the emergency block is pinned under them.
+ */
+export type MissionPart = "all" | "status" | "stops" | "budget" | "reliability" | "emergency";
+
+/** The emergencies in the order the menu shows them. Labels for the re-planning ones come from emergency-run. */
+const EMERGENCY_OPTIONS: { kind: UiEmergencyKind; label: string }[] = [
+  { kind: "storm", label: "Dust storm" },
+  { kind: "spe", label: "Solar particle event" },
+  ...SCENARIO_BUTTONS,
+];
+
+/** T+1:16 of the demo mission: the storm preset used in the video. */
+const DEMO_STORM_SEC = 4560;
+
+/** "1:16" or "76" (minutes) → seconds. NaN if it is neither. */
+export function parseElapsed(text: string): number {
+  const t = text.trim();
+  const hm = /^(\d{1,2}):([0-5]\d)$/.exec(t);
+  if (hm) return (Number(hm[1]) * 60 + Number(hm[2])) * 60;
+  if (/^\d{1,3}$/.test(t)) return Number(t) * 60;
+  return NaN;
+}
 
 export function MissionPanel({
   onDetail,
@@ -36,6 +59,8 @@ export function MissionPanel({
   const m = useMission(),
     plan = m.plan!,
     display = m.emergency ? m.returnPlan : plan;
+  // No stops and no emergency: there is nothing to judge yet, so no GO, no oxygen, no stats.
+  const hasRoute = plan.legs.length > 0 || !!m.emergency;
   const budget = oxygenBudget(m.conditions.storm);
   const used = (display?.oxygenUsedSec ?? 0) + (m.emergencyOutcome?.position.oxygenUsedSec ?? 0),
     margin = m.abort?.marginSec ?? plan.marginSec;
@@ -72,8 +97,6 @@ export function MissionPanel({
     m.edit(next);
   };
   const pct = display?.oxygenAtReturnPct;
-  // The consolidated desktop layout uses the wording from the Stitch design.
-  const stitch = part !== "all";
   const descriptor = m.replanned
     ? "Re-planned"
     : m.emergency
@@ -88,40 +111,65 @@ export function MissionPanel({
     [m.site, plan, m.stops],
   );
   const [ideas, setIdeas] = useState<ReturnType<typeof suggestStops>>([]);
+  // Emergency menu: which emergency, and when. The time follows the playback clock until it is typed over.
+  const [emergencyKind, setEmergencyKind] = useState<UiEmergencyKind>("storm");
+  const [typedTime, setTypedTime] = useState<string | null>(null);
+
+  const allReasons = [...new Set([...reasons, ...(m.emergencyOutcome?.shelter.checked ? m.emergencyOutcome.shelter.reasons : [])])];
+  const sunLine = `Lowest sun during the EVA: ${roundHalfUp(lowest)}° above the horizon (${EVIDENCE_LABELS.sun}).`;
+
   const statusSection = (
       <section className="rail-status">
         <div className="panel-heading">
-          <span>{m.replanned ? "EVA" : m.emergency ? "RETURN HOME" : "MISSION STATUS"}</span>
-          <small>{m.replanned ? "RE-PLANNED" : m.emergency?.kind === "spe" ? EVIDENCE_LABELS.spe : EVIDENCE_LABELS.route}</small>
+          <span>{m.replanned ? "EVA" : m.emergency ? "Return home" : "Mission status"}</span>
+          {hasRoute && <small>{m.replanned ? "RE-PLANNED" : m.emergency?.kind === "spe" ? EVIDENCE_LABELS.spe : EVIDENCE_LABELS.route}</small>}
         </div>
-        <div className="status-line">
-          <strong className={`large-status ink-${status}`}>{status}</strong>
-          {stitch && <span className="status-descriptor">{descriptor}</span>}
-        </div>
-        <p>{reasons.join(" · ")}</p>
-        {m.emergency && (
-          <p className="return-readout">
-            {m.replanned ? "New plan ends in" : "Walk home"}{" "}
-            {minutes(Math.max(0, (m.abort?.sec ?? Infinity) - m.returnElapsed))}{" "}
-            min · margin {m.scenario ? `${formatMinutes(m.scenario.before.marginSec)} → ${formatMinutes(m.scenario.after.marginSec)}` : `${minutes(margin)} min`}
-            {m.scenario && ` · dropped stops: ${m.scenario.droppedStops.length ? m.scenario.droppedStops.map((s) => s.label).join(", ") : "none"}`}
-          </p>
+        {!hasRoute ? (
+          <>
+            <div className="status-line">
+              <strong className="large-status ink-NONE">NO PLAN</strong>
+            </div>
+            <p className="status-reason">Load the demo mission or click the map to add stops.</p>
+          </>
+        ) : (
+          <>
+            <div className="status-line">
+              <strong className={`large-status ink-${status}`}>{status}</strong>
+              <span className="status-descriptor">{descriptor}</span>
+            </div>
+            <p className="status-reason" title={reasons.join(" · ")}>
+              {reasons[0]}
+              {reasons.length > 1 && <span className="more-reasons"> +{reasons.length - 1} more</span>}
+            </p>
+            {m.emergency && (
+              <p className="return-readout">
+                {m.replanned ? "New plan ends in" : "Walk home"}{" "}
+                {minutes(Math.max(0, (m.abort?.sec ?? Infinity) - m.returnElapsed))}{" "}
+                min · margin {m.scenario ? `${formatMinutes(m.scenario.before.marginSec)} → ${formatMinutes(m.scenario.after.marginSec)}` : `${minutes(margin)} min`}
+                {m.scenario && ` · dropped stops: ${m.scenario.droppedStops.length ? m.scenario.droppedStops.map((s) => s.label).join(", ") : "none"}`}
+              </p>
+            )}
+            {m.emergencyOutcome && <ShelterGuidance shelter={m.emergencyOutcome.shelter} from={m.emergencyOutcome.position} />}
+            <details>
+              <summary>Planner reasons</summary>
+              <ul>
+                {allReasons.map((r, i) => (
+                  <li key={i}>{r}</li>
+                ))}
+                <li>{sunLine}</li>
+              </ul>
+            </details>
+          </>
         )}
-        {m.emergencyOutcome && <ShelterGuidance shelter={m.emergencyOutcome.shelter} from={m.emergencyOutcome.position} />}
-        <details>
-          <summary>Planner reasons</summary>
-          <ul>
-            {[...new Set([...reasons, ...(m.emergencyOutcome?.shelter.checked ? m.emergencyOutcome.shelter.reasons : [])])].map((r, i) => (
-              <li key={i}>{r}</li>
-            ))}
-          </ul>
-        </details>
       </section>
   );
-  const oxygenSection = (
-      <section className="oxygen-panel">
+
+  // Oxygen bar and the four stat tiles. Shown only when there is a route.
+  const speDose = SPE_IS_ILLUSTRATIVE && m.emergency?.kind === "spe";
+  const budgetSection = !hasRoute ? null : (
+      <section className="oxygen-panel budget-section">
         <div className="panel-heading">
-          <span>OXYGEN BUDGET</span>
+          <span>Oxygen budget</span>
           <small>{EVIDENCE_LABELS.oxygen}</small>
         </div>
         <div className="oxygen-headline">
@@ -150,77 +198,52 @@ export function MissionPanel({
             style={{ width: `${(100 * reserve) / budget.budgetSec}%` }}
           />
         </div>
-        <div className="budget-labels">
-          <span>
-            Used <b>{formatMinutes(used)}</b>
-          </span>
-          <span className={margin < 0 ? "ink-NO-GO" : ""}>
-            Margin <b>{formatMinutes(margin)}</b>
-          </span>
-          <span>
-            {stitch ? "Reserve Target" : "Reserve target"} <b>{formatMinutes(budget.reserveSec)}</b>
-          </span>
-        </div>
+        <p className="budget-key">
+          <span>Used <b>{formatMinutes(used)}</b></span>
+          <span>Reserve target <b>{formatMinutes(budget.reserveSec)}</b></span>
+        </p>
+        <dl className="telemetry-grid stat-tiles">
+          <div>
+            <dt>Distance</dt>
+            <dd>{display ? formatKm(display.distM) : "—"}</dd>
+          </div>
+          <div>
+            <dt>Total duration</dt>
+            <dd>{display ? clock(display.totalSec) : "—"}</dd>
+            {display && <small>{clock(display.walkSec)} walk + {clock(display.workSec)} science</small>}
+          </div>
+          <div>
+            <dt>Margin</dt>
+            <dd className={margin < 0 ? "ink-NO-GO" : ""}>{formatMinutes(margin)}</dd>
+            <small>above the reserve</small>
+          </div>
+          <div>
+            <dt>Dose</dt>
+            <dd>{Number.isFinite(dose) ? `${roundHalfUp(dose, 2).toFixed(2)} mSv` : "—"}</dd>
+            <small>
+              {speDose
+                ? `projected · illustrative SPE · measured 2017 event ×${roundHalfUp(SPE_MEASURED_2017_PEAK_MULTIPLIER, 1)}`
+                : "projected · RAD baseline"}
+            </small>
+          </div>
+        </dl>
       </section>
   );
-  const statsGrid = (
-      <dl className="telemetry-grid">
-        {[
-          [
-            "Distance",
-            display ? formatKm(display.distM) : "—",
-            EVIDENCE_LABELS.route,
-          ],
-          [
-            stitch ? "Total Duration" : "Duration",
-            display ? clock(display.totalSec) : "—",
-            EVIDENCE_LABELS.route,
-          ],
-          [
-            stitch ? "Walking Time" : "Walking",
-            display ? clock(display.walkSec) : "—",
-            EVIDENCE_LABELS.route,
-          ],
-          [
-            stitch ? "Station Science" : "Science",
-            display ? clock(display.workSec) : "—",
-            EVIDENCE_LABELS.route,
-          ],
-          [
-            stitch ? "Radiation Dose" : "Radiation dose",
-            formatDose(dose),
-            SPE_IS_ILLUSTRATIVE && m.emergency?.kind === "spe"
-              ? `projected · illustrative SPE · measured 2017 event ×${roundHalfUp(SPE_MEASURED_2017_PEAK_MULTIPLIER, 1)}`
-              : "projected · RAD baseline",
-          ],
-            [
-              stitch ? "Lowest Sun" : "Lowest sun",
-              `${roundHalfUp(lowest)}°`,
-              EVIDENCE_LABELS.sun,
-            ],
-        ].map(([label, value, evidence]) => (
-          <div key={label}>
-            <dt>{label}</dt>
-            <dd>{value}</dd>
-            <small>{evidence}</small>
-          </div>
-        ))}
-      </dl>
-  );
+
   const stopsSection = (
       <section className="stop-section">
         <div className="panel-heading">
           <span>
-            {m.emergency ? "ORIGINAL SCIENCE STOPS" : "SCIENCE STOPS"}
+            {m.emergency ? "Original science stops" : "Science stops"}
           </span>
-            <span>{String(m.stops.length).padStart(2, "0")}</span>
+          {m.stops.length > 0 && <small>{m.stops.length === 1 ? "1 stop" : `${m.stops.length} stops`}</small>}
         </div>
         <div className="mission-actions">
           <button
             disabled={!!m.emergency || !m.demo.length}
             onClick={m.loadDemo}
           >
-            Load demo mission
+            Load demo
           </button>
           <button
             disabled={!!m.emergency || status !== "GO"}
@@ -235,11 +258,6 @@ export function MissionPanel({
             Clear
           </button>
         </div>
-        {!m.stops.length && (
-          <p className="empty-stops">
-            Choose science stops on the map or load the demo mission.
-          </p>
-        )}
         <ol className="stop-list">
           {m.stops.map((s, i) => (
             <li
@@ -264,7 +282,7 @@ export function MissionPanel({
               <div className="stop-summary">
                 <button
                   className="text-button stop-name"
-                  title={s.label}
+                  title={`${s.label} · ${stopKind(s.id)}`}
                   onClick={() => {
                     m.setSelected(s.id);
                     onDetail(s.id);
@@ -272,14 +290,11 @@ export function MissionPanel({
                 >
                   {shortStop(s.id, s.label)}
                 </button>
-                <span className="stop-why" title={s.why}>
-                  {stopKind(s.id)}
-                </span>
                 <span className="stop-arrival">
                   {formatMet(plan.legs[i]?.arriveSec ?? 0)}{" "}
                   <span>· {s.dwellMin} min science</span>
                 </span>
-                <span className="stop-science-score">
+                <span className="stop-science-score" title={s.why}>
                   {scores[i] ? `Science ${roundHalfUp(scores[i].science, 2)} · ${roundHalfUp(scores[i].score, 3).toFixed(3)} per oxygen-minute` : "Science score unavailable"}
                 </span>
               </div>
@@ -357,52 +372,105 @@ export function MissionPanel({
         )}
       </section>
   );
+
+  // ---- Emergency simulation: one menu, one time, one button ----
+  const running = !!m.emergency;
+  const canTrigger = !running && plan.legs.length > 0;
+  // While nothing is typed, the field shows the playback time and the trigger uses it as is.
+  const timeText = running ? formatDuration(m.emergency!.at) : (typedTime ?? formatDuration(m.elapsed));
+  const typedSec = typedTime === null ? NaN : parseElapsed(typedTime);
+  const timeOk = typedTime === null || Number.isFinite(typedSec);
+  const emergencyHint = running
+    ? "An emergency is running. Reset it to try another."
+    : !plan.legs.length
+      ? "Add a route first: an emergency needs a walk to interrupt."
+      : !timeOk
+        ? "Type the time as hours:minutes, for example 1:16."
+        : "Starts at the playback time unless you type another.";
   const emergencyFooter = (
       <footer className="emergency-controls">
-        <span>
-          EMERGENCY SIMULATION <small>{EVIDENCE_LABELS.emergency}</small>
-        </span>
-        <button disabled={!!m.emergency} onClick={() => m.trigger("storm")}>
-          Dust storm
-        </button>
-        <button disabled={!!m.emergency} onClick={() => m.trigger("spe")}>
-          Solar particle event
-        </button>
-        {SCENARIO_BUTTONS.map((b) => (
-          <button key={b.kind} disabled={!!m.emergency} onClick={() => m.trigger(b.kind)}>
-            {b.label}
+        <div className="panel-heading">
+          <span>Emergency simulation</span>
+          <small>{EVIDENCE_LABELS.emergency}</small>
+        </div>
+        <div className="emergency-row">
+          <select
+            aria-label="Emergency type"
+            value={running ? m.emergency!.kind : emergencyKind}
+            disabled={running}
+            onChange={(e) => setEmergencyKind(e.target.value as UiEmergencyKind)}
+          >
+            {EMERGENCY_OPTIONS.map((o) => (
+              <option key={o.kind} value={o.kind}>
+                {o.label}
+              </option>
+            ))}
+          </select>
+          <label className="emergency-time">
+            <span>T+</span>
+            <input
+              aria-label="Emergency time, hours:minutes into the EVA"
+              inputMode="numeric"
+              value={timeText}
+              disabled={!canTrigger}
+              aria-invalid={!timeOk}
+              onChange={(e) => setTypedTime(e.target.value)}
+              onBlur={() => {
+                // An untouched or emptied field goes back to following the playback clock.
+                if (typedTime !== null && typedTime.trim() === "") setTypedTime(null);
+              }}
+            />
+          </label>
+          {running ? (
+            <button className="emergency-trigger" onClick={m.reset}>
+              Reset
+            </button>
+          ) : (
+            <button
+              className="emergency-trigger"
+              disabled={!canTrigger || !timeOk}
+              onClick={() => {
+                // Same calls as the old buttons: no time given means "now" (the playback time).
+                if (typedTime === null) m.trigger(emergencyKind);
+                else m.trigger(emergencyKind, typedSec);
+                setTypedTime(null);
+              }}
+            >
+              Trigger
+            </button>
+          )}
+        </div>
+        <p className="emergency-hint">{emergencyHint}</p>
+        <div className="emergency-demos">
+          <button
+            className="text-button storm-preset"
+            disabled={running || !plan.ok || plan.totalSec < DEMO_STORM_SEC}
+            onClick={() => m.trigger("storm", DEMO_STORM_SEC)}
+          >
+            Demo: storm at T+1:16
           </button>
-        ))}
-        <button disabled={!m.wildcat || !!m.emergency} onClick={m.loadWildcatSpe}>
-          SPE at Wildcat Ridge
-        </button>
-        <button
-          className="storm-preset"
-          disabled={!!m.emergency || !plan.ok || plan.totalSec < 4560}
-          onClick={() => m.trigger("storm", 4560)}
-        >
-          Storm at T+1:16
-        </button>
+          <button className="text-button" disabled={!m.wildcat || running} onClick={m.loadWildcatSpe}>
+            Demo: SPE at Wildcat Ridge
+          </button>
+        </div>
       </footer>
   );
-  if (part === "telemetry")
-    return (
-      <>
-        {statusSection}
-        {oxygenSection}
-        {statsGrid}
-        {!m.emergency && <ReliabilityPanel site={m.site!} plan={plan} startLmst={m.conditions.startLmst} />}
-      </>
-    );
+
+  const reliability = !m.emergency && hasRoute ? <ReliabilityPanel site={m.site!} plan={plan} startLmst={m.conditions.startLmst} /> : null;
+
+  if (part === "status") return statusSection;
   if (part === "stops") return stopsSection;
+  if (part === "budget") return budgetSection;
+  if (part === "reliability") return reliability;
   if (part === "emergency") return emergencyFooter;
   return (
     <aside className="mission-rail" aria-label="Mission plan">
-      {statusSection}
-      {oxygenSection}
-      {statsGrid}
-      {!m.emergency && <ReliabilityPanel site={m.site!} plan={plan} startLmst={m.conditions.startLmst} />}
-      {stopsSection}
+      <div className="rail-scroll">
+        {statusSection}
+        {stopsSection}
+        {budgetSection}
+        {reliability}
+      </div>
       {emergencyFooter}
     </aside>
   );

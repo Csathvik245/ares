@@ -7,6 +7,8 @@ import App from "./App";
 // theme-mono.css must come after theme-deep-space.css: it reuses that layout and swaps the palette.
 import "./styles/theme-deep-space.css";
 import "./styles/theme-mono.css";
+// Layout of the console column (status, stops, budget, collapsibles, pinned emergency block). Uses theme variables only.
+import "./styles/console-column.css";
 
 // ?theme=mono (default) | deep-space | classic. "classic" is the Contract 6 palette and the old layout.
 const requested = new URLSearchParams(window.location.search).get("theme");

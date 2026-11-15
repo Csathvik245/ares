@@ -11,6 +11,8 @@ import {
   type CostGrid,
   type ShelterCheck,
   roundHalfUp,
+  SAND_TI_THRESHOLD,
+  formatDuration,
 } from "../lib/planner";
 import { removeSmallIslands } from "../lib/zoneCleanup";
 import { distanceM } from "../geo";
@@ -60,6 +62,7 @@ export function MissionMap({
   emergency = false,
   incidentAt = 0,
   viewRequest = 0,
+  walkHome,
   children,
 }: {
   emergency?: boolean;
@@ -82,11 +85,15 @@ export function MissionMap({
   onMove: (id: string, p: LatLng) => void;
   onSelect: (id: string) => void;
   onProbe: (i: number) => void;
+  /** Walk-home time in seconds for every cell (the cached field from the habitat), for the cursor tooltip. */
+  walkHome?: ArrayLike<number>;
 }) {
   const root = useRef<HTMLDivElement>(null),
     map = useRef<L.Map | null>(null),
     callbacks = useRef({ onAdd, onMove, onSelect, onProbe });
   callbacks.current = { onAdd, onMove, onSelect, onProbe };
+  // Cursor probe: the cell under the pointer and where the pointer is, for the tooltip that follows it.
+  const [hover, setHover] = useState<{ cell: number; x: number; y: number; w: number; h: number } | null>(null);
   // Display-only cleanup; keep the original planner mask for all safety decisions.
   const drawnZone = useMemo(
     () => removeSmallIslands(zone, site.width, site.height),
@@ -182,9 +189,16 @@ export function MissionMap({
     m.on("click", (e: L.LeafletMouseEvent) => {
       if (cellIndexOf(site, e.latlng) >= 0) callbacks.current.onAdd(e.latlng);
     });
-    m.on("mousemove", (e: L.LeafletMouseEvent) =>
-      callbacks.current.onProbe(cellIndexOf(site, e.latlng)),
-    );
+    m.on("mousemove", (e: L.LeafletMouseEvent) => {
+      const cell = cellIndexOf(site, e.latlng);
+      callbacks.current.onProbe(cell);
+      const size = m.getSize();
+      setHover(cell >= 0 ? { cell, x: e.containerPoint.x, y: e.containerPoint.y, w: size.x, h: size.y } : null);
+    });
+    m.on("mouseout", () => {
+      callbacks.current.onProbe(-1);
+      setHover(null);
+    });
     return () => {
       disposed = true;
       m.remove();
@@ -493,6 +507,28 @@ export function MissionMap({
         ↑<b>N</b>
       </span>
       <div className="map-corners" aria-hidden="true" />
+      {hover && (
+        // Flips to the other side of the pointer near the right and bottom edges so it stays on the map.
+        <dl
+          className="map-probe"
+          aria-hidden="true"
+          style={{
+            left: hover.x > hover.w - 210 ? hover.x - 196 : hover.x + 16,
+            top: hover.y > hover.h - 150 ? hover.y - 132 : hover.y + 16,
+          }}
+        >
+          <dt>Elevation</dt>
+          <dd>{roundHalfUp(site.layers.elevation[hover.cell])} m</dd>
+          <dt>Slope</dt>
+          <dd>{roundHalfUp(site.layers.slope[hover.cell], 1)}°</dd>
+          <dt>Ground</dt>
+          <dd>{site.layers.thermalInertia[hover.cell] < SAND_TI_THRESHOLD ? "Soft sand risk" : "Firm ground proxy"}</dd>
+          <dt>Science signal</dt>
+          <dd>{roundHalfUp(site.layers.science[hover.cell], 2)}</dd>
+          <dt>Walk home</dt>
+          <dd>{formatDuration(walkHome?.[hover.cell] ?? Infinity)}</dd>
+        </dl>
+      )}
       {children}
       <div className="mars-scale" style={{ width: scaleWidth }}>
         <span>500 m</span>

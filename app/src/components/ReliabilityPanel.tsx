@@ -91,7 +91,7 @@ export function ReliabilityPanel({ site, plan, trials, seed, startLmst, defaultO
   return (
     <details className="reliability" open={defaultOpen}>
       <summary>
-        <span>MISSION RELIABILITY</span>
+        <span>Mission reliability</span>
         <small>{!walkable ? "no route" : noFailures ? `${allHome} with reserve` : `${share(r.pReturnWithReserve)} with reserve`}</small>
       </summary>
       <div className="reliability__body">

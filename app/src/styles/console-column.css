@@ -1,0 +1,478 @@
+/*
+ * Console column: status, science stops, oxygen budget, collapsible sections and the
+ * pinned emergency block. Loaded last (see main.tsx).
+ *
+ * Colours and fonts come only from the theme variables (theme-mono.css, tokens.css).
+ * No new colours, no new fonts. The first part works in every theme and on tablet;
+ * the second part lays out the consolidated desktop column (Mono and Deep Space).
+ */
+
+/* ---------- Shared pieces (every theme, desktop and tablet) ---------- */
+
+/* Empty state: neutral grey, never green. */
+.ink-NONE {
+  color: var(--muted);
+}
+.console-app .status--NONE {
+  color: var(--muted);
+  border-color: var(--muted);
+  background: none;
+}
+.status-reason {
+  margin: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.more-reasons {
+  color: var(--muted);
+}
+
+/* Single rail (tablet, classic theme): everything scrolls in one box, the emergency block stays put. */
+.mission-rail > .rail-scroll {
+  flex: 1 1 0;
+  min-height: 0;
+  overflow-y: auto;
+}
+.mission-rail > .rail-scroll .stop-section,
+.mission-rail > .rail-scroll .stop-list {
+  overflow: visible;
+  flex: none;
+}
+.mission-rail > .emergency-controls {
+  flex: none;
+}
+
+/* Oxygen key under the bar, and the four stat tiles. */
+.budget-key {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 8px 0 0;
+  color: var(--muted);
+  font: 400 11px/16px var(--font-body);
+}
+.budget-key b {
+  color: var(--text);
+  font: 500 12px/16px var(--font-mono);
+}
+.console-app .stat-tiles {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin: 12px 0 0;
+  padding: 0;
+  border: 0;
+}
+.console-app .stat-tiles > div {
+  min-width: 0;
+  padding: 8px 10px;
+  border: 1px solid var(--ds-line, var(--hairline));
+}
+.console-app .stat-tiles dt {
+  color: var(--muted);
+  font: 400 11px/16px var(--font-body);
+  text-transform: none;
+}
+.console-app .stat-tiles dd {
+  margin: 2px 0 0;
+  color: var(--text);
+  font: 600 14px/20px var(--font-mono);
+}
+.console-app .stat-tiles dd.ink-NO-GO {
+  color: var(--ds-red-text, var(--nogo));
+}
+.console-app .stat-tiles small {
+  display: block;
+  overflow: hidden;
+  color: var(--muted);
+  font: 400 10px/14px var(--font-body);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Stop rows: name, then arrival and science time, then the science score. */
+.stop-science-score {
+  display: block;
+  overflow: hidden;
+  color: var(--muted);
+  font: 400 10px/14px var(--font-mono);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Collapsible sections (Map layers, Start time). Closed by default. */
+.collapsible > summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  min-height: 40px;
+  cursor: pointer;
+  color: var(--muted);
+  font: 600 11px var(--font-body);
+}
+.collapsible > summary small {
+  font: 500 11px var(--font-mono);
+}
+.collapsible-body {
+  padding: 0 0 12px;
+}
+.console-app .layer-row {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 10px;
+  min-height: 30px;
+  padding: 0;
+  border: 0;
+  color: var(--text);
+  font: 400 12px/16px var(--font-body);
+  cursor: pointer;
+}
+.console-app .layer-row input {
+  flex: none;
+  width: 14px;
+  height: 14px;
+  margin: 0;
+  accent-color: var(--safe);
+}
+
+/* Start time: the value with a minus and a plus button. */
+.start-stepper {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.start-stepper output {
+  min-width: 96px;
+  color: var(--text);
+  font: 600 14px/20px var(--font-mono);
+  text-align: center;
+}
+.console-app .start-stepper button {
+  width: 32px;
+  min-height: 32px;
+  padding: 0;
+  font: 600 16px/1 var(--font-mono);
+}
+
+/* Emergency simulation: one menu, one time, one button; two demo links under it. */
+.console-app .emergency-controls {
+  display: block;
+}
+.emergency-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  gap: 8px;
+  margin-top: 8px;
+}
+.console-app .emergency-row select,
+.console-app .emergency-row input {
+  min-height: 32px;
+  padding: 0 8px;
+  border: 1px solid var(--ds-line, var(--hairline));
+  border-radius: 0;
+  background: var(--void-deep, var(--console-2));
+  color: var(--text);
+  font: 400 12px var(--font-body);
+}
+.emergency-time {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--muted);
+  font: 500 12px var(--font-mono);
+}
+.console-app .emergency-time input {
+  width: 6ch;
+  box-sizing: content-box;
+  font-family: var(--font-mono);
+  text-align: center;
+}
+.console-app .emergency-time input[aria-invalid="true"] {
+  border-color: var(--ds-red-text, var(--nogo));
+}
+.console-app .emergency-controls .emergency-trigger {
+  min-height: 32px;
+  padding: 0 14px;
+  font-weight: 600;
+}
+.emergency-hint {
+  margin: 6px 0 0;
+  color: var(--muted);
+  font: 400 11px/16px var(--font-body);
+}
+.emergency-demos {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 16px;
+  margin-top: 6px;
+}
+.console-app .emergency-demos .text-button {
+  min-height: 24px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--text);
+  font: 400 11px/16px var(--font-body);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+/* A disabled control should read as "not available right now", not as broken:
+   dimmed, no underline, and the cursor says so. The hint line above gives the reason. */
+.console-app .emergency-controls :disabled {
+  opacity: 1;
+  color: var(--muted);
+  border-color: var(--ds-line-soft, var(--hairline));
+  background: none;
+  cursor: not-allowed;
+  text-decoration: none;
+}
+
+/* Cursor probe: a small box that follows the pointer on the map. */
+.map-probe {
+  position: absolute;
+  z-index: 650;
+  display: grid;
+  grid-template-columns: auto auto;
+  gap: 2px 12px;
+  width: 180px;
+  margin: 0;
+  padding: 8px 10px;
+  border: 1px solid var(--ds-line, var(--hairline));
+  background: var(--void);
+  color: var(--text);
+  font: 400 11px/16px var(--font-mono);
+  pointer-events: none;
+}
+.map-probe dt {
+  color: var(--muted);
+  font-family: var(--font-body);
+}
+.map-probe dd {
+  margin: 0;
+  text-align: right;
+  white-space: nowrap;
+}
+
+/* ---------- Consolidated desktop column (Mono and Deep Space themes) ---------- */
+
+/* ONE scroll container: the column itself no longer scrolls, the block above the emergency controls does. */
+:is([data-theme="deep-space"], [data-theme="mono"]) .telemetry-col {
+  overflow: hidden;
+}
+:is([data-theme="deep-space"], [data-theme="mono"]) .telemetry-col > .telemetry-scroll {
+  flex: 1 1 0;
+  min-height: 0;
+  padding: 0;
+  border-bottom: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(var(--ds-tint), 0.25) var(--void);
+}
+:is([data-theme="deep-space"], [data-theme="mono"]) .telemetry-scroll > section,
+:is([data-theme="deep-space"], [data-theme="mono"]) .telemetry-scroll > details {
+  padding: 12px 20px;
+  border-top: 0;
+  border-bottom: 1px solid var(--ds-line);
+}
+:is([data-theme="deep-space"], [data-theme="mono"]) .telemetry-scroll .stop-section,
+:is([data-theme="deep-space"], [data-theme="mono"]) .telemetry-scroll .stop-list {
+  overflow: visible;
+  max-height: none;
+}
+:is([data-theme="deep-space"], [data-theme="mono"]) .telemetry-col > .emergency-controls {
+  flex: none;
+  padding: 12px 20px 14px;
+  border-top: 1px solid var(--ds-line);
+  background: var(--void);
+}
+
+/* Sentence case for section headings; the evidence tag keeps its own capitals. */
+:is([data-theme="deep-space"], [data-theme="mono"]) .telemetry-col .panel-heading {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+  text-transform: none;
+}
+:is([data-theme="deep-space"], [data-theme="mono"]) .telemetry-col .panel-heading > span {
+  color: var(--text);
+  font: 600 12px/16px var(--font-body);
+  letter-spacing: 0;
+}
+:is([data-theme="deep-space"], [data-theme="mono"]) .telemetry-col .panel-heading small {
+  text-transform: none;
+}
+
+/* Status: compact. */
+:is([data-theme="deep-space"], [data-theme="mono"]) .telemetry-col .status-line {
+  margin: 4px 0 4px;
+}
+:is([data-theme="deep-space"], [data-theme="mono"]) .telemetry-col .large-status {
+  font: 700 24px/28px var(--font-mono);
+}
+:is([data-theme="deep-space"], [data-theme="mono"]) .telemetry-col .rail-status details {
+  margin-top: 4px;
+}
+:is([data-theme="deep-space"], [data-theme="mono"]) .telemetry-col .rail-status li {
+  white-space: normal;
+}
+
+/* Oxygen: compact headline. */
+:is([data-theme="deep-space"], [data-theme="mono"]) .telemetry-col .oxygen-headline {
+  margin: 4px 0 8px;
+}
+:is([data-theme="deep-space"], [data-theme="mono"]) .telemetry-col .oxygen-headline strong {
+  font: 700 24px/28px var(--font-mono);
+}
+
+/* Collapsibles line up with the other sections. */
+:is([data-theme="deep-space"], [data-theme="mono"]) .telemetry-scroll > details.collapsible,
+:is([data-theme="deep-space"], [data-theme="mono"]) .telemetry-scroll > details.reliability {
+  padding: 0 20px;
+}
+:is([data-theme="deep-space"], [data-theme="mono"]) .telemetry-scroll > details.reliability {
+  border-top: 0;
+}
+:is([data-theme="deep-space"], [data-theme="mono"]) .telemetry-scroll > details > summary {
+  min-height: 40px;
+  padding: 0;
+  color: var(--text);
+  font: 600 12px/16px var(--font-body);
+  letter-spacing: 0;
+}
+:is([data-theme="deep-space"], [data-theme="mono"]) .telemetry-scroll > details > summary small {
+  color: var(--ds-label);
+}
+:is([data-theme="deep-space"], [data-theme="mono"]) .telemetry-scroll > details.reliability > .reliability__body {
+  padding: 0 0 12px;
+}
+
+/* Emergency controls keep the theme's red, but only on the one action button. */
+:is([data-theme="deep-space"], [data-theme="mono"]) .emergency-controls .emergency-demos .text-button {
+  background: none;
+  border: 0;
+  color: var(--text);
+  padding: 0;
+}
+:is([data-theme="deep-space"], [data-theme="mono"]) .emergency-controls :disabled,
+:is([data-theme="deep-space"], [data-theme="mono"]) .emergency-controls :disabled:hover {
+  background: none;
+  border-color: var(--ds-line-soft);
+  color: var(--ds-faint);
+}
+
+/* ---------- Tablet: touch targets of at least 44 px ---------- */
+@media (max-width: 1024px) {
+  .console-app .emergency-row select,
+  .console-app .emergency-row input,
+  .console-app .emergency-controls .emergency-trigger,
+  .console-app .emergency-demos .text-button,
+  .console-app .mission-actions button {
+    min-height: 44px;
+  }
+  .console-app .start-stepper button {
+    width: 44px;
+    min-height: 44px;
+  }
+  .console-app .layer-row {
+    min-height: 44px;
+  }
+  .collapsible > summary {
+    min-height: 44px;
+  }
+  .console-app .emergency-controls {
+    padding: 10px 18px 12px;
+    border-top: 1px solid var(--hairline);
+  }
+  .rail-scroll > section {
+    flex-shrink: 0;
+  }
+}
+
+/* ---------- Fit: at 1440 x 900 the whole column shows without scrolling when the collapsibles are closed ---------- */
+:is([data-theme="deep-space"], [data-theme="mono"]) .telemetry-scroll > section {
+  padding: 10px 20px;
+}
+:is([data-theme="deep-space"], [data-theme="mono"]) .telemetry-scroll .mission-actions {
+  margin: 8px 0 2px;
+}
+:is([data-theme="deep-space"], [data-theme="mono"]) .telemetry-scroll .stop-list > li {
+  padding: 7px 0;
+}
+:is([data-theme="deep-space"], [data-theme="mono"]) .telemetry-scroll .stop-list > li:last-child {
+  border-bottom: 0;
+}
+:is([data-theme="deep-space"], [data-theme="mono"]) .telemetry-scroll .stop-summary {
+  gap: 1px;
+}
+:is([data-theme="deep-space"], [data-theme="mono"]) .telemetry-scroll .stop-name {
+  min-height: 16px;
+}
+:is([data-theme="deep-space"], [data-theme="mono"]) .telemetry-scroll .stop-arrival {
+  line-height: 15px;
+}
+:is([data-theme="deep-space"], [data-theme="mono"]) .telemetry-scroll .stat-tiles {
+  gap: 6px;
+  margin-top: 8px;
+}
+:is([data-theme="deep-space"], [data-theme="mono"]) .telemetry-scroll .stat-tiles > div {
+  padding: 5px 10px;
+}
+:is([data-theme="deep-space"], [data-theme="mono"]) .telemetry-scroll .stat-tiles dd {
+  margin: 0;
+  line-height: 18px;
+}
+:is([data-theme="deep-space"], [data-theme="mono"]) .telemetry-scroll .budget-key {
+  margin-top: 6px;
+}
+:is([data-theme="deep-space"], [data-theme="mono"]) .telemetry-scroll > details > summary {
+  min-height: 34px;
+}
+:is([data-theme="deep-space"], [data-theme="mono"]) .telemetry-col > .emergency-controls {
+  padding: 10px 20px 12px;
+}
+:is([data-theme="deep-space"], [data-theme="mono"]) .telemetry-col .emergency-hint {
+  margin-top: 4px;
+}
+:is([data-theme="deep-space"], [data-theme="mono"]) .telemetry-col .emergency-demos {
+  margin-top: 2px;
+}
+
+@media (max-width: 1024px) {
+  /* The remaining small controls in the two rails. */
+  .console-app .layer-rail .source-link,
+  .console-app .mission-rail .stop-list .edit-stop,
+  .console-app .mission-rail .stop-list .stop-name {
+    min-height: 44px;
+  }
+  .console-app .mission-rail .stop-list .edit-stop {
+    min-width: 44px;
+  }
+  .console-app .mission-rail .stop-list > li {
+    grid-template-columns: 24px minmax(0, 1fr) 44px;
+  }
+}
+
+/* Sentence case for headings in both rails, in every theme. Evidence tags keep their own capitals. */
+.console-app .panel-heading,
+.console-app .panel-heading small,
+.console-app .layer-rail h3,
+.console-app .cursor-probe h3 {
+  text-transform: none;
+}
+
+@media (max-width: 1024px) {
+  /* The tablet sheet is short, so nothing is pinned there: the sheet itself is the one scroll container. */
+  .mission-rail > .rail-scroll {
+    flex: none;
+    overflow: visible;
+  }
+  .mission-rail > .rail-scroll > section,
+  .mission-rail > .rail-scroll > details {
+    flex: none;
+  }
+}

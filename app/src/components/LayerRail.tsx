@@ -1,10 +1,21 @@
 import { useMission } from "../lib/MissionContext";
 import { layers, type OverlayName } from "../lib/layers";
-import { SAND_TI_THRESHOLD, cellIndexOf, roundHalfUp } from "../lib/planner";
+import { SAND_TI_THRESHOLD, cellIndexOf, formatLmst, roundHalfUp } from "../lib/planner";
 import { clock } from "../lib/presentation";
 
-/** "all" is the classic left rail. "layers" and "probe" let the consolidated desktop panel interleave sections. */
-export type LayerPart = "all" | "layers" | "probe";
+/**
+ * "all" is the classic left rail (tablet, classic theme). "layers" and "start" are the
+ * two collapsible sections of the consolidated desktop column.
+ */
+export type LayerPart = "all" | "layers" | "start";
+
+/** Which instrument and spacecraft a layer comes from. Shown as the row's tooltip. */
+const instrumentOf = (id: string) =>
+  id === "sand" ? "THEMIS / Mars Odyssey" : id === "science" ? "CRISM / MRO" : "HiRISE / MRO";
+
+/** Limits of the EVA start time (LMST hours); the same ones the old number field had. */
+const START_MIN = 0;
+const START_MAX = 23.99;
 
 export function LayerRail({
   active,
@@ -23,156 +34,120 @@ export function LayerRail({
     site = m.site!;
   const cell = probe >= 0 ? probe : cellIndexOf(site, m.position);
 
-  const stitchNames: Record<string, string> = {
-    slope: "Slope gradient",
-    science: "Science value priority",
-  };
+  // One compact row per layer: the toggle and the name. Source, type and legend are in the tooltip.
   const layerRows = layers.map((l) => (
     <label
       className={`layer-row ${active.includes(l.id) ? "is-active" : ""}`}
       key={l.id}
+      title={`${instrumentOf(l.id)} · ${l.type} · ${l.legend}. Source: ${site.sources[l.source]}`}
     >
-      <span>
-        <input
-          type="checkbox"
-          checked={active.includes(l.id)}
-          onChange={() =>
-            onChange(
-              active.includes(l.id)
-                ? active.filter((k) => k !== l.id)
-                : [...active, l.id],
-            )
-          }
-        />
-        {part === "layers" ? (stitchNames[l.id] ?? l.name) : l.name}
-      </span>
-      <small>
-        {l.type} ·{" "}
-        {l.id === "sand"
-          ? "THEMIS / Mars Odyssey"
-          : l.id === "science"
-            ? "CRISM / MRO"
-            : "HiRISE / MRO"}
-      </small>
-      {active.includes(l.id) && <em>{l.legend}</em>}
-      <span className="source-detail" title={site.sources[l.source]}>
-        {site.sources[l.source]}
-      </span>
+      <input
+        type="checkbox"
+        checked={active.includes(l.id)}
+        onChange={() =>
+          onChange(
+            active.includes(l.id)
+              ? active.filter((k) => k !== l.id)
+              : [...active, l.id],
+          )
+        }
+      />
+      <span>{l.name}</span>
     </label>
   ));
 
-  const startLmst = (
-    <label className="start-lmst">
-      Start LMST
-      <input
-        type="number"
-        aria-label="Start LMST"
-        min="0"
-        max="23.99"
-        step="0.25"
-        value={m.conditions.startLmst}
-        disabled={!!m.emergency}
-        onChange={(e) => {
-          m.setConditions((c) => ({
-            ...c,
-            startLmst: Math.max(0, Math.min(23.99, Number(e.target.value))),
-          }));
-          m.reset();
-        }}
-      />
-    </label>
-  );
-
-  const probeBlock = (
-    <section className="cursor-probe">
-      <h3>CURSOR PROBE</h3>
-      {probe < 0 && (
-        <p className="probe-hint">Current position · point to inspect</p>
-      )}
-      {cell >= 0 ? (
-        <dl>
-          <dt>Elevation</dt>
-          <dd>{roundHalfUp(site.layers.elevation[cell])} m</dd>
-          <dt>Slope</dt>
-          <dd>{roundHalfUp(site.layers.slope[cell], 1)}°</dd>
-          <dt>Ground</dt>
-          <dd>
-            {site.layers.thermalInertia[cell] < SAND_TI_THRESHOLD
-              ? "Soft sand risk"
-              : "Firm ground proxy"}
-          </dd>
-          <dt>Science signal</dt>
-          <dd>{roundHalfUp(site.layers.science[cell], 2)}</dd>
-          <dt>Walk home</dt>
-          <dd>{clock(m.home?.cost[cell] ?? Infinity)}</dd>
-        </dl>
-      ) : (
-        <p>Point to terrain to inspect.</p>
-      )}
-    </section>
+  const start = m.conditions.startLmst;
+  const setStart = (next: number) => {
+    m.setConditions((c) => ({
+      ...c,
+      startLmst: Math.max(START_MIN, Math.min(START_MAX, next)),
+    }));
+    m.reset();
+  };
+  const startStepper = (
+    <div className="start-stepper" role="group" aria-label="EVA start time">
+      <button
+        type="button"
+        aria-label="Start one hour earlier"
+        disabled={!!m.emergency || start - 1 < START_MIN}
+        onClick={() => setStart(start - 1)}
+      >
+        −
+      </button>
+      <output aria-live="polite">{formatLmst(start)} LMST</output>
+      <button
+        type="button"
+        aria-label="Start one hour later"
+        disabled={!!m.emergency || start + 1 > START_MAX}
+        onClick={() => setStart(start + 1)}
+      >
+        +
+      </button>
+    </div>
   );
 
   if (part === "layers")
     return (
-      <section className="layers-section" aria-label="Terrain layers">
-        <div className="panel-heading">
-          <span>SURFACE ANALYSIS LAYERS</span>
-          <small>measured + derived</small>
+      <details className="collapsible layers-section">
+        <summary>
+          <span>Map layers</span>
+          <small>{active.length ? `${active.length} on` : "none on"}</small>
+        </summary>
+        <div className="collapsible-body" aria-label="Terrain layers">
+          {layerRows}
         </div>
-        {layerRows}
-        {startLmst}
-      </section>
+      </details>
     );
 
-  if (part === "probe")
+  if (part === "start")
     return (
-      <div className="probe-section">
-        {probeBlock}
-        <div className="model-note">
-          <span>DATA AND MODEL</span>
-          <p>
-            HiRISE · MRO local orthomosaic ·{" "}
-            {m.basemap
-              ? `${roundHalfUp(m.basemap.metersPerPixel, 1)} m / pixel`
-              : "elevation fallback"}
-          </p>
-          <small>Tobler variant · 25 m grid · speed and burn rates assumed</small>
-        </div>
-        <button className="source-link" onClick={onSources}>
-          Data sources & assumptions
-        </button>
-      </div>
+      <details className="collapsible start-section">
+        <summary>
+          <span>Start time</span>
+          <small>{formatLmst(start)} LMST</small>
+        </summary>
+        <div className="collapsible-body">{startStepper}</div>
+      </details>
     );
 
+  // Classic rail: tablet (where there is no cursor to hover with, so the probe stays here) and ?theme=classic.
   return (
     <aside className="layer-rail" aria-label="Terrain layers">
       <div className="panel-heading">
-        <span>SURFACE DATA</span>
+        <span>Surface data</span>
         <small>measured + derived</small>
       </div>
       <h2>Jezero delta front</h2>
       <p className="rail-intro">Carbonate and clay sampling</p>
-      <div className="basemap-source">
-        <b>HiRISE</b>
-        <span>MRO · local orthomosaic</span>
-        <small>
-          {m.basemap
-            ? `${roundHalfUp(m.basemap.metersPerPixel, 1)} m / pixel`
-            : "Elevation fallback"}{" "}
-          · measured
-        </small>
-      </div>
-      <h3>ANALYSIS LAYERS</h3>
+      <h3>Map layers</h3>
       {layerRows}
-      {startLmst}
-      <div className="model-note">
-        <span>ROUTING MODEL</span>
-        <p>Tobler variant · 25 m grid</p>
-        <small>Suited speed and burn rates assumed</small>
-      </div>
-      {probeBlock}
+      <h3>Start time</h3>
+      {startStepper}
+      <section className="cursor-probe">
+        <h3>Terrain at {probe < 0 ? "the astronaut" : "the pointer"}</h3>
+        {cell >= 0 ? (
+          <dl>
+            <dt>Elevation</dt>
+            <dd>{roundHalfUp(site.layers.elevation[cell])} m</dd>
+            <dt>Slope</dt>
+            <dd>{roundHalfUp(site.layers.slope[cell], 1)}°</dd>
+            <dt>Ground</dt>
+            <dd>
+              {site.layers.thermalInertia[cell] < SAND_TI_THRESHOLD
+                ? "Soft sand risk"
+                : "Firm ground proxy"}
+            </dd>
+            <dt>Science signal</dt>
+            <dd>{roundHalfUp(site.layers.science[cell], 2)}</dd>
+            <dt>Walk home</dt>
+            <dd>{clock(m.home?.cost[cell] ?? Infinity)}</dd>
+          </dl>
+        ) : (
+          <p>Point to terrain to inspect.</p>
+        )}
+      </section>
       <button className="source-link" onClick={onSources}>
-        Data sources & assumptions
+        Data sources and assumptions
       </button>
     </aside>
   );

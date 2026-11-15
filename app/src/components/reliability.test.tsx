@@ -21,7 +21,7 @@ const demo = planRoute(site, cost, site.habitat, stopsWith(30));
 describe("ReliabilityPanel", () => {
   it("is collapsed by default and opens on request", () => {
     const closed = renderToStaticMarkup(<ReliabilityPanel site={site} plan={demo} />);
-    expect(closed).toContain("MISSION RELIABILITY");
+    expect(closed).toContain("Mission reliability");
     expect(closed).toMatch(/<details class="reliability">/);
     expect(renderToStaticMarkup(<ReliabilityPanel site={site} plan={demo} defaultOpen />)).toMatch(/<details class="reliability" open="">/);
   });
