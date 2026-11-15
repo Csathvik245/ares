@@ -113,3 +113,7 @@ Image: NASA/JPL-Caltech/University of Arizona/USGS (HiRISE). Path: NASA/JPL-Calt
 ## Keeping it honest over time
 
 `app/src/planner/rover-traverse.test.ts` loads the 313 waypoints (a small committed copy in `app/src/planner/__fixtures__/rover-waypoints-sample.json`) and fails if fewer than 97.04% of them land on passable cells (the 99.04% we measured, minus 2 points). If someone changes the terrain data or the no-go rule in a way that breaks this agreement, the tests say so.
+
+## Follow-up: can machine learning route more like the drivers?
+
+The same traverse file also lets us ask a second question: does the planner pick routes the way JPL's drivers did, and can a model learned from their routes do better? Short answer: the physics planner's routes are on average 24.8 m from the rover's real routes (10.4 m closer than straight lines), and a learned cost did not beat it on held-out routes. Details: [`route-learning.md`](route-learning.md).

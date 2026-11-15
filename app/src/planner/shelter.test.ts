@@ -3,6 +3,7 @@
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
+import { SPEED_TEST, cpuNow } from "../test-utils/cpuClock";
 import {
   WALK_BURN,
   abortRoute,
@@ -202,11 +203,13 @@ describe("the real skyView layer", () => {
     expect(sky).not.toBeNull();
     expect(sky.length).toBe(site.width * site.height);
     expect(String(raw.sources.skyView)).toMatch(/10\.5066\/P9REJ9JN/);
+    // Collect bad cells and assert once (153,600 separate expects are slow on a busy machine).
+    const bad: number[] = [];
     for (let i = 0; i < sky.length; i++) {
       if (Number.isNaN(site.layers.elevation[i])) continue;
-      expect(sky[i]).toBeGreaterThanOrEqual(0);
-      expect(sky[i]).toBeLessThanOrEqual(1);
+      if (!(sky[i] >= 0 && sky[i] <= 1)) bad.push(i);
     }
+    expect(bad).toEqual([]);
   });
 
   it("the delta scarp foot sees less sky than the open crater floor", () => {
@@ -338,7 +341,7 @@ describe("shelterRoute on the real site", () => {
     if (offered > 0) expect(nearestOfferMin).toBeGreaterThan(45);
   }, 30_000); // about 45 Dijkstra fields: allow for a busy machine
 
-  it("runs in under 150 ms on the real grid (median, nothing cached)", () => {
+  it("runs in under 150 ms on the real grid (median, nothing cached)", SPEED_TEST, () => {
     const here = positionAt(plan, 76 * 60);
     shelterRoute(site, buildCostGrid(site, SPE), here, here.oxygenUsedSec, { skyView: sky }); // warm-up
     const cold: number[] = [];
@@ -346,12 +349,12 @@ describe("shelterRoute on the real site", () => {
     for (let i = 0; i < 7; i++) {
       const grid = buildCostGrid(site, SPE); // a new grid: both Dijkstra fields are computed again
       const at = positionAt(plan, 76 * 60 + i * 30);
-      let t0 = performance.now();
+      let t0 = cpuNow();
       shelterRoute(site, grid, at, at.oxygenUsedSec, { skyView: sky });
-      cold.push(performance.now() - t0);
-      t0 = performance.now();
+      cold.push(cpuNow() - t0);
+      t0 = cpuNow();
       shelterRoute(site, grid, at, at.oxygenUsedSec, { skyView: sky });
-      warm.push(performance.now() - t0);
+      warm.push(cpuNow() - t0);
     }
     cold.sort((a, b) => a - b);
     warm.sort((a, b) => a - b);

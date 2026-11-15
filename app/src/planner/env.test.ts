@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { SPEED_TEST, cpuNow } from "../test-utils/cpuClock";
 import { DOSE_MSV_PER_SOL, SOL_HOURS, SPE_IS_ILLUSTRATIVE, SPE_MEASURED_2017_PEAK_MULTIPLIER, SPE_MULTIPLIER } from "./constants";
 import {
   DEMO_LS_DEG,
@@ -219,18 +220,18 @@ describe("sunElevationSeries", () => {
 });
 
 describe("performance", () => {
-  it("envAt takes well under 1 ms", () => {
+  it("envAt takes well under 1 ms", SPEED_TEST, () => {
     envAt(12, false); // warm-up
-    const t0 = performance.now();
+    const t0 = cpuNow();
     envAt(9.37, true);
-    const single = performance.now() - t0;
+    const single = cpuNow() - t0;
     expect(single).toBeLessThan(1);
 
     const calls = 100_000;
-    const t1 = performance.now();
+    const t1 = cpuNow();
     let sink = 0;
     for (let i = 0; i < calls; i++) sink += envAt((i % 2400) / 100, i % 2 === 0).sunElevationDeg;
-    const perCallMs = (performance.now() - t1) / calls;
+    const perCallMs = (cpuNow() - t1) / calls;
     expect(Number.isFinite(sink)).toBe(true);
     expect(perCallMs).toBeLessThan(1);
     console.log(`envAt: ${(perCallMs * 1e6).toFixed(0)} ns per call (single call ${(single * 1000).toFixed(1)} µs)`);

@@ -37,7 +37,7 @@ flowchart LR
 
 1. **Data → grid.** Python scripts in [`pipeline/`](pipeline/) clip NASA datasets to the Jezero delta front (18.40–18.50 N, 77.36–77.50 E). They reproject everything onto one 320 × 240 grid of 25 m cells and save it as `app/public/data/site.json`.
 2. **Grid → cost.** For each cell, the planner works out walking speed with a version of **Tobler's hiking function**, slowed for soft sand (low thermal inertia) and boulders. Cells that are too steep (> 25°) or too rocky are no-go.
-3. **Cost → route.** The planner treats the grid as a graph and uses **Dijkstra and A\*** to find the fastest safe path between stops. It is deterministic, with no machine learning, so every route is predictable, explainable and testable.
+3. **Cost → route.** The planner treats the grid as a graph and uses **Dijkstra and A\*** to find the fastest safe path between stops. It is deterministic, with no machine learning, so every route is predictable, explainable and testable. We checked it against the real routes Perseverance's drivers chose. Its routes are on average 24.8 m from theirs, and a machine-learning model trained on those routes could not do better on routes it had not seen ([`docs/route-learning.md`](docs/route-learning.md)).
 4. **Route → safety.** The planner adds up walking and science time, turns it into oxygen used, and checks the margin against the reserve. A full-field search from the habitat gives the walk-home time from every cell. That powers the safe-return zone and the abort route.
 5. **Planner → app.** The React app draws the layers, route and zone on a Leaflet map (equirectangular, `EPSG:4326`, to match Mars Trek tiles). It runs the planner again every time the plan changes.
 
@@ -72,7 +72,7 @@ AI coding and chat assistants helped us write and test the code and docs. Every 
 
 ## Team
 
-**The Ares Initiative**: a team of five. Everyone shares every role: data, planner, frontend, design and story.
+**The Ares Initiative**: a team of six. Everyone shares every role: data, planner, frontend, design and story.
 
 ## License
 

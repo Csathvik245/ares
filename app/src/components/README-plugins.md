@@ -72,12 +72,12 @@ import { scienceScore, suggestStops } from "../planner/science";
 **Score per stop card** (stop list in the mission panel, or the stop detail card). One entry per stop, in order: `{ id, science, extraO2Min, score }`.
 
 ```ts
-const scores = scienceScore(site, plan, { stops: m.stops, cost });
+const scores = scienceScore(site, plan, { stops: m.stops });
 ```
 
 - `science` is the mean science value (0 to 1) within 50 m of the stop. It is a relative CRISM index, not a mineral abundance.
 - `extraO2Min` is the oxygen the stop adds: the walking detour compared with skipping it, plus its science time.
-- `score` = `science / extraO2Min`. It is a small number (0.004 to 0.005 for the demo stops), so show it per oxygen-hour (`score * 60`, about 0.23 to 0.31) or show the two parts side by side ("science 0.54 · 131 O2-min").
+- `score` = `science / extraO2Min`. It is a small number (0.004 to 0.005 for the demo stops), so show it with three decimals ("0.004 per oxygen-minute") beside its two parts ("science 0.54 · 131 min O2"). Leave `cost` out (or pass the calm grid the plan was built on): passing the storm grid during an emergency changes the scores of stops already visited.
 - Demo mission: the delta front toe has by far the highest science (0.54) but costs the most oxygen; Sid scores best per minute because it is almost on the way home.
 
 **"Suggest stops" button** (mission panel, next to "Load demo mission"). Up to 3 stops that keep the plan GO, best score first. About 100 ms the first time, about 35 ms after.
@@ -197,3 +197,29 @@ Until that is done, an SPE gives `outcome.shelter = { checked: false }` and the 
 The components were tested by rendering them to HTML, not in a browser. Look at them once at 1440 × 900 after plugging in.
 
 The planner worker was tested by running its message handler in-process, with every message passed through `structuredClone`. Vite bundles it as its own chunk, but it has not been run as a real Web Worker in a browser yet.
+
+## 7. Mission reliability panel and evidence tag
+
+`ReliabilityPanel.tsx` is a collapsible "MISSION RELIABILITY" panel, closed by default. It runs the Monte Carlo simulator (`simulateMission`, 1,000 trials, seed 42) on the plan it is given and shows: trials and seed, the share that returned with the reserve, success and fail counts, low / middle / high oxygen at return, duration and margin, a margin histogram with the reserve line, the three inputs that move the margin most, and the disclaimer in small print.
+
+**One line to mount it** (in the mission panel, for example after the stats grid; hide it during an emergency):
+
+```tsx
+import { ReliabilityPanel } from "./ReliabilityPanel";
+
+{!m.emergency && <ReliabilityPanel site={m.site!} plan={plan} startLmst={m.conditions.startLmst} />}
+```
+
+- 1,000 trials take a few milliseconds, so it runs in the page; no worker is needed.
+- Styles are in `reliability.css` and use only the shared tokens.
+- The numbers are a simulation of our own assumptions. Never remove the disclaimer line.
+
+`EvidenceTag.tsx` is a small tag for the four evidence levels:
+
+```tsx
+import { EvidenceTag } from "./EvidenceTag";
+
+<EvidenceTag level={row.evidence} />   // OBSERVED / CALCULATED / INTERPRETED / ASSUMED
+```
+
+Use it next to any briefing row (`computeBriefing(...).rows[i].evidence`) and next to science values (`SCIENCE_EVIDENCE`).

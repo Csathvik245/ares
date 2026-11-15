@@ -19,6 +19,7 @@ import {
   formatMet,
 } from "../lib/planner";
 import { scienceScore, suggestStops } from "../planner/science";
+import { EVIDENCE_LABELS } from "../lib/evidenceLabels";
 
 /** "all" is the classic single rail. The other parts let the consolidated desktop panel interleave sections. */
 export type MissionPart = "all" | "telemetry" | "stops" | "emergency";
@@ -77,15 +78,15 @@ export function MissionPanel({
         ? "Review reasons"
         : "Plan not viable";
   const scores = useMemo(
-    () => scienceScore(m.site!, plan, { stops: m.stops, cost: m.cost! }),
-    [m.site, plan, m.stops, m.cost],
+    () => scienceScore(m.site!, plan, { stops: m.stops }),
+    [m.site, plan, m.stops],
   );
   const [ideas, setIdeas] = useState<ReturnType<typeof suggestStops>>([]);
   const statusSection = (
       <section className="rail-status">
         <div className="panel-heading">
           <span>{m.emergency ? "RETURN HOME" : "MISSION STATUS"}</span>
-          <small>{m.emergency?.kind === "spe" ? "illustrative" : "calculated"}</small>
+          <small>{m.emergency?.kind === "spe" ? EVIDENCE_LABELS.spe : EVIDENCE_LABELS.route}</small>
         </div>
         <div className="status-line">
           <strong className={`large-status ink-${status}`}>{status}</strong>
@@ -114,7 +115,7 @@ export function MissionPanel({
       <section className="oxygen-panel">
         <div className="panel-heading">
           <span>OXYGEN BUDGET</span>
-          <small>calculated · assumed burn rates</small>
+          <small>{EVIDENCE_LABELS.oxygen}</small>
         </div>
         <div className="oxygen-headline">
           <strong>
@@ -161,32 +162,32 @@ export function MissionPanel({
           [
             "Distance",
             display ? formatKm(display.distM) : "—",
-            "calculated",
+            EVIDENCE_LABELS.route,
           ],
           [
             stitch ? "Total Duration" : "Duration",
             display ? clock(display.totalSec) : "—",
-            "calculated",
+            EVIDENCE_LABELS.route,
           ],
           [
             stitch ? "Walking Time" : "Walking",
             display ? clock(display.walkSec) : "—",
-            "calculated",
+            EVIDENCE_LABELS.route,
           ],
           [
             stitch ? "Station Science" : "Science",
             display ? clock(display.workSec) : "—",
-            "calculated",
+            EVIDENCE_LABELS.route,
           ],
           [
             stitch ? "Radiation Dose" : "Radiation dose",
             formatDose(dose) + (SPE_IS_ILLUSTRATIVE && m.emergency?.kind === "spe" ? ` · illustrative · measured 2017 event x${SPE_MEASURED_2017_PEAK_MULTIPLIER}` : ""),
-            "projected · RAD baseline",
+            m.emergency?.kind === "spe" ? EVIDENCE_LABELS.spe : EVIDENCE_LABELS.radiation,
           ],
             [
               stitch ? "Lowest Sun" : "Lowest sun",
               `${roundHalfUp(lowest)}°`,
-              "calculated · Mars24",
+              EVIDENCE_LABELS.sun,
             ],
         ].map(([label, value, evidence]) => (
           <div key={label}>
@@ -250,7 +251,7 @@ export function MissionPanel({
                 m.edit(next);
               }}
             >
-              <span className="stop-number">{i + 1}</span>
+              <span className="stop-number">{String(i + 1).padStart(2, "0")}</span>
               <div className="stop-summary">
                 <button
                   className="text-button stop-name"
@@ -270,7 +271,7 @@ export function MissionPanel({
                   <span>· {s.dwellMin} min science</span>
                 </span>
                 <span className="stop-science-score">
-                  {scores[i] ? `Science ${roundHalfUp(scores[i].science, 2)} · ${roundHalfUp(scores[i].score * 60, 2)} per O₂-hour` : "Science score unavailable"}
+                  {scores[i] ? `Science ${roundHalfUp(scores[i].science, 2)} · ${roundHalfUp(scores[i].score, 3).toFixed(3)} per oxygen-minute` : "Science score unavailable"}
                 </span>
               </div>
               <button
@@ -350,7 +351,7 @@ export function MissionPanel({
   const emergencyFooter = (
       <footer className="emergency-controls">
         <span>
-          EMERGENCY SIMULATION <small>assumed response</small>
+          EMERGENCY SIMULATION <small>{EVIDENCE_LABELS.emergency}</small>
         </span>
         <button disabled={!!m.emergency} onClick={() => m.trigger("storm")}>
           Dust storm

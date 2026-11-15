@@ -64,10 +64,11 @@ Needs nothing from anyone. Your output is checked by your own `check_site.py`.
 - [x] 🟧 CRISM carbonate/clay → science layer. **Decide by hour 8:** real CRISM, or digitize a published Jezero mineral map in QGIS and cite the paper
 - [x] 🟧 Real habitat + 3 stop coordinates: pick them yourself from flat, firm ground near high science value, then write them into `site.json` `pois` (the story lead can rename them later in `stops.json`)
 - [x] 🟥 Write the real `site.json` to `app/public/data/site.json`. `check_site.py` passes, size < 5 MB, `"fake"` removed, real `sources`. **Keep the fake generator** so anyone can regenerate it
-- [ ] 🟧 Visual check in QGIS vs Mars Trek (cliffs = high slope, dunes = low TI)
+- [ ] ~~🟧 Visual check in QGIS vs Mars Trek (cliffs = high slope, dunes = low TI)~~ — **skipped**: QGIS was not used; the layers were checked against Perseverance's real drive instead (`docs/validation.md`)
 - [x] 🟧 Layer PNGs for slides via `preview_site.py` → `docs/images/`
 - [x] 🟧 `pipeline/README.md` documents the real-data steps
 - [x] 🟧 Independent check against Perseverance's real traverse: `pipeline/validate_traverse.py` → `docs/validation.md` (99.8% of the rover's 20.6 km rated passable)
+- [x] 🟦 Learned route cost from the rover's real routes (maximum margin planning): `pipeline/learn_route_cost.py` → `docs/route-learning.md`. Held-out: physics 24.8 m from the drivers' routes, learned the same, straight line 35.3 m. Model in `route-model.json`, **off by default** (`planRoute` `routeGrid` option, no UI)
 - [ ] 🟦 ML boulder map merged into `rock` (only if you build it yourself in `pipeline/`)
 
 ---
@@ -93,14 +94,14 @@ Needs nothing from anyone. Test everything with Vitest: unit tests use the fixtu
 - [ ] 🟦 Web Worker wrapper `planner/worker.ts` (only if the frontend reports lag)
 
 **AI assistant (stretch, only after planner Core)**
-- [ ] 🟦 `backend/`: Vercel function `/assistant`; API key in env var only
-- [ ] 🟦 Contract 5 tools as function-calling schemas
-- [ ] 🟦 **Test without the frontend:** a Node script `backend/try.ts` runs the tool loop against the planner directly on the real `site.json`
-- [ ] 🟦 System prompt: every number comes from tools; never declares a plan safe
-- [ ] 🟦 `app/src/ai/ChatPanel.tsx` takes `plan` + `onToolCall` as props (works standalone with a mock plan)
-- [ ] 🟦 Passes: "Why this route?", "Can I add another clay sample?", "What if a dust storm hits at stop 2?"
-- [ ] 🟦 Apollo-style EVA cuff checklist generator
-- [ ] 🟦 Cached demo answers for the video
+- [ ] ~~🟦 `backend/`: Vercel function `/assistant`; API key in env var only~~ — **out of scope**: the assistant is not part of the submission (CLAUDE.md rule 10)
+- [ ] ~~🟦 Contract 5 tools as function-calling schemas~~ — **out of scope**: the assistant is not part of the submission (CLAUDE.md rule 10)
+- [ ] ~~🟦 **Test without the frontend:** a Node script `backend/try.ts` runs the tool loop against the planner directly on the real `site.json`~~ — **out of scope**: the assistant is not part of the submission (CLAUDE.md rule 10)
+- [ ] ~~🟦 System prompt: every number comes from tools; never declares a plan safe~~ — **out of scope**: the assistant is not part of the submission (CLAUDE.md rule 10)
+- [ ] ~~🟦 `app/src/ai/ChatPanel.tsx` takes `plan` + `onToolCall` as props (works standalone with a mock plan)~~ — **out of scope**: the assistant is not part of the submission (CLAUDE.md rule 10)
+- [ ] ~~🟦 Passes: "Why this route?", "Can I add another clay sample?", "What if a dust storm hits at stop 2?"~~ — **out of scope**: the assistant is not part of the submission (CLAUDE.md rule 10)
+- [ ] ~~🟦 Apollo-style EVA cuff checklist generator~~ — **out of scope**: the assistant is not part of the submission (CLAUDE.md rule 10)
+- [ ] ~~🟦 Cached demo answers for the video~~ — **out of scope**: the assistant is not part of the submission (CLAUDE.md rule 10)
 
 ---
 
@@ -118,7 +119,7 @@ I3: adapters are ready; no `app/src/design` files exist. I4: parser and image ha
 - [x] 🟥 React + Vite + TS in `/app`. **Keep** `src/planner/`, `public/data/`, and the existing deps in `package.json`
 - [x] 🟥 Temporary `src/styles/tokens.css` from Contract 6 (the designer replaces it later; the variable names stay the same)
 - [x] 🟥 Google Fonts: Space Grotesk, Inter, JetBrains Mono
-- [ ] 🟥 Deploy to Vercel from `main` (root dir `app`); share the live link
+- [x] 🟥 Deploy to Vercel from `main` (root dir `app`); share the live link: https://ares-mission-console.vercel.app (deployed by CLI; automatic deploys from `main` are not connected yet, so redeploy after the last push)
 - [x] 🟥 One plan-state store (React context or Zustand)
 
 **Stand-ins (so you never wait)**
@@ -128,7 +129,7 @@ I3: adapters are ready; no `app/src/design` files exist. I4: parser and image ha
 
 **Map**
 - [x] 🟥 Leaflet with `L.CRS.EPSG4326` (**not** MapLibre or Mapbox)
-- [ ] 🟥 Mars Trek basemap tiles; note which layer ID works in `CLAUDE.md` section 3
+- [x] 🟥 Mars Trek basemap tiles; note which layer ID works in `CLAUDE.md` section 3 (`Mars_Viking_MDIM21_ClrMosaic_global_232m`, levels 0–7; the real HiRISE `basemap.png` is the main map, Mars Trek is the backup)
 - [x] 🟥 Hillshade fallback from `site.json` elevation (the app must work if tiles fail)
 - [x] 🟥 Canvas overlays: walking difficulty, slope, soft sand, boulders, science value (draw once, cache)
 - [x] 🟥 Habitat (cyan square), POIs, numbered orange stop markers
@@ -139,7 +140,7 @@ I3: adapters are ready; no `app/src/design` files exist. I4: parser and image ha
 - [x] 🟥 Mission panel: oxygen ring gauge, distance, duration, walk/science time, margin, dose
 - [x] 🟥 Status pill GO / CAUTION / NO-GO **with reasons**
 - [x] 🟥 Layers panel: toggle, name, data-type chip, source chip (read from `site.json` `sources`), legend
-- [ ] 🟧 Cursor probe: elevation, slope, sand risk, science value, walk-home time
+- [x] 🟧 Cursor probe: elevation, slope, sand risk, science value, walk-home time
 - [x] 🟧 "Load demo mission" button
 
 **Time & emergencies**
@@ -148,16 +149,16 @@ I3: adapters are ready; no `app/src/design` files exist. I4: parser and image ha
 - [x] 🟧 Dust Storm + Solar Particle Event buttons → banner, red abort route, status change
 
 **Polish**
-- [ ] 🟧 Data sources panel
-- [ ] 🟧 Shortcuts: Space play/pause, H HUD, Delete stop
-- [ ] 🟦 Tablet layout ≤ 1024 px
+- [x] 🟧 Data sources panel
+- [x] 🟧 Shortcuts: Space play/pause, H HUD, Delete stop
+- [x] 🟦 Tablet layout ≤ 1024 px
 - [ ] 🟥 No console errors; the full demo works on the live link in Chrome
 
 **Swaps (do whenever the real thing appears; each is minutes)**
 - [x] I2: replace each `// STUB` in `src/lib/planner.ts` with the real export
 - [ ] I3: replace placeholders with design components
-- [ ] I4: read `stops.json` and photos
-- [ ] I5: mount `<ChatPanel>`
+- [x] I4: read `stops.json` and photos (photos and credits are read; `stops.json` is optional and the POIs in `site.json` are used)
+- [ ] ~~I5: mount `<ChatPanel>`~~ — **out of scope**: the assistant is not part of the submission (CLAUDE.md rule 10)
 
 ---
 
@@ -176,7 +177,7 @@ Needs nothing from anyone. Figma is separate. Code components take **props with 
 - [ ] 🟧 `app/src/design/StopCard.tsx`: props `{ stop, photoUrl, photoCredit, why, dwellMin, tools, oxygenCostMin }`
 - [ ] 🟧 `app/src/design/preview.html` (or a `?design` route) renders all three with mock data, so you can see them without the main app
 - [ ] 🟧 Motion: route draw-in 600 ms, zone pulse 3 s, status 250 ms, gauge 500 ms; respects reduced motion
-- [ ] 🟧 ARES logo + mission patch (original, **no NASA logo**) in `app/public/brand/`
+- [x] 🟧 ARES logo + mission patch (original, **no NASA logo**) in `app/public/brand/` (`ares-patch.png`; **TEAM: confirm** whether it is AI-generated, see `docs/ai-disclosure.md` item 6)
 - [ ] 🟧 Slide template
 - [ ] 🟧 Visual QA before the video: spacing, contrast ≥ 4.5:1, fonts, labels
 - [ ] 🟦 Tablet frame 1024 × 768; chat bubble style
@@ -193,13 +194,13 @@ Needs nothing from anyone. Research and docs stand alone. Use Mars Trek screensh
 - [x] 🟥 `docs/assumptions.md`: every Contract 2 constant with a source or "assumption", incl. Tobler's hiking function, Curiosity RAD 0.64 mSv/sol (Hassler et al. 2014), Mars24, SPE ×30 marked illustrative, dust-storm slowdown = visibility not wind
 - [x] 🟥 Confirm Space Apps 2026 rules, required fields, video length, **deadline** → `docs/submission.md` (video ≤ 30 s or ≤ 7 slides; closes Sun 15 Nov 23:59 Local Event time)
 - [ ] 🟧 `app/public/data/stops.json`: 3 demo stops `{ id, label, lat, lng, dwellMin, why, tools, photo, photoCredit }`
-- [ ] 🟧 Perseverance photos for each stop in `app/public/photos/` with credits ("NASA/JPL-Caltech, …")
-- [ ] 🟧 MEDA temperature values posted in `docs/assumptions.md` (the planner swaps them in later)
+- [x] 🟧 Perseverance photos for each stop in `app/public/photos/` with credits ("NASA/JPL-Caltech, …") (7 rover sampling sites; the delta front toe has none because Perseverance never went there)
+- [x] 🟧 MEDA temperature values posted in `docs/assumptions.md` (the planner swaps them in later) (Munguira et al. 2023; `TEMP_IS_SOURCED = true` in `env.ts`)
 - [ ] 🟧 Apollo traverse map / cuff checklist heritage slide
 - [x] 🟧 Demo video script + shot list (by hour 12) → `docs/video-script.md` (30 s caption-only script is the main one; 60 s in appendix, not for submission)
-- [ ] 🟧 Slides: problem, story, how it works, 6 data layers, safe zone, emergencies, HUD, novelty, assumptions, sources, team, next steps (outline done: `docs/slides-outline.md`, 7-slide plan + 12-slide appendix; deck not built)
+- [ ] 🟧 Slides: problem, story, how it works, 6 data layers, safe zone, emergencies, HUD, novelty, assumptions, sources, team, next steps (outline: `docs/slides-outline.md`; exact text for 7 slides: `docs/slides-content.md`, numbers filled from `docs/demo-numbers.md`; deck not built)
 - [x] 🟧 README + Space Apps project page text → `README.md`, `docs/project-page.md` (draft; fill its TODO links, then paste into the Project tab)
-- [ ] 🟥 AI use disclosure → draft in `docs/ai-disclosure.md`; team must resolve its TODOs and check the official SI wording before submitting
+- [ ] 🟥 AI use disclosure → `docs/ai-disclosure.md`. TODOs cleared; two **TEAM: confirm** questions left (brainstorming rule with the Local Lead; is the mission patch AI-generated)
 - [x] 🟥 No team member names in README, docs or slides (under-18 rule); "The Ares Initiative" only
 - [ ] 🟧 Record + edit the **30 s caption-only** video (once the live link works; no voice, no faces)
 - [ ] 🟧 Judge test: live app in a fresh browser; report issues in the group chat

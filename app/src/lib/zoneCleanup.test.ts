@@ -1,5 +1,6 @@
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
+import { SPEED_TEST, cpuNow } from "../test-utils/cpuClock";
 import { buildCostGrid, loadSite, planRoute, safeZone } from "../planner";
 import type { Stop } from "../planner";
 import { DEFAULT_MIN_CELLS, removeSmallIslands } from "./zoneCleanup";
@@ -85,14 +86,14 @@ describe("removeSmallIslands on the real 320 x 240 zone", () => {
     .map((p) => ({ id: p.id, label: p.name, lat: p.lat, lng: p.lng, dwellMin: 30 }));
   const zone = safeZone(site, cost, planRoute(site, cost, site.habitat, stops));
 
-  it("runs in under 20 ms and only changes small groups", () => {
+  it("runs in under 20 ms and only changes small groups", SPEED_TEST, () => {
     removeSmallIslands(zone, site.width, site.height); // warm-up
     const times: number[] = [];
     let out = zone;
     for (let i = 0; i < 9; i++) {
-      const t0 = performance.now();
+      const t0 = cpuNow();
       out = removeSmallIslands(zone, site.width, site.height);
-      times.push(performance.now() - t0);
+      times.push(cpuNow() - t0);
     }
     times.sort((a, b) => a - b);
     let changed = 0;

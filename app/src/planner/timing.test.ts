@@ -5,6 +5,7 @@
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
+import { SPEED_TEST, cpuNow } from "../test-utils/cpuClock";
 import * as planner from "./index";
 import {
   aStar,
@@ -79,15 +80,19 @@ const homeField = dijkstraField(cost, habitatCell);
 const farPath = pathTo(homeField, farCell);
 const farLine = plan.legs[1].path;
 const budget = oxygenBudget(false);
+const routeModelRaw = JSON.parse(readFileSync(fileURLToPath(new URL("../../public/data/route-model.json", import.meta.url)), "utf8"));
+const routeModel = planner.loadRouteModel(routeModelRaw);
+const learnedGrid = planner.buildLearnedCostGrid(site, routeModel, CALM);
+const learnedPlan = planRoute(site, cost, site.habitat, stops, { routeGrid: learnedGrid });
 
 /** Median time in ms of `fn` over RUNS runs, after one warm-up run. */
 function medianMs(fn: () => unknown): number {
   fn();
   const times: number[] = [];
   for (let i = 0; i < RUNS; i++) {
-    const t0 = performance.now();
+    const t0 = cpuNow();
     fn();
-    times.push(performance.now() - t0);
+    times.push(cpuNow() - t0);
   }
   times.sort((a, b) => a - b);
   return times[Math.floor(RUNS / 2)];
@@ -135,6 +140,14 @@ const CASES: Record<string, [string, () => unknown]> = {
   doseRateMsvPerHr: ["1,000 calls", x1000((i) => doseRateMsvPerHr(i % 2 === 0))],
   // A fresh copy of the site each time, so the emergency grid and its field are really rebuilt.
   stormAt: ["new site copy: emergency grid + field + abort + re-plan (cache miss)", () => planner.stormAt({ ...site }, plan, 4560, "dust", 13)],
+  emergencyGrid: ["new site copy: calm grid (cache miss)", () => planner.emergencyGrid({ ...site }, "calm", 13)],
+  // Fresh site copies, so the calm grid, the derived grid and the walk-home field are really rebuilt.
+  scenarioAt: ["new site copy: slow-walk re-plan at T+1:16 (cache miss)", () => planner.scenarioAt({ ...site }, plan, 4560, "slow-walk")],
+  oxygenLossAt: ["new site copy: oxygen-loss re-plan at T+1:16 (cache miss)", () => planner.oxygenLossAt({ ...site }, plan, 4560)],
+  blockedPathAt: ["new site copy: blocked-path re-plan at T+1:16 (cache miss)", () => planner.blockedPathAt({ ...site }, plan, 4560)],
+  slowWalkAt: ["new site copy: slow-walk re-plan at T+1:16 (cache miss)", () => planner.slowWalkAt({ ...site }, plan, 4560)],
+  slowedGrid: ["new calm grid slowed to 70%", () => planner.slowedGrid(buildCostGrid(site, CALM), 0.7)],
+  blockedGrid: ["new calm grid, 75 m blocked", () => planner.blockedGrid(site, buildCostGrid(site, CALM), far, 75)],
   computeBriefing: ["the demo mission", () => planner.computeBriefing(site, plan, CALM)],
   readSkyView: ["read the skyView layer from site.json", () => planner.readSkyView(raw)],
   // A new SPE grid each time, so both Dijkstra fields (from the astronaut and from home) are really computed.
@@ -142,6 +155,7 @@ const CASES: Record<string, [string, () => unknown]> = {
     "new SPE grid + shelter check at T+1:16 (cache miss)",
     () => planner.shelterRoute(site, buildCostGrid(site, { ...CALM, spe: true }), positionAt(plan, 4560), 0, { skyView: planner.readSkyView(raw)! }),
   ],
+  simulateMission: ["1,000 Monte Carlo trials of the demo mission", () => planner.simulateMission(site, plan)],
   scienceScore: ["the demo mission", () => planner.scienceScore(site, plan, { stops, cost })],
   // A fresh copy of the site each time, so its cached calm grid and fields are really rebuilt.
   // suggestStops searches the whole site, so it has its own, looser limit (see SLOW_LIMITS_MS).
@@ -155,6 +169,12 @@ const CASES: Record<string, [string, () => unknown]> = {
   formatDose: ["1,000 calls", x1000((i) => planner.formatDose(i / 1000))],
   formatLmst: ["1,000 calls", x1000((i) => planner.formatLmst(i / 40))],
   formatMet: ["1,000 calls", x1000((i) => planner.formatMet(i * 31))],
+  // Learned route cost (off by default; docs/route-learning.md).
+  pathTimeSec: ["1,000 calls on a 2 km path", x1000(() => planner.pathTimeSec(cost, farPath))],
+  loadRouteModel: ["read route-model.json", () => planner.loadRouteModel(routeModelRaw)],
+  learnedCostRatio: ["all 76,800 cells", () => planner.learnedCostRatio(site, routeModel)],
+  buildLearnedCostGrid: ["all 76,800 cells", () => planner.buildLearnedCostGrid(site, routeModel, CALM)],
+  compareRoutes: ["fastest vs learned demo mission", () => planner.compareRoutes(site, routeModel, plan, learnedPlan)],
 };
 
 describe("every exported planner function is fast", () => {
@@ -168,7 +188,7 @@ describe("every exported planner function is fast", () => {
 
   const results: string[] = [];
   for (const [name, [what, fn]] of Object.entries(CASES)) {
-    it(`${name}: ${what}, median under ${limitFor(name)} ms`, () => {
+    it(`${name}: ${what}, median under ${limitFor(name)} ms`, SPEED_TEST, () => {
       const ms = medianMs(fn);
       results.push(`${name.padEnd(22)} ${ms.toFixed(2).padStart(7)} ms   ${what}`);
       expect(ms).toBeLessThan(limitFor(name));

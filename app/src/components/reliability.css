@@ -1,0 +1,152 @@
+/* Styles for ReliabilityPanel and EvidenceTag.
+   Only the shared tokens from styles/tokens.css are used. Hairlines, no shadows. */
+
+/* ---- EvidenceTag ---- */
+.evidence-tag {
+  display: inline-block;
+  padding: 0 4px;
+  border: 1px solid var(--hairline);
+  color: var(--muted);
+  font: 500 9px/14px var(--font-mono);
+  letter-spacing: 0.06em;
+  vertical-align: middle;
+  white-space: nowrap;
+}
+.evidence-tag--assumed {
+  border-style: dashed;
+}
+
+/* ---- ReliabilityPanel ---- */
+.reliability {
+  border-top: 1px solid var(--hairline);
+  border-bottom: 1px solid var(--hairline);
+  color: var(--text);
+  font: 400 12px var(--font-body);
+}
+.reliability > summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  min-height: var(--touch-target);
+  padding: 0 var(--space-3);
+  cursor: pointer;
+  color: var(--muted);
+  font: 600 11px var(--font-heading);
+  letter-spacing: 0.08em;
+}
+.reliability > summary small {
+  font: 500 11px var(--font-mono);
+  letter-spacing: 0;
+}
+.reliability__body {
+  display: grid;
+  gap: var(--space-3);
+  padding: 0 var(--space-3) var(--space-3);
+}
+.reliability__body p {
+  margin: 0;
+}
+.reliability__run,
+.reliability__counts,
+.reliability__label {
+  color: var(--muted);
+  font: 500 11px var(--font-mono);
+}
+.reliability__headline {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-2);
+}
+.reliability__headline b {
+  color: var(--safe);
+  font: 600 24px var(--font-mono);
+}
+.reliability__table {
+  width: 100%;
+  border-collapse: collapse;
+  font: 500 11px var(--font-mono);
+}
+.reliability__table th {
+  color: var(--muted);
+  font-weight: 500;
+  text-align: left;
+}
+.reliability__table th,
+.reliability__table td {
+  padding: var(--space-1) 0;
+  border-top: 1px solid var(--hairline);
+}
+.reliability__table thead th {
+  border-top: 0;
+}
+.reliability__table td,
+.reliability__table thead th + th {
+  text-align: right;
+}
+.reliability__histogram {
+  margin: 0;
+}
+.reliability__histogram svg {
+  display: block;
+  width: 100%;
+  height: 56px;
+  border-bottom: 1px solid var(--hairline);
+}
+.reliability__bar {
+  fill: var(--safe);
+  fill-opacity: 0.7;
+}
+.reliability__bar--fail {
+  fill: var(--nogo);
+}
+.reliability__reserve {
+  stroke: var(--nogo);
+  stroke-width: 1.5;
+  vector-effect: non-scaling-stroke;
+}
+.reliability__histogram figcaption {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--space-2);
+  padding-top: var(--space-1);
+  color: var(--muted);
+  font: 500 10px var(--font-mono);
+}
+.reliability__histogram figcaption span:nth-child(2) {
+  text-align: center;
+}
+.reliability__sensitivity ol {
+  display: grid;
+  gap: var(--space-1);
+  margin: var(--space-1) 0 0;
+  padding: 0;
+  list-style: none;
+}
+.reliability__sensitivity li {
+  display: grid;
+  grid-template-columns: 1fr 72px 52px;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: 11px;
+}
+.reliability__sensitivity b {
+  font: 500 11px var(--font-mono);
+  text-align: right;
+}
+.reliability__track {
+  display: block;
+  height: 6px;
+  background: var(--console-2);
+}
+.reliability__fill {
+  display: block;
+  height: 100%;
+  background: var(--caution);
+}
+.reliability__disclaimer,
+.reliability__empty {
+  color: var(--muted);
+  font-size: 10px;
+  line-height: 1.4;
+}

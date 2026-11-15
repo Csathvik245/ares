@@ -3,8 +3,18 @@ export * from "./constants";
 export * from "./types";
 export { loadSite, cellIndexOf, cellCenter } from "./site";
 export { buildCostGrid, walkingSpeedMps } from "./cost";
-export { dijkstraField, aStar, pathTo, pathLengthM } from "./search";
+export { dijkstraField, aStar, pathTo, pathLengthM, pathTimeSec } from "./search";
 export { planRoute } from "./plan";
+export type { PlanOptions } from "./plan";
+export {
+  ROUTE_FEATURES,
+  STEEP_DEG,
+  loadRouteModel,
+  learnedCostRatio,
+  buildLearnedCostGrid,
+  compareRoutes,
+} from "./learned";
+export type { RouteFeature, RouteModel, RouteComparison, RouteTerrain } from "./learned";
 export { smoothPath, segmentIsClear, segmentTimeSec, forEachCellOnSegment, distanceM, polylineLengthM } from "./geom";
 export { oxygenBudget, isLowMargin, CAUTION_MARGIN_FRACTION } from "./oxygen";
 export type { OxygenBudget } from "./oxygen";
@@ -54,11 +64,25 @@ export {
   formatLmst,
   formatMet,
 } from "./format";
-export { stormAt } from "./storm";
+export { stormAt, emergencyGrid } from "./storm";
+export {
+  scenarioAt,
+  oxygenLossAt,
+  blockedPathAt,
+  slowWalkAt,
+  slowedGrid,
+  blockedGrid,
+  DEFAULT_OXYGEN_LOSS_FRACTION,
+  DEFAULT_BLOCK_RADIUS_M,
+  DEFAULT_SLOW_WALK_FACTOR,
+} from "./emergencies";
+export type { ScenarioKind, ScenarioOptions, ScenarioOutcome, ScenarioSnapshot } from "./emergencies";
 export type { EmergencyKind, ReturnRoute, ShelterCheck, StormOptions, StormOutcome } from "./storm";
 export { shelterRoute, readSkyView, SHELTER_MODEL_IS_SIMPLIFIED, DEFAULT_WAIT_MIN, MIN_DOSE_REDUCTION_PCT } from "./shelter";
 export type { ShelterRoute, ShelterOptions } from "./shelter";
-export { computeBriefing } from "./briefing";
+export { computeBriefing, SCIENCE_EVIDENCE } from "./briefing";
 export type { Briefing, BriefingRow, BriefingStatus, Evidence } from "./briefing";
 export { scienceScore, suggestStops } from "./science";
 export type { StopScience, StopSuggestion, ScoreOptions, SuggestOptions } from "./science";
+export { simulateMission, PARAMS, MONTE_CARLO_DISCLAIMER, DEFAULT_TRIALS, DEFAULT_SEED } from "./montecarlo";
+export type { ReliabilityResult, SimulateOptions, UncertainParam, ParamName, Percentiles, SensitivityRow } from "./montecarlo";

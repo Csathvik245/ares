@@ -2,6 +2,7 @@
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
+import { SPEED_TEST, cpuNow } from "../test-utils/cpuClock";
 import { WALK_BURN, WORK_BURN, buildCostGrid, cellIndexOf, distanceM, loadSite, planRoute } from "./index";
 import type { Conditions, Stop } from "./index";
 import {
@@ -56,10 +57,19 @@ describe("scienceScore on the demo mission", () => {
           .map(
             (s) =>
               `  ${s.id.padEnd(12)} science ${s.science.toFixed(3)}  extra O2 ${s.extraO2Min.toFixed(1)} min  ` +
-              `score ${s.score.toFixed(5)} per O2-min (${(s.score * 60).toFixed(3)} per O2-hour)`,
+              `score ${s.score.toFixed(5)} per oxygen-minute`,
           )
           .join("\n"),
     );
+  });
+
+  it("scores a calm plan on the calm grid by default, so an emergency does not change them", () => {
+    // The app keeps the calm plan during a dust storm or SPE. Its scores must not move.
+    const withCalmGrid = scienceScore(site, plan, { stops, cost });
+    expect(scienceScore(site, plan, { stops })).toEqual(withCalmGrid);
+    // Passing the storm grid is the mistake to avoid: the "skip this stop" walk gets slower, so scores change.
+    const stormGrid = buildCostGrid(site, { storm: true, spe: false, startLmst: 13 });
+    expect(scienceScore(site, plan, { stops, cost: stormGrid })).not.toEqual(withCalmGrid);
   });
 
   it("the delta front toe has the highest science value", () => {
@@ -167,23 +177,23 @@ describe("suggestStops on the demo mission", () => {
     expect(suggestStops(site, site.habitat, tight, 3)).toEqual([]);
   });
 
-  it("runs in under 300 ms on the real grid, even with nothing cached", () => {
+  it("runs in under 300 ms on the real grid, even with nothing cached", SPEED_TEST, () => {
     const times: number[] = [];
     for (let i = 0; i < 7; i++) {
       // A fresh copy of the site, so the cost grid and both Dijkstra fields are rebuilt.
       const fresh = { ...site };
-      const t0 = performance.now();
+      const t0 = cpuNow();
       const out = suggestStops(fresh, fresh.habitat, stops, 3);
-      times.push(performance.now() - t0);
+      times.push(cpuNow() - t0);
       expect(out).toHaveLength(3);
     }
     times.sort((a, b) => a - b);
-    const t1 = performance.now();
+    const t1 = cpuNow();
     suggestStops(site, site.habitat, stops, 3);
-    const warm = performance.now() - t1;
-    const t2 = performance.now();
+    const warm = cpuNow() - t1;
+    const t2 = cpuNow();
     scienceScore(site, plan, { stops, cost });
-    const scoreMs = performance.now() - t2;
+    const scoreMs = cpuNow() - t2;
     console.log(
       `suggestStops: cold median ${times[3].toFixed(1)} ms (max ${times[6].toFixed(1)}), ` +
         `fields cached ${warm.toFixed(1)} ms; scienceScore ${scoreMs.toFixed(1)} ms`,

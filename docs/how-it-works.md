@@ -105,6 +105,20 @@ Example from the demo mission: a storm at T+1:16, halfway along leg 2, gives EVA
 
 Mars air is about 1% as dense as Earth's, so storm wind cannot push a person over. The slowdown stands for low visibility and dust on the visor.
 
+### Three more emergencies that re-plan
+
+`scenarioAt(site, plan, tSec, kind, options)` (or `oxygenLossAt`, `blockedPathAt`, `slowWalkAt`) handles three problems that change the plan instead of only raising an alarm:
+
+| Kind | What changes at `tSec` | Option (default) |
+|---|---|---|
+| `oxygen-loss` | A share of the oxygen left is lost (a leak) | `lossFraction` (0.25) |
+| `blocked-path` | Ground within a radius of a point becomes no-go | `blockAt` (middle of the walk in progress), `blockRadiusM` (75 m) |
+| `slow-walk` | Walking speed is multiplied by a factor for the rest of the EVA | `speedFactor` (0.7) |
+
+Each one starts from where the astronaut is at `tSec` (`positionAt`), re-plans the stops still ahead and then home with `planRoute`, and drops stops from the end until the rest fits with the reserve. If none fit, the EVA is aborted (**EVA: NO-GO**) and she walks straight home. The "go home now" route is always `abortRoute` on the new cost grid, with the same **Return home** rule: CAUTION with the reserve intact, NO-GO if not. The result has the same fields as `stormAt`, plus `route`, `keptStops`, `droppedStops`, and `before` / `after` (margin, stop count, end time, status). `before` is the same stops re-planned from the same spot with no emergency, so the comparison is like for like.
+
+The defaults are illustrative demo values, not measured failure rates. On the demo mission at T+1:16 each default keeps both remaining stops: oxygen loss cuts the margin from 194 to 96 min (CAUTION), slow walking to 151 min (GO), and a 75 m block costs a 1 min detour (GO). Harsher settings drop stops; the tests in `emergencies.test.ts` check both.
+
 ## 8. Sun, temperature and radiation
 
 - **Sun:** NASA's Mars24 algorithm (Allison & McEwen 2000) gives the sun's height at 18.45 N through the day, for one fixed season (Ls 0°, the northern spring equinox). At that season sunrise is 06:41 and sunset 18:41 on the local clock, and the sun peaks at 71.5°.
@@ -192,6 +206,24 @@ Cliffs and crater walls hide part of the sky, and with it part of the radiation 
 **This model is simplified, and the numbers are illustrative.** It assumes the radiation arrives about equally from every direction of the sky, ignores that the atmosphere shields low directions more than high ones, ignores secondary particles from the ground and rock, and uses the demo's illustrative ×30 dose rate. The 60 minute event length is an assumption, and the result depends on it: for a longer event, walking home wins from further away. Every assumption is listed in [`assumptions.md`](assumptions.md) under "Shelter model".
 
 **Status.** The check is in the planner and is tested. The console shows it once the frontend passes the sky-view layer to `stormAt` and draws the new fields.
+
+## Monte Carlo: how robust is the plan?
+
+The planner gives one answer for one set of numbers. But several of those numbers are our assumptions: how fast a suited astronaut walks, how much oxygen walking uses, how long a stop really takes. The Monte Carlo simulator (`app/src/planner/montecarlo.ts`, `simulateMission`) asks: **if those assumptions are a bit off, does the plan still get her home with the reserve?**
+
+**How it works.**
+
+1. The planned route is kept fixed. No new path search is run.
+2. One trial draws a random value for each uncertain input: walking speed and the two oxygen burn rates once for the whole EVA, the terrain factor once per leg, and the time at each stop once per stop.
+3. The plan's own timeline (walking time per leg, science time per stop) is replayed with those values, and the oxygen is added up with the same formula the planner uses (`oxygenUsedSec` in `oxygen.ts`).
+4. This is repeated 1,000 times. A trial is a success if she is home with at least the 45 min reserve left. We also count "home at all": home before the full 8 h supply runs out.
+5. The random numbers come from a small seeded generator (mulberry32), so the same seed always gives exactly the same result. The default seed is 42.
+
+**Sensitivity.** Each input is also set to its lowest and then its highest value on its own, with everything else as planned. The difference in oxygen margin (the "swing") shows which assumption matters most.
+
+**What it gives for the demo mission** (seed 42; numbers are in `docs/demo-numbers.md`, section 6): home with the reserve intact in all 1,000 trials, with the oxygen margin between about 160 and 221 minutes in 90% of trials (planned: 192). The biggest lever is the oxygen used while walking, then walking speed.
+
+**What it does not mean.** This is a model-based simulation of our own assumptions, not an empirical mission success probability. The ranges (for example ±15% speed, ±20% burn rates) are modest guesses listed in `docs/assumptions.md`; none comes from suit tests or astronauts. "1,000 of 1,000" says the demo plan has room to spare inside those ranges. It does not cover things the model leaves out: injury, equipment failure, getting lost, or a storm (that is what the emergency tools are for). The route is not re-planned inside a trial, and every trial uses the calm-weather reserve.
 
 ## Limits
 
