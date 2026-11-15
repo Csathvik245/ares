@@ -109,7 +109,9 @@ export function computeBriefing(site: Site, plan: Plan, conditions: Conditions):
   });
 
   // ---- LIGHTING: lowest sun during the EVA ---------------------------------------------
-  if (!hasRoute) {
+  if (!Number.isFinite(conditions.startLmst)) {
+    rows.push({ key: "LIGHTING", status: "MONITOR", value: "Start time not set, so the sun cannot be checked", evidence: "CALC" });
+  } else if (!hasRoute) {
     const now = envAt(conditions.startLmst, conditions.spe).sunElevationDeg;
     rows.push({
       key: "LIGHTING",

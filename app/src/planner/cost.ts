@@ -39,6 +39,21 @@ export function walkingSpeedMps(
 }
 
 /**
+ * Why a spot cannot be stood on, as the end of a sentence ("is on a slope over 25
+ * degrees"), or null if it is fine. `cell` is -1 for a point outside the map.
+ * Used by planRoute and abortRoute so every impossible plan is explained in words.
+ */
+export function groundProblem(site: Site, cell: number): string | null {
+  if (!(cell >= 0) || cell >= site.width * site.height) return "is outside the mapped area";
+  const slope = site.layers.slope[cell];
+  const rock = site.layers.rock[cell];
+  if (Number.isNaN(slope) || Number.isNaN(rock)) return "is on ground with no terrain data";
+  if (slope > MAX_SLOPE_DEG) return `is on a slope over ${MAX_SLOPE_DEG} degrees`;
+  if (rock > ROCK_NO_GO) return `is on ground too rough to cross (rock over ${ROCK_NO_GO})`;
+  return null;
+}
+
+/**
  * Cost of every cell in seconds per meter (1 / speed). No-go cells are Infinity.
  * Rebuild it whenever the conditions change (for example when a storm starts).
  */

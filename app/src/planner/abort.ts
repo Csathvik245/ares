@@ -2,6 +2,7 @@
 // the astronaut is right now, on the storm (or SPE) cost grid.
 
 import { STORM_EXTRA_RESERVE_MIN, WALK_BURN } from "./constants";
+import { groundProblem } from "./cost";
 import { fieldFrom } from "./fields";
 import { smoothPath } from "./geom";
 import { isLowMargin, oxygenBudget } from "./oxygen";
@@ -50,9 +51,12 @@ export function abortRoute(site: Site, stormCost: CostGrid, from: LatLng, oxygen
       marginSec: -Infinity,
       status: "NO-GO",
       reasons: [
-        fromCell < 0
-          ? "Return home: no route, so no oxygen margin can be worked out. The astronaut is outside the mapped site."
-          : "Return home: no route, so no oxygen margin can be worked out. No safe path home from here (blocked by steep slopes or boulders).",
+        "Return home: no route, so no oxygen margin can be worked out. " +
+          (homeCell < 0
+            ? "The habitat is outside the mapped area."
+            : groundProblem(site, fromCell)
+              ? `The astronaut ${groundProblem(site, fromCell)}.`
+              : "No safe path home from here (blocked by steep slopes or rough ground)."),
       ],
     };
   }
@@ -62,7 +66,9 @@ export function abortRoute(site: Site, stormCost: CostGrid, from: LatLng, oxygen
   const path = smoothPath(site, stormCost, cells, from, { lat: habitat.lat, lng: habitat.lng });
 
   const budget = oxygenBudget(storm);
-  const marginSec = budget.usableSec - oxygenUsedSec - sec * WALK_BURN;
+  // Oxygen used so far is kept inside 0 .. the full supply; a broken number counts as 0.
+  const usedSec = Number.isNaN(oxygenUsedSec) ? 0 : Math.min(Math.max(oxygenUsedSec, 0), budget.budgetSec);
+  const marginSec = budget.usableSec - usedSec - sec * WALK_BURN;
 
   // Return-home status (Contract 3, "Emergencies"). An abort is never GO:
   //   CAUTION — home is reachable and the oxygen margin on arrival is 0 or more
