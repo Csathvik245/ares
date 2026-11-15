@@ -10,12 +10,22 @@ import { isLowMargin, oxygenBudget } from "./oxygen";
 import type { Conditions, Plan, Site, Status } from "./types";
 
 /**
- * How far a row's number can be trusted:
- *   MEAS    — read from measured NASA data (orbital terrain layers)
- *   CALC    — calculated by the planner from measured data and stated rules
- *   ASSUMED — rests on an assumption we chose (see docs/assumptions.md)
+ * How far a number can be trusted. The same four levels are used in docs/parameters.md.
+ *   OBSERVED    — measured by an instrument (for example the orbital terrain layers)
+ *   CALCULATED  — worked out by the planner from observed data and stated rules
+ *   INTERPRETED — a reading of measured data that depends on a judgement about what
+ *                 it means: the CRISM clay and carbonate detection, and the science
+ *                 score built on it
+ *   ASSUMED     — rests on an assumption we chose (see docs/assumptions.md)
  */
-export type Evidence = "MEAS" | "CALC" | "ASSUMED";
+export type Evidence = "OBSERVED" | "CALCULATED" | "INTERPRETED" | "ASSUMED";
+
+/**
+ * Evidence level for anything that comes from the science layer: the CRISM clay and
+ * carbonate detection, a stop's science value and its science score. The briefing has
+ * no science row, so this is here for the UI to tag those numbers the same way.
+ */
+export const SCIENCE_EVIDENCE: Evidence = "INTERPRETED";
 
 /** MONITOR = nothing wrong now, but keep watching (used for weather). It counts as GO overall. */
 export type BriefingStatus = Status | "MONITOR";
@@ -59,9 +69,9 @@ export function computeBriefing(site: Site, plan: Plan, conditions: Conditions):
 
   // ---- TERRAIN: what the route actually crosses --------------------------------
   if (!plan.ok) {
-    rows.push({ key: "TERRAIN", status: "NO-GO", value: "A stop cannot be reached on safe ground", evidence: "CALC" });
+    rows.push({ key: "TERRAIN", status: "NO-GO", value: "A stop cannot be reached on safe ground", evidence: "CALCULATED" });
   } else if (!hasRoute) {
-    rows.push({ key: "TERRAIN", status: "GO", value: "No route yet", evidence: "CALC" });
+    rows.push({ key: "TERRAIN", status: "GO", value: "No route yet", evidence: "CALCULATED" });
   } else {
     let maxSlope = 0;
     let sandM = 0;
@@ -78,7 +88,7 @@ export function computeBriefing(site: Site, plan: Plan, conditions: Conditions):
       key: "TERRAIN",
       status: "GO",
       value: `Max slope ${degrees(maxSlope)} · soft sand ${formatPct(sandPct)} of route`,
-      evidence: "MEAS",
+      evidence: "OBSERVED",
     });
   }
 
@@ -92,7 +102,7 @@ export function computeBriefing(site: Site, plan: Plan, conditions: Conditions):
       plan.marginSec < 0
         ? `Oxygen short by ${formatMinutes(-plan.marginSec)} after the ${formatMinutes(budget.reserveSec)} reserve`
         : `Margin ${formatMinutes(plan.marginSec)} above the ${formatMinutes(budget.reserveSec)} reserve · ${formatPct(plan.oxygenAtReturnPct)} oxygen at return`,
-    evidence: "CALC",
+    evidence: "CALCULATED",
   });
 
   // ---- RADIATION: dose this EVA would add ------------------------------------------
@@ -105,19 +115,19 @@ export function computeBriefing(site: Site, plan: Plan, conditions: Conditions):
       : `Projected EVA dose ${formatDose(doseMsv)}`,
     // The quiet-time rate is measured (Curiosity RAD, Hassler et al. 2014) and applied to Jezero.
     // The event rate uses SPE_MULTIPLIER, which is illustrative (SPE_IS_ILLUSTRATIVE).
-    evidence: conditions.spe ? "ASSUMED" : "CALC",
+    evidence: conditions.spe ? "ASSUMED" : "CALCULATED",
   });
 
   // ---- LIGHTING: lowest sun during the EVA ---------------------------------------------
   if (!Number.isFinite(conditions.startLmst)) {
-    rows.push({ key: "LIGHTING", status: "MONITOR", value: "Start time not set, so the sun cannot be checked", evidence: "CALC" });
+    rows.push({ key: "LIGHTING", status: "MONITOR", value: "Start time not set, so the sun cannot be checked", evidence: "CALCULATED" });
   } else if (!hasRoute) {
     const now = envAt(conditions.startLmst, conditions.spe).sunElevationDeg;
     rows.push({
       key: "LIGHTING",
       status: "GO",
       value: `Sun ${degrees(now)} at ${formatLmst(conditions.startLmst)} LMST`,
-      evidence: "CALC",
+      evidence: "CALCULATED",
     });
   } else {
     const lmstPerSec = 24 / (SOL_HOURS * 3600); // the Mars clock runs slightly slower than Earth seconds
@@ -137,7 +147,7 @@ export function computeBriefing(site: Site, plan: Plan, conditions: Conditions):
       value:
         `Lowest sun ${degrees(lowest)} at ${formatLmst(lowestLmst)} LMST` +
         (lowest < 0 ? " · part of the EVA is in darkness" : lowest < SUN_CAUTION_DEG ? ` · below ${SUN_CAUTION_DEG}°` : ""),
-      evidence: "CALC",
+      evidence: "CALCULATED",
     });
   }
 

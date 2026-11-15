@@ -18,7 +18,8 @@ What ARES does **not** do, or does only approximately. Values are from `app/src/
 ## Radiation
 
 - **The solar particle event is illustrative.** During an SPE the dose rate is multiplied by `SPE_MULTIPLIER` = 30 (`SPE_IS_ILLUSTRATIVE` = true). This is a demo value, not a measurement. In the largest event Curiosity's RAD measured on the surface (September 2017), the peak dose-equivalent rate was only about 1.5 times normal (`SPE_MEASURED_2017_PEAK_MULTIPLIER` = 1.5, Zeitlin et al. 2018). Real events also build up over hours; ours starts at once.
-- **The everyday dose is measured at Gale, not Jezero.** `DOSE_MSV_PER_SOL` = 0.64 mSv is Curiosity RAD's surface average at Gale Crater (Hassler et al. 2014), applied to Jezero.
+- **The everyday dose was measured at Gale Crater, not Jezero.** `DOSE_MSV_PER_SOL` = 0.64 mSv (± 0.12) is the surface average measured by the RAD instrument on Curiosity at Gale Crater (Hassler et al. 2014). Perseverance carries no radiation detector. We transfer the Gale value to Jezero as an estimate; the true Jezero value may differ.
+- **The background dose and the solar particle event are separate.** The background dose is the measured value above. The SPE scenario is a ×30 multiplier on top of it and is illustrative (next point). Every number's evidence level is in [`parameters.md`](parameters.md).
 - **The shelter model is simplified** (`SHELTER_MODEL_IS_SIMPLIFIED` = true in `app/src/planner/shelter.ts`). It uses sky view only: the dose at a spot is the SPE dose rate × the open fraction of the sky. It assumes the radiation arrives equally from every direction, ignores particles made in the ground and rock walls, and assumes the event lasts a fixed 60 minutes (`DEFAULT_WAIT_MIN`). A shelter is suggested only if it cuts the dose by at least 5% (`MIN_DOSE_REDUCTION_PCT`). It compares two options under the same assumptions; it is not a dose prediction.
 
 ## Machine learning and AI

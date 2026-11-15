@@ -3,6 +3,7 @@ import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
 import {
+  SCIENCE_EVIDENCE,
   buildCostGrid,
   computeBriefing,
   doseRateMsvPerHr,
@@ -35,7 +36,7 @@ describe("computeBriefing: the demo mission", () => {
     expect(briefing.rows.map((r) => r.key)).toEqual(["TERRAIN", "CONSUMABLES", "RADIATION", "LIGHTING", "WEATHER"]);
     for (const r of briefing.rows) {
       expect(["GO", "CAUTION", "NO-GO", "MONITOR"]).toContain(r.status);
-      expect(["MEAS", "CALC", "ASSUMED"]).toContain(r.evidence);
+      expect(["OBSERVED", "CALCULATED", "INTERPRETED", "ASSUMED"]).toContain(r.evidence);
       expect(r.value.length).toBeGreaterThan(5);
       expect(r.value).not.toMatch(/NaN|undefined|Infinity/);
     }
@@ -53,7 +54,7 @@ describe("computeBriefing: the demo mission", () => {
     const maxSlope = Math.max(...facts.map((f) => f.maxSlopeDeg));
     const sandPct = (facts.reduce((sum, f, i) => sum + f.sandFraction * plan.legs[i].distM, 0) / plan.distM) * 100;
     const terrain = row(briefing.rows, "TERRAIN");
-    expect(terrain).toMatchObject({ status: "GO", evidence: "MEAS" });
+    expect(terrain).toMatchObject({ status: "GO", evidence: "OBSERVED" });
     expect(terrain.value).toContain(`Max slope ${maxSlope.toFixed(1)}°`);
     expect(terrain.value).toContain(`soft sand ${formatPct(sandPct)} of route`);
     expect(maxSlope).toBeLessThanOrEqual(25); // the route never crosses a no-go slope
@@ -61,7 +62,7 @@ describe("computeBriefing: the demo mission", () => {
 
   it("CONSUMABLES: margin against the reserve", () => {
     const consumables = row(briefing.rows, "CONSUMABLES");
-    expect(consumables).toMatchObject({ status: "GO", evidence: "CALC" });
+    expect(consumables).toMatchObject({ status: "GO", evidence: "CALCULATED" });
     expect(consumables.value).toBe(
       `Margin ${formatMinutes(plan.marginSec)} above the 45 min reserve · ${formatPct(plan.oxygenAtReturnPct)} oxygen at return`,
     );
@@ -71,7 +72,7 @@ describe("computeBriefing: the demo mission", () => {
   it("RADIATION: projected dose = dose rate × EVA duration", () => {
     const radiation = row(briefing.rows, "RADIATION");
     const dose = doseRateMsvPerHr(false) * (plan.totalSec / 3600);
-    expect(radiation).toMatchObject({ status: "GO", evidence: "CALC" });
+    expect(radiation).toMatchObject({ status: "GO", evidence: "CALCULATED" });
     expect(radiation.value).toBe(`Projected EVA dose ${formatDose(dose)}`);
   });
 
@@ -80,9 +81,15 @@ describe("computeBriefing: the demo mission", () => {
     const series = sunElevationSeries(CALM.startLmst, Math.ceil(plan.totalSec / 60) * 60, 60);
     const lowest = Math.min(...series.map((s) => s.sunElevationDeg));
     expect(lowest).toBeGreaterThan(10);
-    expect(lighting).toMatchObject({ status: "GO", evidence: "CALC" });
+    expect(lighting).toMatchObject({ status: "GO", evidence: "CALCULATED" });
     expect(lighting.value).toContain(`Lowest sun ${lowest.toFixed(1)}°`);
     expect(lighting.value).toMatch(/at \d\d:\d\d LMST/);
+  });
+
+  it("science numbers are tagged INTERPRETED", () => {
+    expect(SCIENCE_EVIDENCE).toBe("INTERPRETED");
+    // No briefing row is about the science layer, so no row uses that level.
+    expect(briefing.rows.some((r) => r.evidence === "INTERPRETED")).toBe(false);
   });
 
   it("WEATHER: MONITOR, tagged as an assumption", () => {
