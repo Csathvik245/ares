@@ -4,7 +4,7 @@
 // Standalone: it takes no props and reads no app state, so it can be mounted in any tab.
 // Numbers: suit and mission constants are imported from the planner; result numbers are
 // copied from docs/demo-numbers.md through lib/scienceNumbers.ts (a test keeps them equal).
-import type { ReactNode } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import {
   BASE_SPEED_KMH,
   CONSUMABLE_HOURS,
@@ -89,16 +89,89 @@ const EVIDENCE_EXAMPLES: { level: Evidence; meaning: string; example: ReactNode 
   },
 ];
 
+/** What a contents link needs from the page; the browser's own objects fit it, and so do a test's stand-ins. */
+type SectionPage = {
+  getElementById: (id: string) => {
+    scrollIntoView: (options?: ScrollIntoViewOptions) => void;
+    querySelector: (selector: string) => { focus: (options?: FocusOptions) => void } | null;
+  } | null;
+};
+
+/**
+ * A click (or Enter) on a contents link: scroll the section into view INSIDE the Science
+ * page, and move the keyboard focus to its heading.
+ *
+ * It never touches the URL. The app's tabs are driven by the hash (#story, #plan,
+ * #science), so letting the browser follow "#science-data" would be read as an unknown
+ * tab and throw the visitor back to the Story screen.
+ */
+export function goToScienceSection(
+  id: string,
+  event: { preventDefault: () => void },
+  page: SectionPage | undefined = typeof document === "undefined" ? undefined : document,
+  reducedMotion: boolean = typeof window !== "undefined" && !!window.matchMedia?.("(prefers-reduced-motion: reduce)").matches,
+): boolean {
+  event.preventDefault();
+  const section = page?.getElementById(id);
+  if (!section) return false;
+  section.scrollIntoView({ behavior: reducedMotion ? "auto" : "smooth", block: "start" });
+  // preventScroll: the smooth scroll above decides where the page goes, not the focus.
+  section.querySelector("h2")?.focus({ preventScroll: true });
+  return true;
+}
+
 export function SciencePage() {
   const [why, data, route, reality, uncertainty, emergencies, evidence, related] = SCIENCE_SECTIONS;
+  const scroller = useRef<HTMLDivElement>(null);
+  // The section being read, for the highlight in the contents list.
+  const [current, setCurrent] = useState<string>(SCIENCE_SECTIONS[0].id);
+  useEffect(() => {
+    const root = scroller.current;
+    if (!root || typeof IntersectionObserver === "undefined") return;
+    // A section counts as "current" while it crosses a band near the top of the page.
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const showing = entries.filter((entry) => entry.isIntersecting).map((entry) => entry.target.id);
+        if (showing.length === 0) return;
+        const first = SCIENCE_SECTIONS.find((s) => showing.includes(s.id));
+        if (first) setCurrent(first.id);
+      },
+      { root, rootMargin: "-10% 0px -70% 0px" },
+    );
+    for (const s of SCIENCE_SECTIONS) {
+      const el = root.querySelector(`#${s.id}`);
+      if (el) observer.observe(el);
+    }
+    // The last section is short and can never reach the top band, so the end of the page counts as it.
+    const last = SCIENCE_SECTIONS[SCIENCE_SECTIONS.length - 1].id;
+    const onScroll = () => {
+      if (root.scrollTop + root.clientHeight >= root.scrollHeight - 2) setCurrent(last);
+    };
+    root.addEventListener("scroll", onScroll, { passive: true });
+    return () => {
+      observer.disconnect();
+      root.removeEventListener("scroll", onScroll);
+    };
+  }, []);
   return (
-    <div className="science-page">
+    <div className="science-page" ref={scroller}>
       <nav className="science-page__toc" aria-label="On this page">
         <p>On this page</p>
         <ol>
           {SCIENCE_SECTIONS.map((s) => (
             <li key={s.id}>
-              <a href={`#${s.id}`}>{s.title}</a>
+              {/* href stays "#science": the URL never changes, so the app's hash router keeps this tab open. */}
+              <a
+                href="#science"
+                data-section={s.id}
+                className={s.id === current ? "is-current" : undefined}
+                aria-current={s.id === current ? "true" : undefined}
+                onClick={(event) => {
+                  if (goToScienceSection(s.id, event)) setCurrent(s.id);
+                }}
+              >
+                {s.title}
+              </a>
             </li>
           ))}
         </ol>
@@ -115,7 +188,7 @@ export function SciencePage() {
         </header>
 
         <section id={why.id}>
-          <h2>1. {why.title}</h2>
+          <h2 tabIndex={-1}>1. {why.title}</h2>
           <p>
             About 3.5 billion years ago a river flowed into a lake in Jezero Crater and built a delta. Deltas bury mud
             quickly, and the clays and carbonates found here are the kinds of minerals that can preserve signs of
@@ -150,7 +223,7 @@ export function SciencePage() {
         </section>
 
         <section id={data.id}>
-          <h2>2. {data.title}</h2>
+          <h2 tabIndex={-1}>2. {data.title}</h2>
           <p>
             ARES combines six kinds of NASA data, plus rover photos, on one grid of 25 m cells. Each layer answers one
             practical question for a person on foot.
@@ -205,7 +278,7 @@ export function SciencePage() {
         </section>
 
         <section id={route.id}>
-          <h2>3. {route.title}</h2>
+          <h2 tabIndex={-1}>3. {route.title}</h2>
           <p>
             Every 25 m cell gets a walking speed. Steeper, sandier and rougher ground is slower, and some ground is
             off limits. ARES then finds the fastest safe path between the stops with a standard shortest-path method
@@ -266,7 +339,7 @@ export function SciencePage() {
         </section>
 
         <section id={reality.id}>
-          <h2>4. {reality.title}</h2>
+          <h2 tabIndex={-1}>4. {reality.title}</h2>
           <p>
             Perseverance really drove across this ground, so we compared ARES with <Num>{N.roverPath.value}</Num> of
             the rover's real path. None of that path was used to build the terrain layers. ARES rates{" "}
@@ -280,6 +353,8 @@ export function SciencePage() {
           <figure>
             <img
               src={`${import.meta.env.BASE_URL}images/validation_traverse.jpg`}
+              width={1400}
+              height={1000}
               alt="Map of the Jezero site with Perseverance's real drive path drawn over the HiRISE image, coloured by ARES walking difficulty; ARES no-go cells are shaded red and one red cross marks the single place the path crosses a no-go cell."
               loading="lazy"
             />
@@ -329,6 +404,8 @@ export function SciencePage() {
           <figure>
             <img
               src={`${import.meta.env.BASE_URL}images/route_learning.jpg`}
+              width={1400}
+              height={720}
               alt="Left: the Jezero site with Perseverance's real routes in white and the ARES physics routes in orange, lying almost on top of each other. Right: a bar chart of the mean distance from the rover's real route, with the straight line highest and the ARES physics and learned models equal."
               loading="lazy"
             />
@@ -341,7 +418,7 @@ export function SciencePage() {
         </section>
 
         <section id={uncertainty.id}>
-          <h2>5. {uncertainty.title}</h2>
+          <h2 tabIndex={-1}>5. {uncertainty.title}</h2>
           <p>
             Several inputs are our own estimates, so ARES also asks: what if they are a bit off? It replays a plan{" "}
             {DEFAULT_TRIALS.toLocaleString("en-US")} times with the walking speed ({spread("walkSpeed")}), the terrain ({spread("terrainSpeed")} per leg),
@@ -391,7 +468,7 @@ export function SciencePage() {
         </section>
 
         <section id={emergencies.id}>
-          <h2>6. {emergencies.title}</h2>
+          <h2 tabIndex={-1}>6. {emergencies.title}</h2>
           <p>
             When something goes wrong, ARES does not just raise an alarm. It works out a new plan from where the
             astronaut is standing, and shows two statuses: one for the mission and one for the way home. The sizes of
@@ -464,7 +541,7 @@ export function SciencePage() {
         </section>
 
         <section id={evidence.id}>
-          <h2>7. {evidence.title}</h2>
+          <h2 tabIndex={-1}>7. {evidence.title}</h2>
           <p>
             Not every number in ARES deserves the same trust, so each one carries one of four labels. The numbers
             about the human body and the suit, such as walking speed, oxygen use and the reserve, are{" "}
@@ -508,7 +585,7 @@ export function SciencePage() {
         </section>
 
         <section id={related.id}>
-          <h2>8. {related.title}</h2>
+          <h2 tabIndex={-1}>8. {related.title}</h2>
           <p>
             ARES follows a line of traverse planners made for real exploration. We did not invent route planning for
             astronauts; we applied these ideas to one Mars site with oxygen as the limit.

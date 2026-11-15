@@ -2,11 +2,11 @@
 import { existsSync, readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { renderToStaticMarkup } from "react-dom/server";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { MAX_SLOPE_DEG, RESERVE_MIN, formatMinutes } from "../planner";
 import { MONTE_CARLO_DISCLAIMER } from "../planner/montecarlo";
 import { SCIENCE_NUMBERS } from "../lib/scienceNumbers";
-import { SCIENCE_SECTIONS, SciencePage } from "./SciencePage";
+import { SCIENCE_SECTIONS, SciencePage, goToScienceSection } from "./SciencePage";
 
 const repoFile = (path: string) => fileURLToPath(new URL(`../../../${path}`, import.meta.url));
 const html = renderToStaticMarkup(<SciencePage />);
@@ -30,10 +30,10 @@ describe("SciencePage", () => {
       "How sure are we",
       "Builds on",
     ]);
-    expect(html.match(/<h2>/g)).toHaveLength(8);
+    expect(html.match(/<h2 tabindex="-1">/g)).toHaveLength(8);
     SCIENCE_SECTIONS.forEach((s, i) => {
-      expect(html).toContain(`<section id="${s.id}"><h2>${i + 1}. ${s.title}</h2>`);
-      expect(html).toContain(`<a href="#${s.id}">${s.title}</a>`);
+      expect(html).toContain(`<section id="${s.id}"><h2 tabindex="-1">${i + 1}. ${s.title}</h2>`);
+      expect(html).toMatch(new RegExp(`<a href="#science" data-section="${s.id}"[^>]*>${s.title.replace("?", "\\?")}</a>`));
     });
   });
 
@@ -90,6 +90,79 @@ describe("SciencePage", () => {
 
   it("has no broken values", () => {
     expect(text).not.toMatch(/NaN|undefined|Infinity|—%/);
+  });
+});
+
+describe("contents links scroll in place", () => {
+  /** A stand-in page: every section records how it was scrolled and whether its heading got the focus. */
+  function fakePage() {
+    const calls: { id: string; options?: ScrollIntoViewOptions }[] = [];
+    const focused: { id: string; options?: FocusOptions }[] = [];
+    const page = {
+      getElementById: (id: string) =>
+        SCIENCE_SECTIONS.some((s) => s.id === id)
+          ? {
+              scrollIntoView: (options?: ScrollIntoViewOptions) => void calls.push({ id, options }),
+              querySelector: (selector: string) =>
+                selector === "h2" ? { focus: (options?: FocusOptions) => void focused.push({ id, options }) } : null,
+            }
+          : null,
+    };
+    return { page, calls, focused };
+  }
+
+  it("a click does not change location.hash and scrolls the matching section into view", () => {
+    const location = { hash: "#science" };
+    vi.stubGlobal("window", { location, matchMedia: () => ({ matches: false }) });
+    try {
+      for (const s of SCIENCE_SECTIONS) {
+        const { page, calls, focused } = fakePage();
+        const event = { preventDefault: vi.fn() };
+        expect(goToScienceSection(s.id, event, page)).toBe(true);
+        expect(event.preventDefault).toHaveBeenCalledOnce(); // the browser never follows the link
+        expect(location.hash).toBe("#science");
+        expect(calls).toEqual([{ id: s.id, options: { behavior: "smooth", block: "start" } }]);
+        // Keyboard focus moves to that section's heading, without a second jump.
+        expect(focused).toEqual([{ id: s.id, options: { preventScroll: true } }]);
+      }
+    } finally {
+      vi.unstubAllGlobals();
+    }
+  });
+
+  it("does not animate under prefers-reduced-motion", () => {
+    const { page, calls } = fakePage();
+    goToScienceSection("science-data", { preventDefault: () => {} }, page, true);
+    expect(calls[0].options).toEqual({ behavior: "auto", block: "start" });
+    vi.stubGlobal("window", { location: { hash: "#science" }, matchMedia: () => ({ matches: true }) });
+    try {
+      const again = fakePage();
+      goToScienceSection("science-data", { preventDefault: () => {} }, again.page);
+      expect(again.calls[0].options?.behavior).toBe("auto");
+    } finally {
+      vi.unstubAllGlobals();
+    }
+  });
+
+  it("an unknown section still cancels the navigation, and does nothing else", () => {
+    const { page, calls } = fakePage();
+    const event = { preventDefault: vi.fn() };
+    expect(goToScienceSection("nope", event, page)).toBe(false);
+    expect(event.preventDefault).toHaveBeenCalledOnce();
+    expect(calls).toEqual([]);
+  });
+
+  it("the links are real links that keep the URL on #science, and the first section starts as current", () => {
+    const links = [...html.matchAll(/<a href="([^"]+)" data-section="([^"]+)"/g)];
+    expect(links).toHaveLength(SCIENCE_SECTIONS.length);
+    expect(links.every((m) => m[1] === "#science")).toBe(true);
+    expect(links.map((m) => m[2])).toEqual(SCIENCE_SECTIONS.map((s) => s.id));
+    expect(html).not.toMatch(/href="#science-/); // nothing can send the hash router an unknown tab
+    expect(html.match(/aria-current="true"/g)).toHaveLength(1);
+    expect(html).toMatch(/data-section="science-why-jezero" class="is-current" aria-current="true"/);
+    const source = readFileSync(repoFile("app/src/components/SciencePage.tsx"), "utf8");
+    expect(source).not.toMatch(/location\.hash\s*=/);
+    expect(source).toContain("new IntersectionObserver(");
   });
 });
 

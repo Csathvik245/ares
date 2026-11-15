@@ -162,6 +162,18 @@
   content: counter(toc) "  ";
   font-family: var(--font-mono);
 }
+/* The section being read. */
+.science-page__toc a.is-current {
+  color: var(--safe);
+}
+/* A heading reached from the contents list takes the focus, without a ring of its own,
+   and stops a little below the top edge of the scrolling page. */
+.science-page section > h2 {
+  scroll-margin-top: var(--space-4);
+}
+.science-page section > h2:focus {
+  outline: none;
+}
 .science-page__toc a:hover,
 .science-page__toc a:focus-visible {
   color: var(--safe);
