@@ -254,7 +254,7 @@ describe("dataset metadata table (section 2, mirrored in README.md)", async () =
 
   it("dates and sols are the ones in the docs, and anything else says 'not recorded'", () => {
     expect(sources).toContain("mtrdr/2007/2007_029/hrl000040ff");
-    expect(row("crism").date).toContain("2007, day 029");
+    expect(row("crism").date).toBe("29 January 2007 (day 029 of 2007, from the PDS folder name)");
     expect(sources).toContain("Ls 25° (sols 34–40): Tmin 191 K at 05:00, Tmax 243 K at 15:00");
     expect(row("meda").date).toBe("Sols 34 to 40 (Ls 25°)");
     expect(row("meda").resample).toContain("191 K at 05:00");

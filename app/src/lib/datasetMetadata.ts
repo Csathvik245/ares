@@ -74,7 +74,7 @@ export const DATASETS: DatasetRow[] = [
     use: "Science value: a relative clay and carbonate signal",
     native: "36 m per pixel",
     grid: "One 0 to 1 science value per 25 m cell, read from 36 m pixels",
-    date: "2007, day 029 of the year (from the PDS folder of the observation)",
+    date: "29 January 2007 (day 029 of 2007, from the PDS folder name)",
     resample: "Bilinear interpolation of each of the three parameters. Each is then scaled from 0 (absorption not seen) to 1 (the 99.5th percentile of the scene), and the cell keeps the highest of the three.",
     source: "PDS Geosciences Node",
     link: "https://pds-geosciences.wustl.edu/mro/mro-m-crism-5-rdr-mptargeted-v1/mrocr_4001/mtrdr/2007/2007_029/hrl000040ff/",

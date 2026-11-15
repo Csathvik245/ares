@@ -18,6 +18,14 @@ ARES: Astronaut Route & EVA Safety system
 
 ARES is a route planner for an astronaut walking on Mars. It is built for a single spacewalk at Jezero Crater's ancient river delta, where carbonate and clay layers may preserve signs of past life. The astronaut picks science stops. ARES combines NASA terrain, thermal, mineral and radiation data to plan the fastest safe walk around steep slopes, boulders and soft sand. It adds up walking time, oxygen and radiation dose, and draws a safe-return zone: everywhere the astronaut can still reach and get home from with the oxygen reserve intact. A GO / CAUTION / NO-GO status always states its reason. Dust storm and solar particle event simulations abort the EVA and give an instant route home. The challenge asks for a layered, hyperlocal map that helps a human explorer plan and carry out a Marswalk while doing science; ARES answers it at the scale of one EVA and puts astronaut safety first.
 
+## Who it helps
+
+- **Astronauts on a Mars walk:** a clear GO / CAUTION / NO-GO before they leave, and a new route home the moment something goes wrong, without waiting up to 20 minutes for Earth.
+- **Mission planners:** test a walk against real terrain, oxygen limits and 1,000 simulated versions before anyone steps outside.
+- **Science teams:** see which stops are worth the oxygen they cost, using CRISM clay signals.
+
+ARES is a student prototype built on real NASA data. The terrain is checked against Perseverance's drive; the human-performance numbers are our assumptions.
+
 ## Link to Project Demo
 
 **TEAM: paste the public YouTube link** to the 30-second caption-only video once it is uploaded (script: [`video-script.md`](video-script.md)).

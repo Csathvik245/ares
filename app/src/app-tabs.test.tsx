@@ -306,3 +306,25 @@ describe("the AI-generated mission patch always carries its AI mark", () => {
     expect(read("../../docs/project-page.md")).not.toContain("TEAM: confirm");
   });
 });
+
+describe("'Who it helps' in the README and on the project page", () => {
+  it("has the same three plain bullets and the prototype line in both, with no claim that anyone uses ARES today", () => {
+    for (const path of ["../../README.md", "../../docs/project-page.md"]) {
+      const doc = read(path).replace(/\r\n/g, "\n");
+      const start = doc.indexOf("## Who it helps\n");
+      expect(start, path).toBeGreaterThan(0);
+      const section = doc.slice(start, doc.indexOf("\n## ", start + 1));
+      expect(section.match(/^- \*\*/gm)).toHaveLength(3);
+      for (const who of ["Astronauts on a Mars walk", "Mission planners", "Science teams"]) expect(section).toContain(`**${who}:**`);
+      expect(section).toContain("ARES is a student prototype built on real NASA data. The terrain is checked against Perseverance's drive; the human-performance numbers are our assumptions.");
+      expect(section).not.toMatch(/\b(is|are) (already )?(used|using|in use)\b|used by NASA|NASA uses/i);
+      expect(section).not.toMatch(/[\u2014\u2013]/);
+    }
+    const readme = read("../../README.md");
+    expect(readme.indexOf("## What ARES does")).toBeLessThan(readme.indexOf("## Who it helps"));
+    expect(readme.indexOf("## Who it helps")).toBeLessThan(readme.indexOf("## Real NASA data"));
+    const page = read("../../docs/project-page.md");
+    expect(page.indexOf("## High-Level Project Summary")).toBeLessThan(page.indexOf("## Who it helps"));
+    expect(page.indexOf("## Who it helps")).toBeLessThan(page.indexOf("## Link to Project Demo"));
+  });
+});
