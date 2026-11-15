@@ -30,6 +30,7 @@ import {
 } from "../planner";
 import { DEFAULT_TRIALS, MONTE_CARLO_DISCLAIMER, PARAMS } from "../planner/montecarlo";
 import { SCIENCE_NUMBERS as N } from "../lib/scienceNumbers";
+import { VALIDATION_NUMBERS as V } from "../lib/validationNumbers";
 import { COARSE_LAYER_NOTE, DATASETS, DATASET_COLUMNS, NOT_RECORDED } from "../lib/datasetMetadata";
 import { EvidenceTag } from "./EvidenceTag";
 import "./science-page.css";
@@ -41,7 +42,8 @@ export const SCIENCE_SECTIONS = [
   { id: "science-why-jezero", title: "Why Jezero" },
   { id: "science-data", title: "The data" },
   { id: "science-route", title: "How ARES picks a route" },
-  { id: "science-reality", title: "Does it match reality?" },
+  // The validation report. `key` marks it in the contents list: it is the section judges should not miss.
+  { id: "science-reality", title: "How we validated ARES", key: true },
   { id: "science-uncertainty", title: "Uncertainty" },
   { id: "science-emergencies", title: "Emergencies" },
   { id: "science-evidence", title: "How sure are we" },
@@ -165,7 +167,7 @@ export function SciencePage() {
               <a
                 href="#science"
                 data-section={s.id}
-                className={s.id === current ? "is-current" : undefined}
+                className={[s.id === current ? "is-current" : "", "key" in s && s.key ? "is-key" : ""].filter(Boolean).join(" ") || undefined}
                 aria-current={s.id === current ? "true" : undefined}
                 onClick={(event) => {
                   if (goToScienceSection(s.id, event)) setCurrent(s.id);
@@ -336,14 +338,21 @@ export function SciencePage() {
         <section id={reality.id}>
           <h2 tabIndex={-1}>4. {reality.title}</h2>
           <p>
-            Perseverance really drove across this ground, so we compared ARES with <Num>{N.roverPath.value}</Num> of
-            the rover's real path. None of that path was used to build the terrain layers. ARES rates{" "}
-            <Num>{N.roverPassable.value}</Num> of it as passable, and our slope layer agrees with the tilt the rover
-            itself measured (<Num>{N.tiltCorrelation.value}</Num>, {N.waypoints.value}).
+            A plan is only as good as the map under it, so we checked ARES twice against data it was not built from.
+            Each answer below is short; the full write-ups are in the repository (<Num>docs/validation.md</Num>,{" "}
+            <Num>docs/route-learning.md</Num>).
+          </p>
+
+          <h3>a. What did we compare against?</h3>
+          <p>
+            Perseverance's real drive. <Num>{N.roverPath.value}</Num> of its path lies inside our site (sols{" "}
+            <Num>{V.firstSol.value}</Num> to <Num>{V.lastSol.value}</Num>), crossing <Num>{V.cellsTouched.value}</Num>{" "}
+            of our cells, with <Num>{N.waypoints.value}</Num> where the rover stopped at the end of a drive. The source
+            is NASA's "Where is Perseverance" traverse and waypoints files, downloaded on {V.downloaded.value}.
           </p>
           <p>
-            Read this with care: <Num>{N.sitePassable.value}</Num> of the whole site is passable anyway, so the check
-            mostly shows we have not marked real, drivable ground as blocked.
+            It is independent because none of it was used to build the terrain layers, which come from orbital data
+            only (HiRISE, THEMIS, CRISM). The one overlap: the landing point, where the traverse begins, was used to place the habitat.
           </p>
           <figure>
             <img
@@ -358,38 +367,135 @@ export function SciencePage() {
               (HiRISE). Path: NASA/JPL-Caltech (Mars 2020 traverse).
             </figcaption>
           </figure>
+
+          <h3>b. What does {N.roverPassable.value} passable mean?</h3>
+          <p>
+            It is the share of the rover's path length that lies on cells ARES rates walkable: slope no more than{" "}
+            <Num>{MAX_SLOPE_DEG}°</Num> and roughness no more than <Num>{ROCK_NO_GO}</Num>. Only{" "}
+            <Num>{N.noGoLength.value}</Num> of <Num>{V.pathMetres.value}</Num> falls on a no-go cell, and{" "}
+            <Num>{V.waypointsPassable.value}</Num> waypoints are on walkable cells.
+          </p>
+          <p>
+            The honest caveat: <Num>{N.sitePassable.value}</Num> of the whole site is passable anyway, so even a random
+            path would score in the high nineties. This number mainly shows that we do not wrongly block ground that
+            is known to be drivable. It does not show that everything we call passable really is.
+          </p>
+          <figure>
+            <img
+              src={`${import.meta.env.BASE_URL}images/validation_path_vs_site.png`}
+              width={1144}
+              height={484}
+              alt={`Four pairs of bars comparing the ground under the rover's path with the whole site. Median slope ${V.slopeMedianPath.value} against ${V.slopeMedianSite.value}; soft sand ${V.sandPath.value} against ${V.sandSite.value}; walking difficulty ${V.difficultyPath.value} against ${V.difficultySite.value} times flat firm ground; median roughness is also lower on the path.`}
+              loading="lazy"
+            />
+            <figcaption>
+              The more telling comparison: the rover stayed on gentler, smoother and firmer ground than the site as a
+              whole (median slope <Num>{V.slopeMedianPath.value}</Num> against <Num>{V.slopeMedianSite.value}</Num>,
+              soft sand <Num>{V.sandPath.value}</Num> against <Num>{V.sandSite.value}</Num>, walking difficulty{" "}
+              <Num>{V.difficultyPath.value}</Num> against <Num>{V.difficultySite.value}</Num> times flat firm ground).
+              Path: NASA/JPL-Caltech (Mars 2020 traverse). Terrain: ARES, from NASA orbital data.
+            </figcaption>
+          </figure>
+
+          <h3>c. What does {N.tiltCorrelation.value} measure?</h3>
+          <p>
+            At the end of each drive the rover reports its own tilt, measured on the ground by a different instrument
+            from anything we used. <Num>{N.tiltCorrelation.value}</Num> is the correlation between that tilt and our
+            slope layer over the <Num>{N.waypoints.value}</Num>. A value near 1 means the two rise and fall together:
+            where the rover found steeper ground, our map is steeper too.
+          </p>
+          <p>
+            Correlation does not mean the two values are equal. Ours runs higher (middle value{" "}
+            <Num>{V.ourSlopeMedian.value}</Num> against the rover's <Num>{V.tiltMedian.value}</Num>, and at least as
+            high at <Num>{V.slopeAtLeastTilt.value}</Num> of waypoints), as it should: it describes the steepest part
+            of a 25 m cell, while the tilt is measured over the rover's own length. It also says nothing about ground
+            the rover never visited.
+          </p>
+          <figure>
+            <img
+              src={`${import.meta.env.BASE_URL}images/validation_slope_vs_tilt.png`}
+              width={836}
+              height={616}
+              alt={`Scatter plot of ${N.waypoints.value}: the tilt the rover measured on the horizontal axis and the ARES slope of the cell under it on the vertical axis. The points follow a rising best-fit line, with most of them on or above the line of equal values; ${N.tiltCorrelation.value}.`}
+              loading="lazy"
+            />
+            <figcaption>
+              One dot for each waypoint. The summary file stores only the correlation, so the dots are computed the
+              same way the validation script does it: NASA's waypoint positions and tilts, and our slope in the cell
+              under each. Waypoints and tilt: NASA/JPL-Caltech (Mars 2020). Slope: ARES, from HiRISE elevation
+              (NASA/JPL-Caltech/University of Arizona/USGS).
+            </figcaption>
+          </figure>
+
+          <h3>d. The one failure</h3>
+          <p>
+            The rover crossed one cell that ARES marks no-go: Skinner Ridge on the delta front,{" "}
+            <Num>{N.noGoPlace.value}</Num>. There, <Num>{N.noGoLength.value}</Num> of path lies where our slope is{" "}
+            <Num>{N.noGoSlope.value}</Num>, over the <Num>{MAX_SLOPE_DEG}°</Num> limit by{" "}
+            <Num>{V.overLimitBy.value}</Num> (roughness <Num>{V.noGoRock.value}</Num>, well inside its limit).
+          </p>
+          <p>
+            Our slope for a cell is the 90th percentile of the slopes inside it, so one steep ledge can push a whole 25
+            m cell just over the limit while the rover works on the gentler part. This is the careful side to be wrong
+            on: ARES would send an astronaut around it.
+          </p>
+
+          <h3>e. Sensitivity: does the answer depend on our limits?</h3>
+          <p>
+            We moved the two limits and repeated the check. The slope limit changes the result by about half a
+            percentage point. The roughness limit changes nothing between <Num>{V.rockLimitLow.value}</Num> and{" "}
+            <Num>{V.rockLimitHigh.value}</Num>, because the rover never crossed a cell rougher than{" "}
+            <Num>{V.roughestCrossed.value}</Num>. So this check supports our slope limit, and cannot tell us whether
+            our roughness limit is right.
+          </p>
           <table>
+            <thead>
+              <tr>
+                <th scope="col">Slope limit</th>
+                <th scope="col">Rover path passable</th>
+                <th scope="col">Whole site passable</th>
+              </tr>
+            </thead>
             <tbody>
               <tr>
-                <th scope="row">Rover path rated passable</th>
+                <th scope="row">20°</th>
                 <td>
-                  <Num>{N.roverPassable.value}</Num>
+                  <Num>{V.slope20Path.value}</Num>
+                </td>
+                <td>
+                  <Num>{V.slope20Site.value}</Num>
                 </td>
               </tr>
               <tr>
-                <th scope="row">Our slope vs the rover's tilt</th>
+                <th scope="row">{MAX_SLOPE_DEG}° (ours)</th>
                 <td>
-                  <Num>{N.tiltCorrelation.value}</Num>
+                  <Num>{V.slope25Path.value}</Num>
+                </td>
+                <td>
+                  <Num>{V.slope25Site.value}</Num>
                 </td>
               </tr>
               <tr>
-                <th scope="row">The one no-go point the rover crossed</th>
+                <th scope="row">30°</th>
                 <td>
-                  Skinner Ridge, <Num>{N.noGoPlace.value}</Num>: <Num>{N.noGoLength.value}</Num> of path where our slope
-                  is <Num>{N.noGoSlope.value}</Num>, just over the <Num>{MAX_SLOPE_DEG}°</Num> limit. ARES would send
-                  an astronaut around it.
+                  <Num>{V.slope30Path.value}</Num>
+                </td>
+                <td>
+                  <Num>{V.slope30Site.value}</Num>
                 </td>
               </tr>
             </tbody>
           </table>
 
-          <h3>A second check: machine learning</h3>
+          <h3>f. A second check: machine learning</h3>
           <p>
             We trained a model on 31 of Perseverance's real drives (<Num>{N.learnRouteLength.value}</Num>) to learn how
             NASA's drivers choose routes, then tested it on routes it had not seen (<Num>{N.learnRoutes.value}</Num>,
-            each held out in turn). It could not beat the ARES physics planner, whose routes are on average{" "}
+            by {V.folds.value} cross-validation in driving order, so the test routes are on ground the model did not
+            learn from). It could not beat the ARES physics planner, whose routes are on average{" "}
             <Num>{N.learnPhysics.value}</Num> from the drivers' routes, against <Num>{N.learnStraightLine.value}</Num>{" "}
-            for a straight line. The learned model chose the same route as the physics planner on{" "}
+            for a straight line: <Num>{V.closerThanStraight.value}</Num> closer. The learned model scored the same{" "}
+            <Num>{N.learnPhysics.value}</Num>, and chose the same route as the physics planner on{" "}
             <Num>{N.learnSameRoute.value}</Num>.
           </p>
           <p>
@@ -410,6 +516,34 @@ export function SciencePage() {
               (HiRISE).
             </figcaption>
           </figure>
+
+          <h3>g. Limits of this validation</h3>
+          <ul>
+            <li>
+              <strong>A rover is not an astronaut.</strong> Wheels and legs fail on different ground, and a rover does
+              not tire or run out of oxygen. This checks the map, not walking speeds or oxygen use.
+            </li>
+            <li>
+              <strong>The path is biased toward safe ground.</strong> Rover drivers pick gentle routes on purpose,
+              using the same orbital imagery, so a hazard check is one they are likely to pass.
+            </li>
+            <li>
+              <strong>It tests one direction only.</strong> It shows we do not block good ground. It cannot show that
+              all the ground we call passable really is.
+            </li>
+            <li>
+              <strong>It covers only where the rover went:</strong> the crater floor near the landing site, the delta
+              front and one route up the delta. The south and east of the site are untested.
+            </li>
+            <li>
+              <strong>It says nothing about</strong> our roughness limit, our soft-sand threshold, walking speeds or
+              oxygen use. Those remain assumptions.
+            </li>
+            <li>
+              <strong>One site, on a 25 m grid.</strong> Anything smaller than a cell is averaged into it, and no other
+              site has been checked.
+            </li>
+          </ul>
         </section>
 
         <section id={uncertainty.id}>

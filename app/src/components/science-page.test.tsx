@@ -24,7 +24,7 @@ describe("SciencePage", () => {
       "Why Jezero",
       "The data",
       "How ARES picks a route",
-      "Does it match reality?",
+      "How we validated ARES",
       "Uncertainty",
       "Emergencies",
       "How sure are we",
@@ -63,7 +63,7 @@ describe("SciencePage", () => {
     const start = html.indexOf('<section id="science-reality">');
     const section4 = html.slice(start, html.indexOf("</section>", start));
     const t = section4.replace(/<[^>]*>/g, " ").replace(/&#x27;/g, "'").replace(/\s+/g, " ");
-    expect(section4).toContain("<h3>A second check: machine learning</h3>");
+    expect(section4).toContain("<h3>f. A second check: machine learning</h3>");
     expect(t).toContain("31 of Perseverance's real drives");
     expect(t).toMatch(/could not beat the ARES physics planner/);
     expect(t).toMatch(/planner stays deterministic/);
@@ -285,5 +285,91 @@ describe("dataset metadata table (section 2, mirrored in README.md)", async () =
     }
     expect(readme).toContain(COARSE_LAYER_NOTE);
     expect(readme).not.toMatch(/[\u2014\u2013]/);
+  });
+});
+
+describe("section 4: the validation report", async () => {
+  const { VALIDATION_NUMBERS } = await import("../lib/validationNumbers");
+  const file = (path: string) => readFileSync(repoFile(path), "utf8").replace(/\r\n/g, "\n");
+  const docs = { demo: file("docs/demo-numbers.md"), validation: file("docs/validation.md"), learning: file("docs/route-learning.md") };
+  const start = html.indexOf('<section id="science-reality">');
+  const section4 = html.slice(start, html.indexOf("</section>", start));
+  const t4 = section4.replace(/<[^>]*>/g, " ").replace(/&#x27;/g, "'").replace(/&quot;/g, '"').replace(/&amp;/g, "&").replace(/\s+/g, " ");
+
+  it("is titled 'How we validated ARES' and answers the seven questions in order", () => {
+    expect(section4).toContain('<h2 tabindex="-1">4. How we validated ARES</h2>');
+    const questions = [...section4.matchAll(/<h3>([a-g])\. ([^<]*)<\/h3>/g)].map((m) => `${m[1]}. ${m[2]}`);
+    expect(questions).toEqual([
+      "a. What did we compare against?",
+      "b. What does 99.8% passable mean?",
+      "c. What does r = 0.82 measure?",
+      "d. The one failure",
+      "e. Sensitivity: does the answer depend on our limits?",
+      "f. A second check: machine learning",
+      "g. Limits of this validation",
+    ]);
+    // Each answer is short: two to four sentences of text under its heading (lists and tables aside).
+    const parts = section4.split(/<h3>[a-g]\. [^<]*<\/h3>/).slice(1, 7); // a to f; g is a list
+    for (const part of parts) {
+      const prose = [...part.matchAll(/<p>([\s\S]*?)<\/p>/g)].map((m) => m[1].replace(/<[^>]*>/g, " ")).join(" ");
+      const sentences = prose.split(/(?<=[.:?])\s+(?=[A-Z])/).filter((x) => x.trim().length > 0);
+      expect(sentences.length, prose.slice(0, 60)).toBeGreaterThanOrEqual(2);
+      expect(sentences.length, prose.slice(0, 60)).toBeLessThanOrEqual(8);
+    }
+  });
+
+  it("is marked in the 'On this page' list", () => {
+    expect(html).toMatch(/<a href="#science" data-section="science-reality" class="is-key">How we validated ARES<\/a>/);
+    expect(html.match(/class="[^"]*is-key/g)).toHaveLength(1);
+    const css = file("app/src/components/science-page.css");
+    expect(css).toMatch(/\.science-page__toc a\.is-key \{[^}]*border-left: 2px solid var\(--safe\);/);
+  });
+
+  it.each(Object.entries(VALIDATION_NUMBERS))("%s is quoted from its document and shown in section 4", (_name, n) => {
+    expect(file(n.source)).toContain(n.quote); // the document still says this
+    expect(n.quote).toContain(n.value.replace(/ m$| to \d+$/, "").replace("5-fold", "5-fold")); // and the value is in the quote
+    expect(t4.replace(/<[^>]*>/g, "")).toContain(n.value);
+  });
+
+  it("every number in section 4 is in docs/demo-numbers.md, docs/validation.md or docs/route-learning.md", () => {
+    const all = `${docs.demo}\n${docs.validation}\n${docs.learning}`;
+    // Numbers as written: 20.57, 99.80%, 20,570, 18.4588, 0.8 and so on. File names and the heading number are not data.
+    const body = t4.replace(/docs\/[a-z-]+\.md/g, " ").replace(/^\s*4\. How we validated ARES/, " ");
+    const numbers = [...new Set(body.match(/\d[\d,]*(?:\.\d+)?/g) ?? [])].map((n) => n.replace(/,$/, ""));
+    expect(numbers.length).toBeGreaterThan(30);
+    const missing = numbers.filter((n) => !new RegExp(`(?<![\d.])${n.replace(/[.,]/g, "\$&")}(?![\d])`).test(all));
+    expect(missing).toEqual([]);
+    // The headline four, spelled out: these are the frozen values.
+    for (const value of ["20.57 km", "99.8%", "98.6%", "r = 0.82", "313 waypoints", "41.7 m", "25.8°", "35.3 m", "24.8 m", "15.38 km"]) expect(t4).toContain(value);
+  });
+
+  it("says what each number does and does not show", () => {
+    expect(t4).toMatch(/none of it was used to build the terrain layers/);
+    expect(t4).toMatch(/even a random path would score in the high nineties/);
+    expect(t4).toMatch(/does not show that everything we call passable really is/);
+    expect(t4).toMatch(/Correlation does not mean the two values are equal/);
+    expect(t4).toMatch(/says nothing about ground the rover never visited/);
+    expect(t4).toMatch(/ARES would send an astronaut around it/);
+    expect(t4).toMatch(/cannot tell us whether our roughness limit is right/);
+    expect(t4).toMatch(/A rover is not an astronaut/);
+    expect(t4).not.toMatch(/ML-powered|machine learning (picks|chooses) the route/i);
+  });
+
+  it("has the four pictures: the two new charts are real files drawn by the pipeline script, at most 300 KB, with a NASA/JPL-Caltech credit", () => {
+    const images = [...section4.matchAll(/<img src="\/images\/([^"]+)"/g)].map((m) => m[1]);
+    expect(images).toEqual(["validation_traverse.jpg", "validation_path_vs_site.png", "validation_slope_vs_tilt.png", "route_learning.jpg"]);
+    const script = file("pipeline/make_validation_charts.py");
+    for (const chart of ["validation_path_vs_site.png", "validation_slope_vs_tilt.png"]) {
+      const bytes = readFileSync(repoFile(`app/public/images/${chart}`));
+      expect(bytes.subarray(1, 4).toString()).toBe("PNG");
+      expect(bytes.length).toBeLessThanOrEqual(300_000);
+      expect(script).toContain(chart);
+    }
+    expect(section4.match(/<img[^>]*loading="lazy"/g)).toHaveLength(4);
+    expect(section4.match(/<figcaption>[\s\S]*?NASA\/JPL-Caltech[\s\S]*?<\/figcaption>/g)).toHaveLength(4);
+    // The scatter plot's points are computed the way validate_traverse.py does, and the page says so.
+    expect(script).toContain("rover-waypoints-sample.json");
+    expect(script).toContain('recorded["tilt_vs_our_slope_correlation"]');
+    expect(t4).toMatch(/summary file stores only the correlation, so the dots are computed the same way the validation script does it/);
   });
 });

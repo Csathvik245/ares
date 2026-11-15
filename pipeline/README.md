@@ -49,6 +49,7 @@ Delete a file in `data/raw/` to fetch it again.
 | `build_basemap.py` | Crops and shrinks the HiRISE orthomosaic to our bounds | `app/public/data/basemap.png` + `basemap.json` |
 | `validate_traverse.py` | Independent check: compares the terrain with Perseverance's real drive path (NASA traverse and waypoints files) | `docs/images/validation_traverse.png`, `pipeline/data/traverse_validation.json`, test sample. Results in `docs/validation.md` |
 | `learn_route_cost.py` | Validation with machine learning: learns a terrain cost from the routes Perseverance's drivers chose (maximum margin planning) and tests, on held-out routes, whether it picks routes closer to the experts' than the ARES physics model. The app does not use it | `pipeline/data/route_learning.json`, `docs/images/route_learning.png`. Results in `docs/route-learning.md` |
+| `make_validation_charts.py` | Draws the two validation charts on the Science page from real data: our slope against the rover's measured tilt at each waypoint, and the ground under the rover's path against the whole site | `app/public/images/validation_slope_vs_tilt.png`, `validation_path_vs_site.png` |
 | `check_site.py` | Checks a site file against Contract 1 and checks the terrain is walkable | Pass/fail list; exit code 0 = all pass |
 | `preview_site.py` | Draws each layer as a PNG with HAB-1 and the POIs marked, plus a no-go map | `pipeline/previews/*.png` or a folder you name |
 | `data/site_meta.json` | Habitat and POIs, each with the source of its coordinates (hand-edited) | read by `build_site.py` |

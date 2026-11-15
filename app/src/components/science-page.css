@@ -259,3 +259,23 @@
     overflow-wrap: anywhere;
   }
 }
+
+/* ---------- Validation report (section 4) ---------- */
+/* Its entry in the contents list stands out: brighter text and a small accent bar. */
+.science-page__toc a.is-key {
+  color: var(--text);
+  font-weight: 600;
+  padding-left: var(--space-2);
+  margin-left: calc(-1 * var(--space-2) - 2px);
+  border-left: 2px solid var(--safe);
+}
+.science-page__toc a.is-key.is-current {
+  color: var(--safe);
+}
+.science-page section ul {
+  margin: 0 0 var(--space-4);
+  padding-left: var(--space-5);
+}
+.science-page section li {
+  margin-bottom: var(--space-2);
+}
