@@ -178,6 +178,9 @@ const CASES: Record<string, [string, () => unknown]> = {
   learnedCostRatio: ["all 76,800 cells", () => planner.learnedCostRatio(site, routeModel)],
   buildLearnedCostGrid: ["all 76,800 cells", () => planner.buildLearnedCostGrid(site, routeModel, CALM)],
   compareRoutes: ["fastest vs learned demo mission", () => planner.compareRoutes(site, routeModel, plan, learnedPlan)],
+  isWhatIf: ["three overrides", () => planner.isWhatIf({ consumableHours: 6, speedFactor: 0.8, reserveMin: 60 })],
+  resolveWhatIf: ["three overrides", () => planner.resolveWhatIf({ consumableHours: 6, speedFactor: 0.8, reserveMin: 60 })],
+  whatIfGrid: ["new grid + 20% slower grid (cache miss)", () => planner.whatIfGrid(buildCostGrid(site, CALM), { speedFactor: 0.8 })],
   buildShortestPathGrid: ["new grid + distance-only grid (cache miss)", () => planner.buildShortestPathGrid(buildCostGrid(site, CALM))],
 };
 

@@ -20,6 +20,10 @@ import {
   type Conditions,
   type LatLng,
   SOL_HOURS,
+  WHAT_IF_DEFAULTS,
+  isWhatIf,
+  whatIfGrid,
+  type WhatIf,
 } from "./planner";
 import {
   optionalJson,
@@ -107,12 +111,27 @@ function useMissionState() {
         : null,
     [site, conditions.startLmst],
   );
+  // "What if?" sliders: a different suit oxygen supply, walking speed or reserve. `whatIfDraft`
+  // follows the hand at once; `whatIf` (what the plan uses) follows about 150 ms later, so
+  // dragging a slider does not re-plan on every pixel.
+  const [whatIfDraft, setWhatIfDraft] = useState<Required<WhatIf>>({ ...WHAT_IF_DEFAULTS });
+  const [whatIf, setWhatIf] = useState<Required<WhatIf>>({ ...WHAT_IF_DEFAULTS });
+  useEffect(() => {
+    const timer = setTimeout(() => setWhatIf(whatIfDraft), 150);
+    return () => clearTimeout(timer);
+  }, [whatIfDraft]);
+  const whatIfOn = isWhatIf(whatIf);
+  const resetWhatIf = () => {
+    setWhatIfDraft({ ...WHAT_IF_DEFAULTS });
+    setWhatIf({ ...WHAT_IF_DEFAULTS });
+  };
   const plan = useMemo(
     () =>
       site && normalCost
-        ? planRoute(site, normalCost, site.habitat, stops)
+        // With every slider at its default no option is passed at all: the plan is exactly the standard one.
+        ? planRoute(site, normalCost, site.habitat, stops, whatIfOn ? { whatIf } : {})
         : null,
-    [site, normalCost, stops],
+    [site, normalCost, stops, whatIf, whatIfOn],
   );
   // "Compare: terrain-blind route" (off by default). The same stops by a route chosen by distance alone,
   // timed with the real walking model. Only worked out while the toggle is on and the plan is calm.
@@ -120,9 +139,9 @@ function useMissionState() {
   const shortestPlan = useMemo(
     () =>
       compareShortest && site && normalCost && plan && plan.legs.length > 0 && !emergency
-        ? planRoute(site, normalCost, site.habitat, stops, { shortestPath: true })
+        ? planRoute(site, normalCost, site.habitat, stops, whatIfOn ? { shortestPath: true, whatIf } : { shortestPath: true })
         : null,
-    [compareShortest, site, normalCost, plan, stops, emergency],
+    [compareShortest, site, normalCost, plan, stops, emergency, whatIf, whatIfOn],
   );
   // The calm plan remains the immutable playback route; stormAt supplies all
   // emergency statuses, reasons, return geometry and oxygen guidance.
@@ -141,13 +160,14 @@ function useMissionState() {
   const zone = useMemo(
     () =>
       site && cost && plan && !emergency
-        ? safeZone(site, cost, plan)
+        // The same grid the plan was made on (a what-if walking speed changes it).
+        ? safeZone(site, whatIfGrid(cost, whatIf), plan)
         : new Uint8Array(0),
-    [site, cost, plan, emergency],
+    [site, cost, plan, emergency, whatIf],
   );
   const home = useMemo(
-    () => (site && cost ? homeField(site, cost) : null),
-    [site, cost],
+    () => (site && cost ? homeField(site, emergency ? cost : whatIfGrid(cost, whatIf)) : null),
+    [site, cost, emergency, whatIf],
   );
   // The course to draw and play back: the walk home for a storm, SPE or aborted EVA;
   // the re-planned route for oxygen loss, slower walking or a blocked path.
@@ -259,13 +279,18 @@ function useMissionState() {
     ]);
     setSelected(id);
   };
-  const trigger = (kind: UiEmergencyKind, at = elapsed, incidentPlan = plan) => {
+  const trigger = (kind: UiEmergencyKind, at = elapsed, givenPlan = plan) => {
+    // Emergencies always run on the planner's own values. If the What if? sliders are in
+    // use they are put back first, and the emergency interrupts the standard plan.
+    const ownPlan = givenPlan === plan;
+    const incidentPlan = ownPlan && whatIfOn && site && normalCost ? planRoute(site, normalCost, site.habitat, stops) : givenPlan;
+    if (whatIfOn) resetWhatIf();
     const incidentAt = incidentPlan ? Math.max(0, Math.min(incidentPlan.totalSec, at)) : 0;
     if (!site || !incidentPlan) return null;
     const outcome = runEmergency(site, incidentPlan, incidentAt, kind, {
       startLmst: conditions.startLmst,
       skyView,
-      stops: incidentPlan === plan ? stops : undefined,
+      stops: ownPlan ? stops : undefined,
     });
     setElapsed(incidentAt);
     setPlaying(false);
@@ -305,6 +330,11 @@ function useMissionState() {
     stops,
     demo,
     loadDemo,
+    whatIf,
+    whatIfDraft,
+    whatIfOn,
+    setWhatIfDraft: (patch: WhatIf) => setWhatIfDraft((now) => ({ ...now, ...patch })),
+    resetWhatIf,
     compareShortest,
     setCompareShortest,
     shortestPlan,

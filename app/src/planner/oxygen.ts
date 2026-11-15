@@ -14,9 +14,13 @@ export type OxygenBudget = {
   usableSec: number;
 };
 
-export function oxygenBudget(storm: boolean): OxygenBudget {
-  const budgetSec = CONSUMABLE_HOURS * 3600;
-  const reserveSec = (RESERVE_MIN + (storm ? STORM_EXTRA_RESERVE_MIN : 0)) * 60;
+/**
+ * The oxygen budget. `overrides` is for "What if?" planning (whatif.ts): a different suit
+ * supply or reserve. Leave it out (or leave a value out) for the planner's own constants.
+ */
+export function oxygenBudget(storm: boolean, overrides: { consumableHours?: number; reserveMin?: number } = {}): OxygenBudget {
+  const budgetSec = (overrides.consumableHours ?? CONSUMABLE_HOURS) * 3600;
+  const reserveSec = ((overrides.reserveMin ?? RESERVE_MIN) + (storm ? STORM_EXTRA_RESERVE_MIN : 0)) * 60;
   return { budgetSec, reserveSec, usableSec: budgetSec - reserveSec };
 }
 

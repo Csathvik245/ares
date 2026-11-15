@@ -33,6 +33,7 @@ import { SCIENCE_NUMBERS as N } from "../lib/scienceNumbers";
 import { VALIDATION_NUMBERS as V } from "../lib/validationNumbers";
 import { COARSE_LAYER_NOTE, DATASETS, DATASET_COLUMNS, NOT_RECORDED } from "../lib/datasetMetadata";
 import { EvidenceTag } from "./EvidenceTag";
+import { WHAT_IF_INVITE } from "./WhatIfPanel";
 import "./science-page.css";
 
 /** A number or code-like value, set in the mono font. */
@@ -683,6 +684,7 @@ export function SciencePage() {
             about the human body and the suit, such as walking speed, oxygen use and the reserve, are{" "}
             <strong>ASSUMED</strong>: they are our reasoned estimates, not measurements from astronauts or suit tests.
           </p>
+          <p>In the Plan tab, under More details: {WHAT_IF_INVITE}</p>
           <table className="science-page__wide">
             <thead>
               <tr>

@@ -7,6 +7,8 @@ export { dijkstraField, aStar, pathTo, pathLengthM, pathTimeSec } from "./search
 export { planRoute } from "./plan";
 export type { PlanOptions } from "./plan";
 export { buildShortestPathGrid } from "./shortest";
+export { WHAT_IF_DEFAULTS, isWhatIf, resolveWhatIf, whatIfGrid } from "./whatif";
+export type { WhatIf } from "./whatif";
 export {
   ROUTE_FEATURES,
   STEEP_DEG,

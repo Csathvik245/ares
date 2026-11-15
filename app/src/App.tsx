@@ -39,6 +39,8 @@ import { demoBriefing } from "./lib/story";
 import { GuideButton, UserGuide } from "./components/UserGuide";
 import { PLAY_HINT_TEXT, hintNeeded, rememberHint, type GuideAction, type TourStop } from "./lib/guide";
 import { GuideTour } from "./components/GuideTour";
+import { WhatIfPanel, WhatIfTag } from "./components/WhatIfPanel";
+import { isWhatIf } from "./lib/planner";
 const EMPTY_PATH: LatLng[] = [];
 function Console({ initialHash }: { initialHash?: string }) {
   const m = useMission();
@@ -510,6 +512,7 @@ function Console({ initialHash }: { initialHash?: string }) {
               EVA · {status}
             </span>
           )}
+          {m.whatIfOn && !emergency && !noPlan && <WhatIfTag />}
           {!noPlan && <Jargon term={emergency ? "status" : "EVA"} />}
           {guideButton}
           <button type="button" className="app-run-demo" onClick={() => runDemo(go)}>
@@ -564,6 +567,13 @@ function Console({ initialHash }: { initialHash?: string }) {
                       />
                       <span>Compare: terrain-blind route</span>
                     </label>
+                    <WhatIfPanel
+                      values={m.whatIfDraft}
+                      active={isWhatIf(m.whatIfDraft)}
+                      disabled={!!emergency || plan.legs.length === 0}
+                      onChange={m.setWhatIfDraft}
+                      onReset={m.resetWhatIf}
+                    />
                     <MissionPanel part="reliability" onDetail={setDetail} />
                     <LayerRail
                       part="layers"

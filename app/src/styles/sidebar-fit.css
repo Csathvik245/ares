@@ -289,3 +289,93 @@ html[data-theme] .console-app .compare-line b {
     min-height: var(--touch-target);
   }
 }
+
+/* ---------- What if? sliders (inside More details) ---------- */
+html[data-theme] .console-app .whatif {
+  display: grid;
+  gap: 6px;
+  padding: 10px 0 12px;
+  border-top: 1px solid var(--hairline);
+  border-bottom: 1px solid var(--hairline);
+}
+html[data-theme] .console-app .whatif__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  color: var(--text);
+  font: 400 13px/20px var(--font-body);
+}
+html[data-theme] .console-app .whatif__reset {
+  min-height: 20px;
+  padding: 0;
+  color: var(--text);
+  font: 400 11px/16px var(--font-mono);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+html[data-theme] .console-app .whatif__reset:disabled {
+  color: var(--muted);
+  text-decoration: none;
+}
+/* One slider: name, slider, value on a line; the default under the value. */
+html[data-theme] .console-app .whatif__row {
+  display: grid;
+  grid-template-columns: 92px minmax(0, 1fr) 64px;
+  column-gap: 10px;
+  align-items: center;
+  color: var(--muted);
+  font: 400 12px/16px var(--font-body);
+}
+html[data-theme] .console-app .whatif__row input[type="range"] {
+  width: 100%;
+  min-width: 0;
+  margin: 0;
+  accent-color: var(--safe);
+}
+html[data-theme] .console-app .whatif__value {
+  color: var(--text);
+  font: 500 12px/16px var(--font-mono);
+  text-align: right;
+  white-space: nowrap;
+}
+html[data-theme] .console-app .whatif__default {
+  grid-column: 2 / -1;
+  color: var(--muted);
+  font: 400 10px/14px var(--font-mono);
+  text-align: right;
+}
+/* A slider that is off its default is marked in amber, like the tag by the status. */
+html[data-theme] .console-app .whatif__row.is-changed .whatif__label,
+html[data-theme] .console-app .whatif__row.is-changed .whatif__value {
+  color: var(--caution);
+}
+html[data-theme] .console-app .whatif__note,
+html[data-theme] .console-app .whatif-off-note {
+  margin: 2px 0 0;
+  color: var(--muted);
+  font: 400 11px/16px var(--font-body);
+}
+html[data-theme] .console-app .whatif-off-note {
+  padding: 10px 0;
+}
+/* "What-if values": the small amber tag beside the status, so nobody takes it for the real plan. */
+.whatif-tag {
+  display: inline-flex;
+  align-items: center;
+  flex: none;
+  padding: 2px 8px;
+  border: 1px solid var(--caution);
+  color: var(--caution);
+  font: 600 10px/16px var(--font-mono);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+@media (max-width: 1024px) {
+  html[data-theme] .console-app .whatif__row input[type="range"] {
+    min-height: var(--touch-target);
+  }
+  html[data-theme] .console-app .whatif__reset {
+    min-height: var(--touch-target);
+  }
+}

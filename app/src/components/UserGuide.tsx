@@ -24,6 +24,7 @@ import {
 import type { Site, Stop } from "../planner";
 import { EvidenceTag } from "./EvidenceTag";
 import { OxygenBar, oxygenBarWidths, type OxygenBarProps } from "./OxygenBar";
+import { WHAT_IF_INVITE } from "./WhatIfPanel";
 import "../styles/user-guide.css";
 
 /**
@@ -170,6 +171,7 @@ export function ReadScreenPanel({ onStartTour }: { onStartTour: () => void }) {
         <button type="button" className="guide-primary" onClick={onStartTour}>
           Start the tour
         </button>
+        <p className="guide-note">{WHAT_IF_INVITE}</p>
       </div>
       <ol className="guide-strip" aria-label="The stops of the tour">
         {TOUR_STOPS.map((stop, i) => (

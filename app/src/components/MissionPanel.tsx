@@ -22,6 +22,7 @@ import { scienceScore, suggestStops } from "../planner/science";
 import { EVIDENCE_LABELS } from "../lib/evidenceLabels";
 import { ReliabilityPanel } from "./ReliabilityPanel";
 import { OxygenBar } from "./OxygenBar";
+import { WhatIfTag } from "./WhatIfPanel";
 import { reliabilityOf, simulatedRangeNote } from "../lib/reliability";
 import { Jargon } from "./PlanChrome";
 import { SCENARIO_BUTTONS, type UiEmergencyKind } from "../lib/emergency-run";
@@ -70,7 +71,8 @@ export function MissionPanel({
     display = m.emergency ? m.returnPlan : plan;
   // No stops and no emergency: there is nothing to judge yet, so no GO, no oxygen, no stats.
   const hasRoute = plan.legs.length > 0 || !!m.emergency;
-  const budget = oxygenBudget(m.conditions.storm);
+  // The What if? sliders can change the suit supply and the reserve; the bar and its labels follow.
+  const budget = oxygenBudget(m.conditions.storm, m.whatIfOn ? m.whatIf : undefined);
   const used = (display?.oxygenUsedSec ?? 0) + (m.emergencyOutcome?.position.oxygenUsedSec ?? 0),
     margin = m.abort?.marginSec ?? plan.marginSec;
   const reserve = Math.min(
@@ -147,6 +149,7 @@ export function MissionPanel({
           <>
             <div className="status-line">
               <strong className={`large-status ink-${status}`}>{status}</strong>
+              {m.whatIfOn && !m.emergency && <WhatIfTag />}
               <span className="status-descriptor">{descriptor}</span>
             </div>
             <p className="status-reason" title={reasons.join(" · ")}>
@@ -181,7 +184,7 @@ export function MissionPanel({
   // The simulated spread of the oxygen estimate: the same Monte Carlo result the Mission
   // reliability panel shows (same plan, default seed and trials), not a second simulation.
   // Only for a calm plan: in an emergency the number above it is the walk home's, not the plan's.
-  const sim = hasRoute && !m.emergency ? reliabilityOf(m.site!, plan, { startLmst: m.conditions.startLmst }) : null;
+  const sim = hasRoute && !m.emergency && !m.whatIfOn ? reliabilityOf(m.site!, plan, { startLmst: m.conditions.startLmst }) : null;
   const simRange = sim && sim.trials > 0 && Number.isFinite(sim.oxygenAtReturnPct.p5) && Number.isFinite(sim.oxygenAtReturnPct.p95) ? sim : null;
   const budgetSection = !hasRoute ? null : (
       <section className="oxygen-panel budget-section" data-tour="oxygen">
@@ -282,7 +285,8 @@ export function MissionPanel({
             Load demo
           </button>
           <button
-            disabled={!!m.emergency || status !== "GO"}
+            disabled={!!m.emergency || status !== "GO" || m.whatIfOn}
+            title={m.whatIfOn ? "Suggestions use the planner's own values. Reset the What if? sliders to use them." : undefined}
             onClick={() => setIdeas(suggestStops(m.site!, m.site!.habitat, m.stops, 3, { startLmst: m.conditions.startLmst, cost: m.cost! }))}
           >
             Suggest stops
@@ -414,13 +418,16 @@ export function MissionPanel({
 
   // ---- Emergency simulation: one menu, one time, one button ----
   const running = !!m.emergency;
-  const canTrigger = !running && plan.legs.length > 0;
+  // Emergencies run on the planner's own values, so they wait while What if? values are set.
+  const canTrigger = !running && plan.legs.length > 0 && !m.whatIfOn;
   // While nothing is typed, the field shows the playback time and the trigger uses it as is.
   const timeText = running ? formatDuration(m.emergency!.at) : (typedTime ?? formatDuration(m.elapsed));
   const typedSec = typedTime === null ? NaN : parseElapsed(typedTime);
   const timeOk = typedTime === null || Number.isFinite(typedSec);
   const emergencyHint = running
     ? "An emergency is running. Reset it to try another."
+    : m.whatIfOn
+      ? "Emergencies use the planner's own values. Reset the What if? sliders to run one."
     : !plan.legs.length
       ? "Add a route first: an emergency needs a walk to interrupt."
       : !timeOk
@@ -494,12 +501,12 @@ export function MissionPanel({
         <div className="emergency-demos">
           <button
             className="text-button storm-preset"
-            disabled={running || !plan.ok || plan.totalSec < DEMO_STORM_SEC}
+            disabled={running || !plan.ok || plan.totalSec < DEMO_STORM_SEC || m.whatIfOn}
             onClick={() => m.trigger("storm", DEMO_STORM_SEC)}
           >
             Demo: storm at T+1:16
           </button>
-          <button className="text-button" disabled={!m.wildcat || running} onClick={m.loadWildcatSpe}>
+          <button className="text-button" disabled={!m.wildcat || running || m.whatIfOn} onClick={m.loadWildcatSpe}>
             Demo: SPE at Wildcat Ridge
           </button>
           <Jargon term="SPE" />
@@ -507,7 +514,15 @@ export function MissionPanel({
       </footer>
   );
 
-  const reliability = !m.emergency && hasRoute ? <ReliabilityPanel site={m.site!} plan={plan} startLmst={m.conditions.startLmst} /> : null;
+  // The Monte Carlo run varies the planner's own values, so it is off while What if? values are set.
+  const reliability =
+    !m.emergency && hasRoute ? (
+      m.whatIfOn ? (
+        <p className="whatif-off-note">Mission reliability is off while What-if values are set. Reset the sliders to see it.</p>
+      ) : (
+        <ReliabilityPanel site={m.site!} plan={plan} startLmst={m.conditions.startLmst} />
+      )
+    ) : null;
 
   if (part === "status") return statusSection;
   if (part === "stops") return stopsSection;

@@ -3,6 +3,7 @@ import { SUN_CAUTION_DEG, lowSunDuring } from "./env";
 import { isLowMargin, oxygenBudget } from "./oxygen";
 import { groundProblem } from "./cost";
 import { buildShortestPathGrid } from "./shortest";
+import { resolveWhatIf, whatIfGrid, type WhatIf } from "./whatif";
 import { smoothPath } from "./geom";
 import { aStar, pathLengthM, pathTimeSec, pathTo } from "./search";
 import { cellIndexOf } from "./site";
@@ -25,6 +26,14 @@ export type PlanOptions = {
    * that path. Ignored when `routeGrid` is given. Leaving it out changes nothing.
    */
   shortestPath?: boolean;
+  /**
+   * "What if?" overrides (off by default): plan with a different suit oxygen supply,
+   * walking speed or reserve (whatif.ts). Leaving it out, or leaving a value out, uses the
+   * planner's constants, and the result is exactly what it was before this option existed.
+   * With a speed override the plan is made on whatIfGrid(cost, whatIf): pass that same grid
+   * to safeZone.
+   */
+  whatIf?: WhatIf;
   /**
    * Re-planning in the middle of an EVA (used by emergencies.ts). All optional;
    * leaving them out gives exactly the normal habitat → stops → habitat plan.
@@ -80,6 +89,9 @@ const degrees = (deg: number) => `${deg < 0 ? "−" : ""}${Math.abs(deg).toFixed
  *
  * options.shortestPath (additive, optional, off by default): choose each leg's path by
  * distance alone (buildShortestPathGrid), then time it on `cost` the same way.
+ *
+ * options.whatIf (additive, optional, off by default): a different suit oxygen supply,
+ * walking speed or reserve (whatif.ts). No overrides means no change at all.
  */
 export function planRoute(
   site: Site,
@@ -88,6 +100,10 @@ export function planRoute(
   stops: Stop[],
   options: PlanOptions = {},
 ): Plan {
+  // "What if?": a different walking speed is the same grid with every cell that much faster or slower.
+  // With no override (or at the default speed) this is `cost` itself, untouched.
+  const whatIf = options.whatIf ? resolveWhatIf(options.whatIf) : undefined;
+  cost = whatIfGrid(cost, whatIf);
   const routeGrid = options.routeGrid ?? (options.shortestPath ? buildShortestPathGrid(cost) : cost);
   if (routeGrid.width !== cost.width || routeGrid.height !== cost.height) {
     throw new RangeError("planRoute: routeGrid must be the same size as cost");
@@ -167,7 +183,7 @@ export function planRoute(
   }
 
   // Oxygen budget (Contract 2).
-  const budget = oxygenBudget(storm);
+  const budget = oxygenBudget(storm, whatIf);
   const { budgetSec, reserveSec, usableSec } = budget;
   const oxygenUsedSec = usedBefore + walkSec * WALK_BURN + workSec * WORK_BURN;
   const marginSec = usableSec - oxygenUsedSec;

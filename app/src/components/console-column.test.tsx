@@ -287,7 +287,7 @@ describe("oxygen section: the simulated range under the estimate", () => {
   it("is hidden with no plan, and during an emergency", () => {
     expect(panel([], "all")).not.toContain("oxygen-range");
     const source = readFileSync(new URL("./MissionPanel.tsx", import.meta.url), "utf8");
-    expect(source).toContain("const sim = hasRoute && !m.emergency ?");
+    expect(source).toContain("const sim = hasRoute && !m.emergency && !m.whatIfOn ?"); // and not while What if? values are set
   });
 });
 
@@ -298,7 +298,7 @@ describe("compare: terrain-blind route", () => {
     expect(panel(demoStops, "budget")).not.toContain("compare-line");
     const context = source("../lib/MissionContext.tsx");
     expect(context).toContain("const [compareShortest, setCompareShortest] = useState(false);");
-    expect(context).toContain("planRoute(site, normalCost, site.habitat, stops, { shortestPath: true })");
+    expect(context).toContain("planRoute(site, normalCost, site.habitat, stops, whatIfOn ? { shortestPath: true, whatIf } : { shortestPath: true })");
     expect(context).toMatch(/compareShortest && site && normalCost && plan && plan\.legs\.length > 0 && !emergency/); // calm plans only
   });
 
