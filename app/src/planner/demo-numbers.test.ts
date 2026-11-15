@@ -29,6 +29,7 @@ import {
   stormAt,
 } from "./index";
 import type { Conditions, Plan, Stop } from "./index";
+import { PARAMS, simulateMission } from "./montecarlo";
 
 const file = (relative: string) => fileURLToPath(new URL(relative, import.meta.url));
 const readJson = (relative: string) => JSON.parse(readFileSync(file(relative), "utf8"));
@@ -96,6 +97,35 @@ function shelterBlock(plan: Plan, tSec: number): string {
     "Shelter notes, as the app shows them:",
     "",
     list(s.reasons),
+  ].join("\n");
+}
+
+function monteCarloBlock(): string {
+  const r = simulateMission(site, demo, { seed: 42, startLmst: START_LMST });
+  const min = (m: number) => formatMinutes(m * 60);
+  const three = (v: { p5: number; p50: number; p95: number }, f: (x: number) => string) => `${f(v.p5)} / ${f(v.p50)} / ${f(v.p95)}`;
+  const range = (p: (typeof PARAMS)[number]) => `${roundHalfUp(p.low, 3)} to ${roundHalfUp(p.high, 3)} (planned ${roundHalfUp(p.nominal, 3)})`;
+  return [
+    `> ${r.disclaimer}`,
+    "",
+    `${r.trials} trials, seed ${r.seed}. The route is fixed; walking speed, terrain, oxygen use and time at each stop are varied.`,
+    "",
+    "| | |",
+    "|---|---|",
+    `| Home with the oxygen reserve intact | ${pct1(r.pReturnWithReserve * 100)} (${r.successCount} of ${r.trials} trials) |`,
+    `| Home at all (before the oxygen runs out) | ${pct1(r.pReturnAtAll * 100)} |`,
+    `| Oxygen margin, low / middle / high (5th / 50th / 95th percentile) | ${three(r.marginMin, min)} |`,
+    `| Oxygen at return, low / middle / high | ${three(r.oxygenAtReturnPct, formatPct)} |`,
+    `| Total time, low / middle / high | ${three(r.durationMin, (m) => formatDuration(m * 60))} |`,
+    "",
+    "What moves the margin most (one input at a time, the others as planned):",
+    "",
+    "| Input | Range (all assumed) | Margin at low value | Margin at high value | Swing |",
+    "|---|---|---|---|---|",
+    ...r.sensitivity.map((s) => {
+      const p = PARAMS.find((x) => x.name === s.param)!;
+      return `| ${s.label} | ${range(p)} ${p.unit} | ${min(s.lowMarginMin)} | ${min(s.highMarginMin)} | ${min(s.swingMin)} |`;
+    }),
   ].join("\n");
 }
 
@@ -167,6 +197,10 @@ between the planned route and the rover's real route on ${evaluation.routes} hel
 | Learned model (with the safety rule) | ${meters1(evaluation.learned_safe.mean_dev_m.mean)} |
 
 The learned model chose the same route as physics on ${vs.same} of ${evaluation.routes} routes (closer on ${vs.closer}, further on ${vs.further}).
+
+## 6. Monte Carlo reliability of the demo mission
+
+${monteCarloBlock()}
 `;
 }
 

@@ -120,6 +120,20 @@ If such a map is published later, compare it with the roughness layer first (`do
 | Shelter model (`shelter.ts`) | SPE dose at a spot = SPE dose rate × sky view × time; habitat = full shelter (0); event lasts 60 min; shelter offered only for a dose cut of 5% or more | In a solar particle event, whether waiting at a shielded spot beats walking home | **Simplified** (`SHELTER_MODEL_IS_SIMPLIFIED`). Assumes the SPE flux is roughly the same from every direction of the sky, so dose scales with visible sky. Ignores that the atmosphere shields low directions more than high ones (so hiding the low sky helps less than the model says), and ignores secondary particles from the ground and rock walls. The SPE size is illustrative (`SPE_IS_ILLUSTRATIVE`). **The 60 min event length is assumed** (real events last hours); the astronaut walks to the shelter and waits there for the rest of it. The 5% minimum and the oxygen rate while waiting (the planner's 0.9 work rate) are our choices. A shelter is offered only if there is oxygen to walk home afterwards with the reserve intact. Sky view is per 25 m cell from a 5 m DTM. **What it gives at Jezero:** on the demo mission it never beats walking home (home is at most about 50 min away). Across the site a shelter is offered only from places about an hour or more from the habitat, and the largest dose cut is about 14%. That depends directly on the 60 min assumption: for a longer event, walking home wins. | Assumption |
 
 
+### Monte Carlo simulator: the ranges we sample (`montecarlo.ts`)
+
+`simulateMission` replays a fixed plan 1,000 times with these inputs drawn at random (see `docs/how-it-works.md`, "Monte Carlo"). **Every range is our assumption.** No source in `docs/sources.md` supports a range, and none has been checked with astronauts or suit tests. The results are a model-based simulation of our own assumptions, not an empirical mission success probability.
+
+| Input | Planned value | Range sampled | Drawn | Shape | Why this range | Status |
+|---|---|---|---|---|---|---|
+| Walking speed | 1 × planned speed | 0.85 to 1.15 (±15%) | Once per EVA | Triangular, peak at planned | The astronaut is faster or slower than planned all day | Assumption |
+| Terrain | 1 × planned speed | 0.90 to 1.10 (±10%) | Once per leg | Triangular | The ground on a leg is easier or harder than the 25 m grid says | Assumption |
+| Oxygen use while walking (`WALK_BURN`) | 1.3 | 1.04 to 1.56 (±20%) | Once per EVA | Triangular | The planned value is itself an assumption | Assumption |
+| Oxygen use during science (`WORK_BURN`) | 0.9 | 0.72 to 1.08 (±20%) | Once per EVA | Triangular | The planned value is itself an assumption | Assumption |
+| Time at each stop | as planned | −5 to +5 min | Once per stop | Triangular | Sampling runs short or long | Assumption |
+
+Other choices: the route is fixed (no re-planning inside a trial); the inputs are drawn independently of each other; the reserve is the calm-weather 45 min; success means home with the reserve intact. The same table is in the code as `PARAMS`, each row marked `ASSUMED`.
+
 ### Shelter model: what it gives at five places
 
 `shelterRoute` run with its defaults on the real terrain, 14 November 2026 (see the "Shelter model" row above for the assumptions).

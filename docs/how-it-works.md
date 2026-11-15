@@ -193,6 +193,24 @@ Cliffs and crater walls hide part of the sky, and with it part of the radiation 
 
 **Status.** The check is in the planner and is tested. The console shows it once the frontend passes the sky-view layer to `stormAt` and draws the new fields.
 
+## Monte Carlo: how robust is the plan?
+
+The planner gives one answer for one set of numbers. But several of those numbers are our assumptions: how fast a suited astronaut walks, how much oxygen walking uses, how long a stop really takes. The Monte Carlo simulator (`app/src/planner/montecarlo.ts`, `simulateMission`) asks: **if those assumptions are a bit off, does the plan still get her home with the reserve?**
+
+**How it works.**
+
+1. The planned route is kept fixed. No new path search is run.
+2. One trial draws a random value for each uncertain input: walking speed and the two oxygen burn rates once for the whole EVA, the terrain factor once per leg, and the time at each stop once per stop.
+3. The plan's own timeline (walking time per leg, science time per stop) is replayed with those values, and the oxygen is added up with the same formula the planner uses (`oxygenUsedSec` in `oxygen.ts`).
+4. This is repeated 1,000 times. A trial is a success if she is home with at least the 45 min reserve left. We also count "home at all": home before the full 8 h supply runs out.
+5. The random numbers come from a small seeded generator (mulberry32), so the same seed always gives exactly the same result. The default seed is 42.
+
+**Sensitivity.** Each input is also set to its lowest and then its highest value on its own, with everything else as planned. The difference in oxygen margin (the "swing") shows which assumption matters most.
+
+**What it gives for the demo mission** (seed 42; numbers are in `docs/demo-numbers.md`, section 6): home with the reserve intact in all 1,000 trials, with the oxygen margin between about 160 and 221 minutes in 90% of trials (planned: 192). The biggest lever is the oxygen used while walking, then walking speed.
+
+**What it does not mean.** This is a model-based simulation of our own assumptions, not an empirical mission success probability. The ranges (for example ±15% speed, ±20% burn rates) are modest guesses listed in `docs/assumptions.md`; none comes from suit tests or astronauts. "1,000 of 1,000" says the demo plan has room to spare inside those ranges. It does not cover things the model leaves out: injury, equipment failure, getting lost, or a storm (that is what the emergency tools are for). The route is not re-planned inside a trial, and every trial uses the calm-weather reserve.
+
 ## Limits
 
 What ARES does not do, and where its numbers are weakest, is listed in `LIMITATIONS.md` (being written by the documentation lead). The short version: suit and oxygen numbers are assumptions, not test data; the rock layer is roughness, not boulders; the science layer is a relative index; one season and one site; and the validation checks only that we do not block good ground.

@@ -7,7 +7,7 @@ the real `site.json` and formatted with `format.ts`, so they match what the app 
 and route-learning numbers are read from the pipeline's output files. `npm test` fails if this
 file and the code stop agreeing.
 
-**Numbers taken from commit `d322e20`** (the planner and data at that commit).
+**Numbers taken from commit `054a2f9`** (the planner and data at that commit).
 
 <!-- numbers start -->
 ## 1. Demo mission
@@ -123,3 +123,27 @@ between the planned route and the rover's real route on 31 held-out routes; lowe
 | Learned model (with the safety rule) | 24.8 m |
 
 The learned model chose the same route as physics on 31 of 31 routes (closer on 0, further on 0).
+
+## 6. Monte Carlo reliability of the demo mission
+
+> Model-based simulation of our own assumptions, not an empirical mission success probability.
+
+1000 trials, seed 42. The route is fixed; walking speed, terrain, oxygen use and time at each stop are varied.
+
+| | |
+|---|---|
+| Home with the oxygen reserve intact | 100.0% (1000 of 1000 trials) |
+| Home at all (before the oxygen runs out) | 100.0% |
+| Oxygen margin, low / middle / high (5th / 50th / 95th percentile) | 160 min / 191 min / 221 min |
+| Oxygen at return, low / middle / high | 43% / 49% / 55% |
+| Total time, low / middle / high | 3:21 / 3:35 / 3:51 |
+
+What moves the margin most (one input at a time, the others as planned):
+
+| Input | Range (all assumed) | Margin at low value | Margin at high value | Swing |
+|---|---|---|---|---|
+| Oxygen use while walking | 1.04 to 1.56 (planned 1.3) × nominal oxygen rate | 224 min | 159 min | 65 min |
+| Walking speed | 0.85 to 1.15 (planned 1) × planned speed (3 km/h on flat firm ground) | 163 min | 213 min | 50 min |
+| Terrain (per leg) | 0.9 to 1.1 (planned 1) × planned speed, drawn separately for each leg | 174 min | 206 min | 33 min |
+| Oxygen use during science | 0.72 to 1.08 (planned 0.9) × nominal oxygen rate | 208 min | 175 min | 32 min |
+| Time at each stop | -5 to 5 (planned 0) min added to each stop's planned science time, drawn separately for each stop | 205 min | 178 min | 27 min |
