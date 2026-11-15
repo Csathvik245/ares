@@ -21,6 +21,7 @@ import {
 import { scienceScore, suggestStops } from "../planner/science";
 import { EVIDENCE_LABELS } from "../lib/evidenceLabels";
 import { ReliabilityPanel } from "./ReliabilityPanel";
+import { SCENARIO_BUTTONS } from "../lib/emergency-run";
 
 /** "all" is the classic single rail. The other parts let the consolidated desktop panel interleave sections. */
 export type MissionPart = "all" | "telemetry" | "stops" | "emergency";
@@ -42,8 +43,10 @@ export function MissionPanel({
     budget.reserveSec,
     Math.max(0, budget.budgetSec - used),
   );
-  const status = m.emergency ? m.emergencyOutcome!.abort.status : m.evaStatus;
-  const reasons = m.emergency ? m.emergencyOutcome!.abort.reasons.filter((r) => !r.startsWith("Shelter")) : m.evaReasons;
+  // A re-planned emergency (oxygen loss, slower walking, blocked path) keeps the EVA going
+  // on a new plan, so it shows the EVA's own status; a storm, SPE or abort shows the walk home.
+  const status = m.replanned ? m.evaStatus : m.emergency ? m.emergencyOutcome!.abort.status : m.evaStatus;
+  const reasons = m.replanned ? m.evaReasons : m.emergency ? m.emergencyOutcome!.abort.reasons.filter((r) => !r.startsWith("Shelter")) : m.evaReasons;
   const lowest = useMemo(() => {
     const start =
       m.conditions.startLmst +
@@ -71,7 +74,9 @@ export function MissionPanel({
   const pct = display?.oxygenAtReturnPct;
   // The consolidated desktop layout uses the wording from the Stitch design.
   const stitch = part !== "all";
-  const descriptor = m.emergency
+  const descriptor = m.replanned
+    ? "Re-planned"
+    : m.emergency
     ? "EVA aborted"
     : status === "GO"
       ? "Plan nominal"
@@ -86,8 +91,8 @@ export function MissionPanel({
   const statusSection = (
       <section className="rail-status">
         <div className="panel-heading">
-          <span>{m.emergency ? "RETURN HOME" : "MISSION STATUS"}</span>
-          <small>{m.emergency?.kind === "spe" ? EVIDENCE_LABELS.spe : EVIDENCE_LABELS.route}</small>
+          <span>{m.replanned ? "EVA" : m.emergency ? "RETURN HOME" : "MISSION STATUS"}</span>
+          <small>{m.replanned ? "RE-PLANNED" : m.emergency?.kind === "spe" ? EVIDENCE_LABELS.spe : EVIDENCE_LABELS.route}</small>
         </div>
         <div className="status-line">
           <strong className={`large-status ink-${status}`}>{status}</strong>
@@ -96,9 +101,10 @@ export function MissionPanel({
         <p>{reasons.join(" · ")}</p>
         {m.emergency && (
           <p className="return-readout">
-            Walk home{" "}
+            {m.replanned ? "New plan ends in" : "Walk home"}{" "}
             {minutes(Math.max(0, (m.abort?.sec ?? Infinity) - m.returnElapsed))}{" "}
-            min · margin {minutes(margin)} min
+            min · margin {m.scenario ? `${formatMinutes(m.scenario.before.marginSec)} → ${formatMinutes(m.scenario.after.marginSec)}` : `${minutes(margin)} min`}
+            {m.scenario && ` · dropped stops: ${m.scenario.droppedStops.length ? m.scenario.droppedStops.map((s) => s.label).join(", ") : "none"}`}
           </p>
         )}
         {m.emergencyOutcome && <ShelterGuidance shelter={m.emergencyOutcome.shelter} from={m.emergencyOutcome.position} />}
@@ -360,6 +366,11 @@ export function MissionPanel({
         <button disabled={!!m.emergency} onClick={() => m.trigger("spe")}>
           Solar particle event
         </button>
+        {SCENARIO_BUTTONS.map((b) => (
+          <button key={b.kind} disabled={!!m.emergency} onClick={() => m.trigger(b.kind)}>
+            {b.label}
+          </button>
+        ))}
         <button disabled={!m.wildcat || !!m.emergency} onClick={m.loadWildcatSpe}>
           SPE at Wildcat Ridge
         </button>

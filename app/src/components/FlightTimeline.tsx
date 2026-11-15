@@ -1,4 +1,5 @@
 import { useMission } from "../lib/MissionContext";
+import { EMERGENCY_TEXT } from "../lib/emergency-run";
 import { clock, shortStop } from "../lib/presentation";
 import { formatDose, formatMet, roundHalfUp, SPE_IS_ILLUSTRATIVE, SPE_MEASURED_2017_PEAK_MULTIPLIER } from "../lib/planner";
 export function FlightTimeline() {
@@ -11,8 +12,8 @@ export function FlightTimeline() {
   );
   const activity = m.emergency
     ? m.returnPlan && m.returnElapsed >= m.returnPlan.totalSec
-      ? "At HAB-1 · EVA aborted"
-      : "Returning to HAB-1"
+      ? m.replanned ? "At HAB-1 · re-planned EVA complete" : "At HAB-1 · EVA aborted"
+      : m.replanned ? "Following the new plan" : "Returning to HAB-1"
     : m.position.phase === "science"
       ? `Science · ${m.stops[m.position.legIndex]?.label ?? "stop"}`
       : `Walking ${m.stops[m.position.legIndex] ? `to stop ${m.position.legIndex + 1} · ${shortStop(m.stops[m.position.legIndex].id, m.stops[m.position.legIndex].label)}` : "to HAB-1"}`;
@@ -119,7 +120,7 @@ export function FlightTimeline() {
         ))}
         {m.emergency && (
           <b style={{ left: `${(100 * m.emergency.at) / duration}%` }}>
-            {m.emergency.kind === "storm" ? "Storm" : "SPE"} T+
+            {EMERGENCY_TEXT[m.emergency.kind].short} T+
             {clock(m.emergency.at)}
           </b>
         )}

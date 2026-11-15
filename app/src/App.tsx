@@ -15,6 +15,7 @@ import { distanceM } from "./geo";
 import { routeHeading, clock, lmst, minutes } from "./lib/presentation";
 import { FlightTimeline } from "./components/FlightTimeline";
 import { MissionPanel } from "./components/MissionPanel";
+import { EMERGENCY_TEXT } from "./lib/emergency-run";
 import { LayerRail } from "./components/LayerRail";
 import { useMedia } from "./lib/useMedia";
 import { Map3DToggle } from "./components/Map3DToggle";
@@ -194,6 +195,7 @@ function Console() {
             position={position}
             abort={abort?.path ?? EMPTY_PATH}
             shelter={winningShelter}
+            blocked={m.scenario?.blocked}
             emergency={!!emergency}
             incidentAt={emergency?.at}
             viewRequest={m.viewRequest}
@@ -239,19 +241,15 @@ function Console() {
               <aside className="storm-alert" role="alert">
                 <div>
                   <strong>
-                    {emergency.kind === "storm"
-                      ? "DUST STORM"
-                      : "SOLAR PARTICLE EVENT"}{" "}
+                    {EMERGENCY_TEXT[emergency.kind].title}{" "}
                     · T+{clock(emergency.at)}
                   </strong>
-                  <p>{abort?.reasons.find((r) => r.startsWith("Return home:")) ?? "No return guidance available."}</p>
+                  <p>{m.scenario ? m.scenario.evaReasons[0] : (abort?.reasons.find((r) => r.startsWith("Return home:")) ?? "No return guidance available.")}</p>
                   <ShelterGuidance shelter={shelter} from={m.emergencyOutcome!.position} />
                   <small>
-                    {emergency.kind === "storm"
-                      ? "Low visibility and visor dust slow walking."
-                      : "Illustrative SPE dose rate ×30."}{" "}
+                    {EMERGENCY_TEXT[emergency.kind].note}{" "}
                     {abort?.path.length
-                      ? `Walk home ${minutes(Math.max(0, abort.sec - m.returnElapsed))} min · margin ${minutes(abort.marginSec)} min`
+                      ? `${m.replanned ? "New plan ends in" : "Walk home"} ${minutes(Math.max(0, abort.sec - m.returnElapsed))} min · margin ${m.scenario ? `${formatMinutes(m.scenario.before.marginSec)} → ${formatMinutes(m.scenario.after.marginSec)}` : `${minutes(abort.marginSec)} min`}`
                       : "No terrain-safe return path."}
                   </small>
                 </div>
@@ -302,11 +300,11 @@ function Console() {
           </span>
           <span className={`status status--${status}`}>
             EVA · {status}
-            {emergency ? " · ABORTED" : ""}
+            {m.replanned ? " · RE-PLANNED" : emergency ? " · ABORTED" : ""}
           </span>
           {emergency && abort && (
             <span className={`return-status ink-${abort.status}`}>
-              RETURN HOME · {abort.status}{abort.reasons.length ? ` · ${abort.reasons.filter((r) => !r.startsWith("Shelter")).join(" · ")}` : ""}
+              {m.replanned ? "NEW PLAN" : "RETURN HOME"} · {abort.status}{abort.reasons.length ? ` · ${abort.reasons.filter((r) => !r.startsWith("Shelter")).join(" · ")}` : ""}
             </span>
           )}
           {assistantAvailable && (

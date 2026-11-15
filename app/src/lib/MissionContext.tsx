@@ -15,7 +15,6 @@ import {
   positionAt,
   envAt,
   homeField,
-  stormAt,
   type StormOutcome,
   type Site,
   type Conditions,
@@ -28,7 +27,7 @@ import {
   demoStopsFromSite,
   type DemoStop,
 } from "./data";
-import { returnPlaybackPlan } from "./return-playback";
+import { emergencyCourse, isReplanned, isScenario, runEmergency, type UiEmergencyKind } from "./emergency-run";
 import { readBasemap, type Basemap } from "./basemap";
 import { publicAssetUrl } from "./assets";
 export type { DemoStop } from "./data";
@@ -53,7 +52,7 @@ function useMissionState() {
   const [elapsed, setElapsed] = useState(0),
     [playing, setPlaying] = useState(false),
     [emergency, setEmergency] = useState<{
-      kind: "storm" | "spe";
+      kind: UiEmergencyKind;
       at: number;
       outcome: StormOutcome;
     } | null>(null);
@@ -138,14 +137,14 @@ function useMissionState() {
     () => (site && cost ? homeField(site, cost) : null),
     [site, cost],
   );
-  const abort = emergencyOutcome?.abort ?? null;
-  const returnPlan = useMemo(
-    () =>
-      abort && emergency
-        ? returnPlaybackPlan(abort, emergencyOutcome!.position.oxygenUsedSec, conditions.storm)
-        : null,
-    [abort, emergency, conditions.storm],
+  // The course to draw and play back: the walk home for a storm, SPE or aborted EVA;
+  // the re-planned route for oxygen loss, slower walking or a blocked path.
+  const course = useMemo(
+    () => (emergencyOutcome ? emergencyCourse(emergencyOutcome, conditions.storm) : null),
+    [emergencyOutcome, conditions.storm],
   );
+  const abort = course?.abort ?? null;
+  const returnPlan = course?.returnPlan ?? null;
   const returning = useMemo(
     () => (returnPlan ? positionAt(returnPlan, returnElapsed) : null),
     [returnPlan, returnElapsed],
@@ -247,17 +246,14 @@ function useMissionState() {
     ]);
     setSelected(id);
   };
-  const trigger = (kind: "storm" | "spe", at = elapsed, incidentPlan = plan) => {
+  const trigger = (kind: UiEmergencyKind, at = elapsed, incidentPlan = plan) => {
     const incidentAt = incidentPlan ? Math.max(0, Math.min(incidentPlan.totalSec, at)) : 0;
     if (!site || !incidentPlan) return null;
-    const outcome = stormAt(
-      site,
-      incidentPlan,
-      incidentAt,
-      kind === "storm" ? "dust" : "spe",
-      conditions.startLmst,
-      { skyView },
-    );
+    const outcome = runEmergency(site, incidentPlan, incidentAt, kind, {
+      startLmst: conditions.startLmst,
+      skyView,
+      stops: incidentPlan === plan ? stops : undefined,
+    });
     setElapsed(incidentAt);
     setPlaying(false);
     setReturnElapsed(0);
@@ -322,6 +318,8 @@ function useMissionState() {
     evaStatus: emergencyOutcome?.evaStatus ?? plan?.status ?? "NO-GO",
     evaReasons: emergencyOutcome?.evaReasons ?? plan?.reasons ?? [],
     emergencyOutcome,
+    scenario: isScenario(emergencyOutcome) ? emergencyOutcome : null,
+    replanned: isReplanned(emergencyOutcome),
     position,
     zone,
     home,

@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import { circleOutline } from "../lib/emergency-run";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import {
@@ -42,6 +43,7 @@ export function MissionMap({
   position,
   abort,
   shelter,
+  blocked,
   onAdd,
   onMove,
   onSelect,
@@ -65,6 +67,8 @@ export function MissionMap({
   position: LatLng;
   abort: LatLng[];
   shelter?: Extract<ShelterCheck, { checked: true }>;
+  /** The impassable area of a "path blocked" emergency, drawn as a dashed outline. */
+  blocked?: { at: LatLng; radiusM: number };
   onAdd: (p: LatLng) => void;
   onMove: (id: string, p: LatLng) => void;
   onSelect: (id: string) => void;
@@ -419,11 +423,18 @@ export function MissionMap({
           fillOpacity: 1, weight: 2,
         }).addTo(g).bindTooltip("SHELTER · simplified model", { direction: "bottom" });
       }
+      if (blocked) {
+        // Outline only, in the existing danger colour (--nogo).
+        const nogo = getComputedStyle(document.documentElement).getPropertyValue("--nogo").trim() || "#ff4d5a";
+        L.polygon(circleOutline(blocked.at, blocked.radiusM).map((p) => [p.lat, p.lng] as [number, number]), {
+          pane: "routes", color: nogo, weight: 2, dashArray: "4 4", fill: false, interactive: false,
+        }).addTo(g);
+      }
     } else plan.legs.forEach((l) => draw(l.path, "#ff6b35", 3));
     return () => {
       g.remove();
     };
-  }, [site, basemap, stops, plan, emergency, incidentAt, abort, shelter]);
+  }, [site, basemap, stops, plan, emergency, incidentAt, abort, shelter, blocked]);
   useEffect(() => {
     const m = map.current;
     if (!m) return;
