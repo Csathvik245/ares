@@ -39,7 +39,7 @@ ARES is a route planner for an astronaut walking on Mars. It is built for a sing
 - **Emergencies.** A dust storm or solar particle event aborts the EVA (NO-GO), collapses the zone and draws an abort route home from the astronaut's current position. The walk home gets its own status, usually CAUTION.
 - **Helmet HUD.** A full-screen minimal view: heading, next stop and distance, oxygen, return margin and dose; it turns red in an abort.
 
-Demo mission on real terrain: three stops (Séítah outcrop "Brac", the delta front toe, Máaz lava rock "Sid"), about 4.97 km and 3 h 35 min, about 192 minutes of margin, status GO.
+Demo mission on real terrain: three stops: Séítah outcrop "Brac" and Máaz lava rock "Sid", both Perseverance sampling sites, and between them the delta front toe, a new clay target ARES selected from CRISM data. The loop is 4.97 km and takes about 3.5 hours (3 h 35 min), with 49% oxygen at return (about 192 minutes above the reserve). Status: GO.
 
 **How it works.**
 
@@ -68,7 +68,7 @@ Every number is either sourced or labelled as our assumption; the full list is i
 
 Paste the "Draft disclosure" section of [`ai-disclosure.md`](ai-disclosure.md) **after the team has resolved its TODOs**. Short version (judges don't see this field, so the full text also goes in the README and repo):
 
-> Yes. The Ares Initiative used Claude Code (Anthropic) and ChatGPT (OpenAI) as coding assistants to write and test code and documentation, and an AI chat assistant for brainstorming, planning, task breakdown and reviewing our work. The ARES concept is written up in our team's own design document. All route and safety decisions in the app come from deterministic algorithms (Dijkstra / A\* on a terrain grid with documented formulas), not AI. No images, video or audio in the submission were AI-generated. Details: docs/ai-disclosure.md in our repository.
+> Yes. The Ares Initiative used Claude Code (Anthropic) and ChatGPT (OpenAI) as coding assistants to write and test code and documentation, and an AI chat assistant (Claude, by Anthropic) for early brainstorming, planning, task breakdown, code review and debugging. In brainstorming the AI proposed early concept options, including a "walkback zone", Jezero as a candidate site, a route planner and a helmet display; a team member then wrote the ARES design document, which the team chose and which shares several of those elements. All route and safety decisions in the app come from deterministic algorithms (Dijkstra / A\* on a terrain grid with documented formulas), not AI. No images, video or audio in the submission were AI-generated. Details: docs/ai-disclosure.md in our repository.
 
 ## NASA Data
 

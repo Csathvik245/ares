@@ -511,7 +511,7 @@ describe("CAUTION rules (Contract 3)", () => {
   const site = makeSite(20, 20);
   const habitat = cellCenter(site, idx(site, 1, 1));
 
-  it("low margin, storm and SPE each give CAUTION with a reason", () => {
+  it("low margin gives CAUTION; an active storm or SPE aborts the EVA (NO-GO)", () => {
     const calm = buildCostGrid(site, CALM);
     // 6.5 h of science leaves well under 25% of the budget as margin, but more than zero.
     const tight = planRoute(site, calm, habitat, [stopAt(site, 2, 2, 390)]);
@@ -521,8 +521,8 @@ describe("CAUTION rules (Contract 3)", () => {
 
     const easy = [stopAt(site, 2, 2, 5)];
     const storm = planRoute(site, buildCostGrid(site, { ...CALM, storm: true }), habitat, easy);
-    expect(storm.status).toBe("CAUTION");
-    expect(storm.reasons.join(" ")).toMatch(/storm/i);
+    expect(storm.status).toBe("NO-GO");
+    expect(storm.reasons[0]).toBe("EVA aborted: active dust storm");
     // Storm: slower walking and 30 min more reserve.
     const normal = planRoute(site, calm, habitat, easy);
     expect(normal.status).toBe("GO");
@@ -530,8 +530,8 @@ describe("CAUTION rules (Contract 3)", () => {
     expect(storm.marginSec).toBeCloseTo(normal.marginSec - 30 * 60 - (storm.walkSec - normal.walkSec) * WALK_BURN, 3);
 
     const spe = planRoute(site, buildCostGrid(site, { ...CALM, spe: true }), habitat, easy);
-    expect(spe.status).toBe("CAUTION");
-    expect(spe.reasons.join(" ")).toMatch(/solar particle/i);
+    expect(spe.status).toBe("NO-GO");
+    expect(spe.reasons[0]).toBe("EVA aborted: active solar particle event");
   });
 
   it("low margin is measured against the usable budget (8 h minus reserve)", () => {

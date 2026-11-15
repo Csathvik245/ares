@@ -51,8 +51,8 @@ export function abortRoute(site: Site, stormCost: CostGrid, from: LatLng, oxygen
       status: "NO-GO",
       reasons: [
         fromCell < 0
-          ? "Cannot plan an abort: the astronaut is outside the mapped site."
-          : "No safe path home from here (blocked by steep slopes or boulders).",
+          ? "Return home: no route, so no oxygen margin can be worked out. The astronaut is outside the mapped site."
+          : "Return home: no route, so no oxygen margin can be worked out. No safe path home from here (blocked by steep slopes or boulders).",
       ],
     };
   }
@@ -64,35 +64,31 @@ export function abortRoute(site: Site, stormCost: CostGrid, from: LatLng, oxygen
   const budget = oxygenBudget(storm);
   const marginSec = budget.usableSec - oxygenUsedSec - sec * WALK_BURN;
 
-  // Status follows Contract 3, the same rules planRoute uses:
+  // Return-home status (Contract 3, "Emergencies"). An abort is never GO:
+  //   CAUTION — home is reachable and the oxygen margin on arrival is 0 or more
   //   NO-GO   — the margin is negative (or home is unreachable, handled above)
-  //   CAUTION — the margin is low, or a storm / SPE is active
-  //   GO      — everything else
-  // An active storm on its own is CAUTION, not NO-GO.
-  const emergencyReasons: string[] = [];
-  if (storm) {
-    emergencyReasons.push(
-      `Dust storm active: low visibility slows walking and adds ${STORM_EXTRA_RESERVE_MIN} min to the reserve.`,
-    );
-  }
-  if (spe) emergencyReasons.push("Solar particle event active: radiation dose rate is elevated. Head for shelter.");
-
+  // This holds with or without a storm. The first reason always gives the margin in minutes.
   const reasons: string[] = [];
   let status: Status;
   if (marginSec < 0) {
     status = "NO-GO";
     reasons.push(
-      `Not enough oxygen to walk home with the reserve intact: ${minutes(-marginSec)} min short ` +
-        `(${minutes(sec)} min walk, ${minutes(budget.reserveSec)} min reserve).`,
-      ...emergencyReasons,
+      `Return home: ${minutes(sec)} min walk, oxygen margin −${minutes(-marginSec)} min on arrival. ` +
+        `Not enough oxygen to walk home with the ${minutes(budget.reserveSec)} min reserve intact.`,
     );
   } else {
-    if (isLowMargin(marginSec, budget)) {
-      reasons.push(`Oxygen margin on arrival is low: ${minutes(marginSec)} min above reserve.`);
-    }
-    reasons.push(...emergencyReasons);
-    status = reasons.length > 0 ? "CAUTION" : "GO";
-    reasons.unshift(`Abort home: ${minutes(sec)} min walk, ${minutes(marginSec)} min of oxygen margin on arrival.`);
+    status = "CAUTION";
+    reasons.push(
+      `Return home: ${minutes(sec)} min walk, oxygen margin ${minutes(marginSec)} min on arrival ` +
+        `(above the ${minutes(budget.reserveSec)} min reserve).`,
+    );
+    if (isLowMargin(marginSec, budget)) reasons.push("Oxygen margin on arrival is low.");
   }
+  if (storm) {
+    reasons.push(
+      `Dust storm active: low visibility slows walking and adds ${STORM_EXTRA_RESERVE_MIN} min to the reserve.`,
+    );
+  }
+  if (spe) reasons.push("Solar particle event active: radiation dose rate is elevated. Head for shelter.");
   return { path, sec, marginSec, status, reasons };
 }

@@ -86,7 +86,7 @@ Needs nothing from anyone. Test everything with Vitest: unit tests use the fixtu
 - [x] 🟧 `explainSegment`
 - [x] 🟧 `envAt`: Mars24 sun elevation at 18.45 N for a fixed Ls; temperature curve (placeholder −83 to −23 °C, flagged in a comment); dose rate (+SPE). Constants live in `planner/` so you don't wait for MEDA values
 - [x] 🟧 Sun < 10° CAUTION rule
-- [ ] 🟧 Tests for every function; each < 100 ms
+- [x] 🟧 Tests for every function; each < 100 ms
 - [x] 🟧 `index.ts` exports every Contract 4 function, so the frontend's swap (I2) is one line
 - [ ] 🟦 `optimizeOrder` (≤ 6 stops), `suggestStops` (science ÷ round-trip oxygen)
 - [ ] 🟦 Web Worker wrapper `planner/worker.ts` (only if the frontend reports lag)
@@ -186,8 +186,8 @@ Needs nothing from anyone. Figma is separate. Code components take **props with 
 
 Needs nothing from anyone. Research and docs stand alone. Use Mars Trek screenshots and the Figma frames for slides until the app is live.
 
-- [ ] 🟥 Verify the Perseverance landing-site coordinates for the habitat; post them in the group chat
-- [ ] 🟥 Jezero science case paragraph (lake, delta, carbonates, clays, biosignatures)
+- [x] 🟥 Verify the Perseverance landing-site coordinates for the habitat; post them in the group chat (18.44462715 N, 77.45088572 E: first point in NASA's waypoints file, sol 13, before the first drive; re-checked 14 Nov; HAB-1 = 18.4446 N, 77.4509 E)
+- [x] 🟥 Jezero science case paragraph (lake, delta, carbonates, clays, biosignatures) → `docs/science-case.md` (lake age left out until a NASA source is opened)
 - [x] 🟥 `docs/sources.md`: every dataset + paper with links
 - [x] 🟥 `docs/assumptions.md`: every Contract 2 constant with a source or "assumption", incl. Tobler's hiking function, Curiosity RAD 0.64 mSv/sol (Hassler et al. 2014), Mars24, SPE ×30 marked illustrative, dust-storm slowdown = visibility not wind
 - [x] 🟥 Confirm Space Apps 2026 rules, required fields, video length, **deadline** → `docs/submission.md` (video ≤ 30 s or ≤ 7 slides; closes Sun 15 Nov 23:59 Local Event time)

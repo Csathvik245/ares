@@ -7,7 +7,8 @@ The guide asks a demo deck to show an image of the project, the user experience,
 **Rules for every slide**
 - English only. No NASA logo, flags or mission insignia in our branding.
 - **No names, photos, voices or likenesses of team members.** "The Ares Initiative" only.
-- Credit every image: "NASA/JPL-Caltech" + instrument team (e.g. "NASA/JPL-Caltech/University of Arizona" for HiRISE). Screenshots of our app credit the underlying data.
+- Credit every image: "NASA/JPL-Caltech" + instrument team (e.g. "NASA/JPL-Caltech/University of Arizona" for HiRISE). Screenshots of our app credit the underlying data. Every slide with a NASA image or an app screenshot carries a small credit line in its corner.
+- **Before export, check every slide:** no team names, no faces, no team photos, no likenesses; every NASA image credited. Images from other NASA centres keep their own credit (e.g. LRO: NASA/GSFC/Arizona State University).
 - Every number comes from the app or [`assumptions.md`](assumptions.md). Re-check numbers against the live app before exporting.
 - Any AI-generated image needs a visible watermark ([Project Submission Guide](https://www.spaceappschallenge.org/resources/project-submission-guide/), "Use of Super Intelligence (SI)"). The plan below uses only app screenshots and NASA imagery.
 - Few words per slide, readable font size (guide's advice). Style: Contract 6 tokens. Dark console background, orange = plan, cyan = safety, red = danger only; Space Grotesk headings, Inter body, JetBrains Mono numbers.
@@ -37,13 +38,13 @@ The guide asks a demo deck to show an image of the project, the user experience,
 - **When is it safe to be outside?** Curiosity RAD radiation, Perseverance MEDA weather, Mars24 sun position.
 - Data → 25 m grid → Tobler-based walking speed → Dijkstra / A* fastest safe route. Deterministic, no ML in safety decisions.
 
-**Visual:** left, the data → grid → planner → app diagram from the README (Figma, token colours). Right, a strip of layer thumbnails (Slope, Soft sand risk, Boulders, Science value) from `docs/images/` or console crops, each with its mission chip.
+**Visual:** left, the data → grid → planner → app diagram from the README (Figma, token colours). Right, a strip of layer thumbnails (Slope, Soft sand risk, Boulders, Science value) from `docs/images/` or console crops, each with its mission chip. Credit line: "Data: NASA/JPL-Caltech/University of Arizona (HiRISE), NASA/JPL-Caltech/ASU (THEMIS), NASA/JPL-Caltech/JHUAPL (CRISM); processed by The Ares Initiative".
 
 ## 4. The plan and the safe-return zone
 
 - Click science stops; ARES plans the fastest safe route and adds up time, oxygen and dose.
 - The cyan safe-return zone shows everywhere she can still reach and walk home with the 45-minute reserve intact. It shrinks as stops are added.
-- One status light, always with the reason: GO / CAUTION / NO-GO. Demo mission: about 4.97 km, 3 h 35 min, GO (check on screen).
+- One status light, always with the reason: GO / CAUTION / NO-GO. Demo mission: 4.97 km, about 3.5 hours, 49% oxygen at return, GO (check on screen). Stops: Brac (rover site), the delta front toe (a new clay target ARES selected from CRISM data), Sid (rover site).
 
 **Visual:** console screenshot with **Load demo mission**: three numbered orange stops, orange route, cyan zone, oxygen ring, **GO** pill with reasons. Small inset: the same map with no stops and a larger zone.
 
@@ -71,7 +72,7 @@ The guide asks a demo deck to show an image of the project, the user experience,
 - **Live data:** MEDA weather and NASA DONKI space-weather alerts trigger the warnings.
 - Sources: USGS HiRISE DTM and orthomosaic, THEMIS thermal inertia, CRISM (PDS), Curiosity RAD, Mars24. Full list: [`sources.md`](sources.md). AI use: [`ai-disclosure.md`](ai-disclosure.md).
 
-**Visual:** three-column roadmap (Moon · ML · Live) with small images: LRO lunar south pole (NASA/GSFC/Arizona State University), a HiRISE boulder crop, a mock alert banner. Footer: QR code to the live app and project page. No agency logos.
+**Visual:** three-column roadmap (Moon · ML · Live) with small images: LRO lunar south pole (NASA/GSFC/Arizona State University), a HiRISE boulder crop (NASA/JPL-Caltech/University of Arizona), a mock alert banner. Footer: QR code to the live app and project page. No agency logos.
 
 ---
 
@@ -89,11 +90,11 @@ The guide asks a demo deck to show an image of the project, the user experience,
 
 ### A2. Mission story: ARES-1 EVA, Jezero Crater, 2040
 
-- Commander Reyes leaves HAB-1 with 8 hours of oxygen, a 20 kg sample kit and about 4–5 km of unknown terrain.
+- Commander Reyes leaves HAB-1 with 8 hours of oxygen, a 20 kg sample kit and about 5 km of unknown terrain.
 - Goal: sample the carbonate and clay layers of an ancient river delta, top targets for signs of life from about 3.5 billion years ago.
 - Why Jezero: Perseverance's landing region, so it has high-resolution terrain data and thousands of rover photos.
 
-**Visual:** ARES opening briefing screen (ARES patch, "2040 MISSION SCENARIO", science objective, 8 HRS / 45 MIN). Optional inset: HiRISE orthomosaic crop of the delta front.
+**Visual:** ARES opening briefing screen (ARES patch, "2040 MISSION SCENARIO", science objective, 8 HRS / 45 MIN). Optional inset: HiRISE orthomosaic crop of the delta front (NASA/JPL-Caltech/University of Arizona; mosaic by USGS Astrogeology).
 
 ### A3. How ARES works
 
@@ -135,7 +136,7 @@ The guide asks a demo deck to show an image of the project, the user experience,
 - Very large text and high contrast for use through a visor; turns red with "ABORT / RETURN TO HABITAT" in an emergency.
 - Same plan as the habitat console; nothing re-entered.
 
-**Visual:** two HUD screenshots: normal (cyan) and abort (red). Optional: a stop detail card with the Perseverance photo of the next stop.
+**Visual:** two HUD screenshots: normal (cyan) and abort (red). Optional: a stop detail card with the Perseverance photo of stop 1 or 3 (credit NASA/JPL-Caltech plus the camera team if given). Not stop 2: the delta front toe has no rover photo.
 
 ### A8. What's new
 
@@ -145,7 +146,7 @@ The guide asks a demo deck to show an image of the project, the user experience,
 - **Time as a dimension**: when to walk (sun, temperature, dose), not just where.
 - **"The AI explains, the planner decides"**: the routing is deterministic, so it's predictable, explainable and testable.
 
-**Visual:** five icon tiles (Lucide icons) in a row, one per point. Small Apollo traverse map inset (Lunar and Planetary Institute, credited) as the heritage link.
+**Visual:** five icon tiles (Lucide icons) in a row, one per point. Small Apollo traverse map inset as the heritage link (credit NASA plus the Lunar and Planetary Institute as given on the source page; it is a NASA Apollo map, not JPL).
 
 ### A9. Model assumptions (honest numbers)
 
@@ -181,4 +182,4 @@ The guide asks a demo deck to show an image of the project, the user experience,
 - **Live data:** real-time MEDA weather and NASA DONKI space-weather alerts driving the storm and SPE warnings, instead of buttons.
 - Also: buddy mode (two astronauts plus a rover as a mobile safe haven), voice commands in the HUD, real suit metabolic rates.
 
-**Visual:** three-column roadmap (Moon · ML · Live), each with a small image: an LRO view of the lunar south pole (NASA/GSFC/Arizona State University), a HiRISE boulder field crop, and a mock alert banner.
+**Visual:** three-column roadmap (Moon · ML · Live), each with a small image: an LRO view of the lunar south pole (NASA/GSFC/Arizona State University), a HiRISE boulder field crop (NASA/JPL-Caltech/University of Arizona), and a mock alert banner.

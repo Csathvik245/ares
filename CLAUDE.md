@@ -51,7 +51,7 @@ Google Maps for an astronaut walking on Mars, which also tells you how much oxyg
 
 The astronaut picks science stops. ARES plans the safest walking route around steep slopes, boulder fields and soft sand; adds up walking time, oxygen and radiation dose; draws a glowing **safe-return zone** (everywhere still reachable with a safe walk home); plays the walk across the Martian day on a timeline; simulates **dust storm** and **solar particle event** emergencies with an instant abort route home; and shows a minimal **helmet HUD** plus real rover photos at each stop.
 
-**Pitch story:** It's 2040. Commander Reyes steps out of the habitat at Jezero Crater with 8 hours of oxygen, a 20 kg sample kit and 4 km of unknown terrain. Her job is to collect rocks that may hold signs of life from 3.5 billion years ago. ARES gets her there and back.
+**Pitch story:** It's 2040. Commander Reyes steps out of the habitat at Jezero Crater with 8 hours of oxygen, a 20 kg sample kit and 5 km of unknown terrain. Her job is to collect rocks that may hold signs of life from 3.5 billion years ago. ARES gets her there and back.
 
 ### Mission and site
 
