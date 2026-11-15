@@ -6,7 +6,7 @@ Text to paste into our team's **Project** tab on spaceappschallenge.org. One sec
 - No team member names anywhere. "The Ares Initiative" only (under-18 rule, see [`submission.md`](submission.md)).
 - All text in English. Every link public and tested in a private window.
 - Re-check every number against the live app; the numbers below were measured on the real terrain (commit `b18348f`).
-- Fill the `TODO` links. Data credits come from [`sources.md`](sources.md); the AI answer comes from [`ai-disclosure.md`](ai-disclosure.md).
+- Fill the two **TEAM** links below (video and repo) and confirm the live-app link. Data credits come from [`sources.md`](sources.md); the AI answer comes from [`ai-disclosure.md`](ai-disclosure.md).
 
 ---
 
@@ -20,12 +20,12 @@ ARES is a route planner for an astronaut walking on Mars. It is built for a sing
 
 ## Link to Project Demo
 
-`TODO: public YouTube link to the 30-second caption-only video` (script: [`video-script.md`](video-script.md))
+**TEAM: paste the public YouTube link** to the 30-second caption-only video once it is uploaded (script: [`video-script.md`](video-script.md)).
 
 ## Link to Final Project
 
-- Live app: `TODO: confirm https://ares-mission-console.vercel.app is on the latest main`
-- Code and docs: `TODO: public GitHub repo link` (MIT licence)
+- Live app: https://ares-mission-console.vercel.app (**confirm before submitting** that it runs the latest `main`: deploys are not automatic yet)
+- Code and docs: **TEAM: paste the public GitHub repo link** (MIT licence). The current repo address contains a teammate's GitHub username; decide whether to use it or move the repo to a team account first (under-18 rule).
 
 ## Detailed Project Description
 
@@ -66,9 +66,9 @@ Every number is either sourced or labelled as our assumption; the full list is i
 
 ## Use of Super Intelligence (SI)
 
-Paste the "Draft disclosure" section of [`ai-disclosure.md`](ai-disclosure.md) **after the team has resolved its TODOs**. Short version (judges don't see this field, so the full text also goes in the README and repo):
+Paste the "Disclosure" section of [`ai-disclosure.md`](ai-disclosure.md) once the team has answered its two **TEAM: confirm** questions (brainstorming rule, mission patch). Short version (judges don't see this field, so the full text also goes in the README and repo):
 
-> Yes. The Ares Initiative used Claude Code (Anthropic) and ChatGPT (OpenAI) as coding assistants to write and test code and documentation, and an AI chat assistant (Claude, by Anthropic) for early brainstorming, planning, task breakdown, code review and debugging. In brainstorming the AI proposed early concept options, including a "walkback zone", Jezero as a candidate site, a route planner and a helmet display; a team member then wrote the ARES design document, which the team chose and which shares several of those elements. All route and safety decisions in the app come from deterministic algorithms (Dijkstra / A\* on a terrain grid with documented formulas), not AI. No images, video or audio in the submission were AI-generated. Details: docs/ai-disclosure.md in our repository.
+> Yes. The Ares Initiative used AI coding assistants, Claude Code (Anthropic) and ChatGPT (OpenAI), to write and review code and documentation, and an AI chat assistant (Claude, by Anthropic) for brainstorming, planning, task breakdown, code review and debugging. In brainstorming the AI proposed early concept options, including a "walkback zone", Jezero as a candidate site, a route planner and a helmet display; a team member then wrote the ARES design document, which the team chose and which shares several of those elements. All route and safety decisions in the app come from deterministic algorithms (Dijkstra / A\* on a terrain grid with documented formulas), not AI. We also trained our own small route-cost model on Perseverance drive data; it is off by default and did not beat the deterministic planner. The code for an in-app AI chat assistant is in our repository but is not enabled in the submission. Mission patch: **TEAM: confirm** whether it is AI-generated (if it is, say so here and watermark it). Details: docs/ai-disclosure.md in our repository.
 
 ## NASA Data
 
@@ -90,11 +90,11 @@ Full list with links: [`sources.md`](sources.md).
 List **every** data source, paper, image, library and tool, even open-source ones ([Terms](https://www.spaceappschallenge.org/legal/), "Use of Third-Party Materials"). Paste the tables from [`sources.md`](sources.md), then add:
 
 - Papers and references: Tobler 1993 (hiking function); Allison & McEwen 2000 (Mars24); Hassler et al. 2014 and Zeitlin et al. 2018 (RAD); Edwards et al. 2009 (THEMIS bedrock); Horgan et al. 2020 (Jezero carbonates); Viviano-Beck et al. 2014 (CRISM parameters); Rodriguez-Manfredi et al. 2023 (MEDA); Gernhardt et al. 2008 and Chullen et al. 2023 (suits and EVA).
-- Software (with licences): React and React DOM (MIT), Leaflet (BSD-2-Clause), Vite (MIT), TypeScript (Apache-2.0), Vitest (MIT); pipeline: numpy (BSD-3-Clause), rasterio (BSD-3-Clause, built on GDAL, MIT), matplotlib (matplotlib licence, BSD-style), Pillow (MIT-CMU). `TODO: confirm licences on each project's page, and add QGIS (GPL-2.0+) only if we used it.`
-- Fonts: Space Grotesk, Inter, JetBrains Mono (SIL Open Font License, via Google Fonts).
+- Software (with licences, read from each installed package on 14 Nov 2026): React and React DOM (MIT), Leaflet (BSD-2-Clause), Vite (MIT), TypeScript (Apache-2.0), Vitest (MIT); pipeline: numpy (BSD-3-Clause), SciPy (BSD-3-Clause), rasterio (BSD-3-Clause, built on GDAL, MIT; not installed on the machine we checked, so this one is from our earlier notes: confirm on its project page), matplotlib (matplotlib licence, PSF-based), Pillow (MIT-CMU). QGIS was not used.
+- Fonts: Space Grotesk, Inter, JetBrains Mono, IBM Plex Sans and IBM Plex Mono (SIL Open Font License, via Google Fonts).
 - AI tools: Claude Code (Anthropic), ChatGPT (OpenAI). See [`ai-disclosure.md`](ai-disclosure.md).
 - Images: NASA/JPL-Caltech plus the instrument team named with each image.
-- Space Agency Partner data: none used. `TODO: update if any partner data is added.`
+- Space Agency Partner data: none used.
 - Our own code and docs: MIT licence.
 
 ## Challenge addressed

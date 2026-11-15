@@ -126,7 +126,7 @@ The guide asks a demo deck to show an image of the project, the user experience,
 - One click simulates the emergency. The EVA is aborted, so status is **NO-GO**. The zone collapses and a red abort route goes home from where she is now.
 - The walk home gets its own status, usually **CAUTION** (still inside the reserve, but an emergency is active).
 - Dust storm slows walking because of **low visibility and dust on the visor**, not wind: Mars air is about 1% as dense as Earth's (NASA).
-- The SPE dose spike (×30) is **illustrative**; the largest event RAD has measured was 2–3× background (Zeitlin et al. 2018).
+- The SPE dose spike (×30) is **illustrative**; in the largest event RAD has measured on the surface, the dose-equivalent rate rose only about ×1.5 (absorbed dose ×2–3; Zeitlin et al. 2018).
 
 **Visual:** console screenshot mid-walk with the red banner "DUST STORM · ABORT EVA", NO-GO pill, red abort route and the `Walk home … · CAUTION` line. Circle the two statuses.
 
@@ -153,7 +153,7 @@ The guide asks a demo deck to show an image of the project, the user experience,
 - 8 h life support (Shuttle/ISS EMU rating); 45 min reserve (+30 min in a storm), our choice.
 - Walking: 3 km/h on flat firm ground (Tobler 5 km/h × 3/5 off-path); slopes over 25° and dense boulders are no-go.
 - Radiation: 0.64 mSv/sol Curiosity RAD baseline applied to Jezero; SPE ×30 illustrative.
-- Sun from Mars24 at one fixed season (Ls 0°); temperature curve is a placeholder until MEDA data is loaded.
+- Sun from Mars24 at one fixed season (Ls 0°); temperature from Perseverance MEDA measurements (Munguira et al. 2023), with our smooth curve between the measured low and high.
 
 **Visual:** the "Model assumptions (slide-ready)" list from [`assumptions.md`](assumptions.md) as a two-column table, with a status chip on each row: Sourced (green), Assumption (amber), Placeholder (grey).
 
