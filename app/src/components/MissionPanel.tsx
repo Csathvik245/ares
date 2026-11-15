@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { useMission } from "../lib/MissionContext";
 import { clock, shortStop, stopKind, minutes } from "../lib/presentation";
 import {
@@ -7,24 +7,31 @@ import {
   SOL_HOURS,
   envAt,
 } from "../lib/planner";
+import {
+  formatDose,
+  formatKm,
+  formatMinutes,
+  formatPct,
+  roundHalfUp,
+  SPE_IS_ILLUSTRATIVE,
+  SPE_MEASURED_2017_PEAK_MULTIPLIER,
+  formatMet,
+} from "../lib/planner";
+import { scienceScore, suggestStops } from "../planner/science";
 
 export function MissionPanel({ onDetail }: { onDetail: (id: string) => void }) {
   const m = useMission(),
     plan = m.plan!,
     display = m.emergency ? m.returnPlan : plan;
   const budget = oxygenBudget(m.conditions.storm);
-  const used = (display?.oxygenUsedSec ?? 0) + (m.emergency?.used ?? 0),
+  const used = (display?.oxygenUsedSec ?? 0) + (m.emergencyOutcome?.position.oxygenUsedSec ?? 0),
     margin = m.abort?.marginSec ?? plan.marginSec;
   const reserve = Math.min(
     budget.reserveSec,
     Math.max(0, budget.budgetSec - used),
   );
-  const status = m.emergency
-    ? (m.abort?.status ?? m.evaPlan!.status)
-    : m.evaPlan!.status;
-  const reasons = m.emergency
-    ? (m.abort?.reasons ?? m.evaPlan!.reasons)
-    : m.evaPlan!.reasons;
+  const status = m.emergency ? m.emergencyOutcome!.abort.status : m.evaStatus;
+  const reasons = m.emergency ? m.emergencyOutcome!.abort.reasons : m.evaReasons;
   const lowest = useMemo(() => {
     const start =
       m.conditions.startLmst +
@@ -50,6 +57,11 @@ export function MissionPanel({ onDetail }: { onDetail: (id: string) => void }) {
     m.edit(next);
   };
   const pct = display?.oxygenAtReturnPct;
+  const scores = useMemo(
+    () => scienceScore(m.site!, plan, { stops: m.stops, cost: m.cost! }),
+    [m.site, plan, m.stops, m.cost],
+  );
+  const [ideas, setIdeas] = useState<ReturnType<typeof suggestStops>>([]);
   return (
     <aside className="mission-rail" aria-label="Mission plan">
       <section className="rail-status">
@@ -58,7 +70,7 @@ export function MissionPanel({ onDetail }: { onDetail: (id: string) => void }) {
           <small>calculated</small>
         </div>
         <strong className={`large-status ink-${status}`}>{status}</strong>
-        <p>{reasons[0]}</p>
+        <p>{reasons.join(" · ")}</p>
         {m.emergency && (
           <p className="return-readout">
             Walk home{" "}
@@ -82,15 +94,14 @@ export function MissionPanel({ onDetail }: { onDetail: (id: string) => void }) {
         </div>
         <div className="oxygen-headline">
           <strong>
-            {pct === undefined ? "—" : Math.round(pct)}
-            <span>%</span>
+            {formatPct(pct)}
           </strong>
           <p>{m.emergency ? "left on arrival at HAB-1" : "left at return"}</p>
         </div>
         <div
           className="budget-bar"
           role="img"
-          aria-label={`Oxygen: ${Math.round(used / 60)} minutes used, ${Number.isFinite(margin) ? Math.round(margin / 60) : "unavailable"} minutes margin, ${Math.round(budget.reserveSec / 60)} minutes reserve required`}
+          aria-label={`Oxygen: ${formatMinutes(used)} used, ${formatMinutes(margin)} margin, ${formatMinutes(budget.reserveSec)} reserve required`}
         >
           <span
             className="budget-used"
@@ -109,13 +120,13 @@ export function MissionPanel({ onDetail }: { onDetail: (id: string) => void }) {
         </div>
         <div className="budget-labels">
           <span>
-            Used <b>{Math.round(used / 60)} min</b>
+            Used <b>{formatMinutes(used)}</b>
           </span>
           <span className={margin < 0 ? "ink-NO-GO" : ""}>
-            Margin <b>{minutes(margin)} min</b>
+            Margin <b>{formatMinutes(margin)}</b>
           </span>
           <span>
-            Reserve target <b>{Math.round(budget.reserveSec / 60)} min</b>
+            Reserve target <b>{formatMinutes(budget.reserveSec)}</b>
           </span>
         </div>
       </section>
@@ -123,7 +134,7 @@ export function MissionPanel({ onDetail }: { onDetail: (id: string) => void }) {
         {[
           [
             "Distance",
-            display ? `${(display.distM / 1000).toFixed(2)} km` : "—",
+            display ? formatKm(display.distM) : "—",
             "calculated",
           ],
           ["Duration", display ? clock(display.totalSec) : "—", "calculated"],
@@ -131,10 +142,10 @@ export function MissionPanel({ onDetail }: { onDetail: (id: string) => void }) {
           ["Science", display ? clock(display.workSec) : "—", "calculated"],
           [
             "Radiation dose",
-            `${dose.toFixed(3)} mSv`,
+            formatDose(dose) + (SPE_IS_ILLUSTRATIVE && m.emergency?.kind === "spe" ? ` · illustrative · measured 2017 event x${SPE_MEASURED_2017_PEAK_MULTIPLIER}` : ""),
             "projected · RAD baseline",
           ],
-          ["Lowest sun", `${lowest.toFixed(0)}°`, "calculated · Mars24"],
+            ["Lowest sun", `${roundHalfUp(lowest)}°`, "calculated · Mars24"],
         ].map(([label, value, evidence]) => (
           <div key={label}>
             <dt>{label}</dt>
@@ -148,7 +159,7 @@ export function MissionPanel({ onDetail }: { onDetail: (id: string) => void }) {
           <span>
             {m.emergency ? "ORIGINAL SCIENCE STOPS" : "SCIENCE STOPS"}
           </span>
-          <span>{m.stops.length.toString().padStart(2, "0")}</span>
+            <span>{String(m.stops.length).padStart(2, "0")}</span>
         </div>
         <div className="mission-actions">
           <button
@@ -156,6 +167,12 @@ export function MissionPanel({ onDetail }: { onDetail: (id: string) => void }) {
             onClick={m.loadDemo}
           >
             Load demo mission
+          </button>
+          <button
+            disabled={!!m.emergency || status !== "GO"}
+            onClick={() => setIdeas(suggestStops(m.site!, m.site!.habitat, m.stops, 3, { startLmst: m.conditions.startLmst, cost: m.cost! }))}
+          >
+            Suggest stops
           </button>
           <button
             disabled={!!m.emergency || !m.stops.length}
@@ -205,8 +222,11 @@ export function MissionPanel({ onDetail }: { onDetail: (id: string) => void }) {
                   {stopKind(s.id)}
                 </span>
                 <span className="stop-arrival">
-                  T+{clock(plan.legs[i]?.arriveSec ?? 0)}{" "}
+                  {formatMet(plan.legs[i]?.arriveSec ?? 0)}{" "}
                   <span>· {s.dwellMin} min science</span>
+                </span>
+                <span className="stop-science-score">
+                  {scores[i] ? `Science ${roundHalfUp(scores[i].science, 2)} · ${roundHalfUp(scores[i].score * 60, 2)} per O₂-hour` : "Science score unavailable"}
                 </span>
               </div>
               <button
@@ -271,6 +291,16 @@ export function MissionPanel({ onDetail }: { onDetail: (id: string) => void }) {
             </li>
           ))}
         </ol>
+        {ideas.length > 0 && (
+          <ul className="stop-suggestions" aria-label="Suggested science stops">
+            {ideas.map((idea) => (
+              <li key={idea.id}>
+                <span>Suggestion · science {roundHalfUp(idea.science, 2)} · {formatMinutes(idea.extraO2Min * 60)} O₂ · margin {formatMinutes(idea.marginMin * 60)}</span>
+                <button onClick={() => { const next = [...m.stops]; next.splice(idea.insertAt, 0, idea); m.edit(next); setIdeas([]); }}>Add stop</button>
+              </li>
+            ))}
+          </ul>
+        )}
       </section>
       <footer className="emergency-controls">
         <span>

@@ -4,9 +4,9 @@ export { MissionBriefing as OpeningScreen } from "../MissionBriefing";
 import { useState } from "react";
 import { publicAssetUrl } from "../../lib/assets";
 import { Dialog } from "../Dialog";
-import { WORK_BURN } from "../../lib/planner";
+import { formatMinutes, WORK_BURN } from "../../lib/planner";
 import { useMission } from "../../lib/MissionContext";
-import { photoDetails } from "../../lib/photos";
+import { photoCreditFor } from "../../lib/photoCredits";
 import { clock } from "../../lib/presentation";
 import type { DemoStop } from "../../lib/MissionContext";
 export function StopCard({
@@ -21,7 +21,7 @@ export function StopCard({
     b = m.site?.bounds;
   const arrival =
     m.plan?.legs[m.stops.findIndex((s) => s.id === stop.id)]?.arriveSec;
-  const metadata = photoDetails(stop.photo);
+  const metadata = photoCreditFor(stop.photo);
   const photoUrl = publicAssetUrl(stop.photo);
   return (
     <Dialog title={stop.label} onClose={onClose}>
@@ -30,15 +30,15 @@ export function StopCard({
         <figure>
           <img
             src={photoUrl}
-            alt={`Rover view associated with ${stop.label}`}
+            alt="Perseverance at this sampling site"
             onError={() => setFailed(true)}
           />
           <figcaption>
-            {metadata?.credit ?? stop.photoCredit ?? "Credit pending"}
+            {metadata ? "NASA/JPL-Caltech" : stop.photoCredit ?? "NASA/JPL-Caltech"}
             {metadata && (
               <>
                 {" "}
-                · {metadata.camera} · Sol {metadata.sol}
+                · {metadata.camera} · sol {metadata.sol}
                 <br />
                 <a
                   href={metadata.sourceUrl}
@@ -46,8 +46,7 @@ export function StopCard({
                   rel="noopener noreferrer"
                 >
                   NASA original image
-                </a>{" "}
-                · {metadata.date}
+                </a>
               </>
             )}
           </figcaption>
@@ -79,7 +78,7 @@ export function StopCard({
       <p>{stop.why ?? "Science description pending."}</p>
       <p>
         Science time: {stop.dwellMin} min · Oxygen cost:{" "}
-        {(stop.dwellMin * WORK_BURN).toFixed(1)} nominal min (work-burn model)
+        {formatMinutes(stop.dwellMin * 60 * WORK_BURN)} nominal (work-burn model)
       </p>
       <p>Tools: {stop.tools?.join(", ") ?? "Awaiting science checklist"}</p>
     </Dialog>

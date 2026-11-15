@@ -8,6 +8,7 @@ import {
   type Stop,
   type Plan,
   type CostGrid,
+  roundHalfUp,
 } from "../lib/planner";
 import { removeSmallIslands } from "../lib/zoneCleanup";
 import { distanceM } from "../geo";
@@ -15,6 +16,20 @@ import { routeParts, shortStop } from "../lib/presentation";
 import type { Basemap } from "../lib/basemap";
 import { raster, type OverlayName } from "../lib/layers";
 export const TREK_LAYER = "Mars_Viking_MDIM21_ClrMosaic_global_232m";
+
+function fitMissionView(map: L.Map, site: Site, stops: Stop[]) {
+  const bounds = L.latLngBounds(
+    [site.habitat, ...stops].map((p) => [p.lat, p.lng] as [number, number]),
+  );
+  const size = map.getSize();
+  const padX = Math.max(48, size.x * 0.12);
+  const padY = Math.max(48, size.y * 0.12);
+  map.fitBounds(bounds, {
+    paddingTopLeft: [padX, padY],
+    paddingBottomRight: [padX, padY],
+    maxZoom: 14,
+  });
+}
 export function MissionMap({
   site,
   basemap,
@@ -80,24 +95,7 @@ export function MissionMap({
       [site.bounds.south, site.bounds.west],
       [site.bounds.north, site.bounds.east],
     );
-    m.fitBounds(
-      L.latLngBounds(
-        [site.habitat, ...(stops.length ? stops : site.pois.slice(0, 3))].map(
-          (p) => [p.lat, p.lng] as [number, number],
-        ),
-      ),
-      {
-        paddingTopLeft: [
-          Math.max(60, m.getSize().x * 0.12),
-          Math.max(160, m.getSize().y * 0.12),
-        ],
-        paddingBottomRight: [
-          Math.max(60, m.getSize().x * 0.12),
-          Math.max(60, m.getSize().y * 0.12),
-        ],
-        maxZoom: 14,
-      },
-    );
+    fitMissionView(m, site, stops);
     m.attributionControl.setPrefix(false);
     for (const [name, z] of [
       ["routes", 450],
@@ -156,7 +154,7 @@ export function MissionMap({
       image.on("load", () => {
         if (!disposed)
           setBaseLabel(
-            `HiRISE local mosaic · ${basemap.metersPerPixel.toFixed(1)} m/pixel`,
+            `HiRISE local mosaic · ${roundHalfUp(basemap.metersPerPixel, 1)} m/pixel`,
           );
       });
       image.on("error", () => {
@@ -183,25 +181,8 @@ export function MissionMap({
   useEffect(() => {
     const m = map.current;
     if (!m) return;
-    m.fitBounds(
-      L.latLngBounds(
-        [site.habitat, ...(stops.length ? stops : site.pois.slice(0, 3))].map(
-          (p) => [p.lat, p.lng] as [number, number],
-        ),
-      ),
-      {
-        paddingTopLeft: [
-          Math.max(60, m.getSize().x * 0.12),
-          Math.max(160, m.getSize().y * 0.12),
-        ],
-        paddingBottomRight: [
-          Math.max(60, m.getSize().x * 0.12),
-          Math.max(60, m.getSize().y * 0.12),
-        ],
-        maxZoom: 14,
-      },
-    );
-  }, [site, basemap, viewRequest]);
+    fitMissionView(m, site, stops);
+  }, [site, basemap, viewRequest, stops]);
   useEffect(() => {
     const m = map.current;
     if (!m) return;
@@ -237,7 +218,7 @@ export function MissionMap({
         if (y > 65 && y < size.y - 60)
           label(
             m.containerPointToLatLng([size.x - 28, y]),
-            lat.toFixed(2) + "°N",
+            `${roundHalfUp(lat, 2)}°N`,
           );
       }
       for (
@@ -269,7 +250,7 @@ export function MissionMap({
         )
           label(
             m.containerPointToLatLng([x, size.y - 48]),
-            lng.toFixed(2) + "°E",
+            `${roundHalfUp(lng, 2)}°E`,
           );
       }
     };

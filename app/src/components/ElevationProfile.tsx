@@ -1,5 +1,6 @@
 import { useMemo } from "react";
 import type { Plan, Site } from "../planner";
+import { formatKm, roundHalfUp } from "../planner";
 import { elevationProfile, profileDistanceAt } from "../lib/profile";
 import "./plugins.css";
 
@@ -18,7 +19,7 @@ const PAD_TOP = 16;
 const PAD_BOTTOM = 6;
 
 const stopLabel = (index: number) => String(index + 1).padStart(2, "0");
-const meters = (m: number) => `${m < 0 ? "−" : ""}${Math.abs(Math.round(m)).toLocaleString("en-US")} m`;
+const meters = (m: number) => `${m < 0 ? "−" : ""}${Math.abs(roundHalfUp(m)).toLocaleString("en-US")} m`;
 
 /**
  * Elevation along the planned walk: habitat, each stop, and back to the habitat.
@@ -48,7 +49,7 @@ export function ElevationProfile({ site, plan, currentTSec }: ElevationProfilePr
   const pct = (distM: number) => `${((distM / totalM) * 100).toFixed(2)}%`;
 
   const summary =
-    `Elevation profile of the planned walk: ${(totalM / 1000).toFixed(2)} km, ` +
+    `Elevation profile of the planned walk: ${formatKm(totalM)}, ` +
     `lowest ${meters(minElevM)}, highest ${meters(maxElevM)}, ${stops.length} stop${stops.length === 1 ? "" : "s"}.`;
 
   return (

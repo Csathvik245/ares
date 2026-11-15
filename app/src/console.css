@@ -107,6 +107,8 @@ button:disabled {
 .return-status {
   border: 1px solid currentColor;
   padding: 7px;
+  white-space: normal;
+  overflow-wrap: anywhere;
 }
 .console-body {
   display: grid;

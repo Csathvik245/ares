@@ -1,4 +1,4 @@
-import { minutes } from "../lib/presentation";
+import { formatDose, formatKm, formatPct, formatMinutes, roundHalfUp } from "../lib/planner";
 import "../styles/tokens.css";
 import "./mission-screens.css";
 
@@ -17,6 +17,8 @@ export type HelmetHudProps = {
   temperatureC: number;
   abortWalkMin?: number;
   returnStatus?: HudStatus;
+  doseIsIllustrative?: boolean;
+  measuredEventMultiplier?: number;
   onExitHud?: () => void;
 };
 
@@ -48,7 +50,7 @@ export function HelmetHud(p: HelmetHudProps) {
           <span>N</span>
           <svg
             viewBox="0 0 100 100"
-            aria-label={`Heading ${Math.round(p.headingDeg)} degrees`}
+            aria-label={`Heading ${roundHalfUp(p.headingDeg)} degrees`}
             style={{ transform: `rotate(${p.headingDeg}deg)` }}
           >
             <path d="M50 8 78 88 50 70 22 88Z" fill="currentColor" />
@@ -60,12 +62,10 @@ export function HelmetHud(p: HelmetHudProps) {
           </p>
           <h1>{p.nextStop}</h1>
           <strong>
-            {p.distanceM >= 1000
-              ? `${(p.distanceM / 1000).toFixed(1)} km`
-              : `${Math.round(p.distanceM)} m`}
+            {formatKm(p.distanceM)}
           </strong>
           {p.abortWalkMin !== undefined && (
-            <p>Walk home {minutes(p.abortWalkMin * 60)} min</p>
+            <p>Walk home {formatMinutes(p.abortWalkMin * 60)}</p>
           )}
         </div>
       </section>
@@ -73,29 +73,27 @@ export function HelmetHud(p: HelmetHudProps) {
         <article>
           <label>OXYGEN LEFT</label>
           <strong>
-            {Math.round(pct)}
-            <small>%</small>
+            {formatPct(pct)}
           </strong>
           <progress max="100" value={pct} />
-          <span>
-            {Math.max(0, Math.round(p.oxygenRemainingMin))} nominal min
-          </span>
+          <span>{formatMinutes(Math.max(0, p.oxygenRemainingMin) * 60)} nominal</span>
         </article>
         <article>
           <label>RETURN MARGIN</label>
           <strong>
-            {minutes(p.marginMin * 60)}
-            <small>min</small>
+            {formatMinutes(p.marginMin * 60)}
           </strong>
           <span>After reserve · calculated</span>
         </article>
         <article>
           <label>DOSE</label>
           <strong>
-            {p.doseMsv.toFixed(3)}
-            <small>mSv</small>
+            {formatDose(p.doseMsv)}
           </strong>
-          <span>{Math.round(p.temperatureC)} °C · MEDA interpolation</span>
+          <span>{roundHalfUp(p.temperatureC)} °C · MEDA measured data</span>
+          {p.doseIsIllustrative && (
+            <span>Illustrative · measured 2017 event: x{p.measuredEventMultiplier}</span>
+          )}
         </article>
       </section>
     </main>

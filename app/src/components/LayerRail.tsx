@@ -1,6 +1,6 @@
 import { useMission } from "../lib/MissionContext";
 import { layers, type OverlayName } from "../lib/layers";
-import { SAND_TI_THRESHOLD, cellIndexOf } from "../lib/planner";
+import { SAND_TI_THRESHOLD, cellIndexOf, roundHalfUp } from "../lib/planner";
 import { clock } from "../lib/presentation";
 export function LayerRail({
   active,
@@ -29,7 +29,7 @@ export function LayerRail({
         <span>MRO · local orthomosaic</span>
         <small>
           {m.basemap
-            ? `${m.basemap.metersPerPixel.toFixed(1)} m / pixel`
+            ? `${roundHalfUp(m.basemap.metersPerPixel, 1)} m / pixel`
             : "Elevation fallback"}{" "}
           · measured
         </small>
@@ -100,9 +100,9 @@ export function LayerRail({
         {cell >= 0 ? (
           <dl>
             <dt>Elevation</dt>
-            <dd>{site.layers.elevation[cell].toFixed(0)} m</dd>
+            <dd>{roundHalfUp(site.layers.elevation[cell])} m</dd>
             <dt>Slope</dt>
-            <dd>{site.layers.slope[cell].toFixed(1)}°</dd>
+            <dd>{roundHalfUp(site.layers.slope[cell], 1)}°</dd>
             <dt>Ground</dt>
             <dd>
               {site.layers.thermalInertia[cell] < SAND_TI_THRESHOLD
@@ -110,7 +110,7 @@ export function LayerRail({
                 : "Firm ground proxy"}
             </dd>
             <dt>Science signal</dt>
-            <dd>{site.layers.science[cell].toFixed(2)}</dd>
+            <dd>{roundHalfUp(site.layers.science[cell], 2)}</dd>
             <dt>Walk home</dt>
             <dd>{clock(m.home?.cost[cell] ?? Infinity)}</dd>
           </dl>

@@ -1,4 +1,5 @@
 import { CONSUMABLE_HOURS } from "../lib/planner";
+import type { BriefingRow, Status } from "../planner";
 import "../styles/tokens.css";
 import "./mission-screens.css";
 
@@ -10,6 +11,9 @@ export type MissionBriefingProps = {
   siteName?: string;
   objective?: string;
   crewSummary?: string;
+  rows?: BriefingRow[];
+  status?: Status;
+  reasons?: string[];
 };
 
 export function MissionBriefing({
@@ -18,7 +22,13 @@ export function MissionBriefing({
   imageCredit,
   missionTitle = "ARES-1 EVA",
   siteName = "Jezero Crater delta front",
+  rows = [],
+  status = "GO",
+  reasons = [],
 }: MissionBriefingProps) {
+  void rows;
+  void status;
+  void reasons;
   return (
     <main className="mission-briefing">
       <div

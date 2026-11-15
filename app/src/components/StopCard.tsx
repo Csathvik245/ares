@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import type { Bounds, Poi, Stop } from "../planner";
+import { formatKm, formatMet, formatMinutes, roundHalfUp } from "../planner";
 import { orbitalCrop } from "../lib/orbitalCrop";
 import { photoCreditFor } from "../lib/photoCredits";
 import "./plugins.css";
@@ -18,6 +19,7 @@ export type StopCardProps = {
   onClose?: () => void;
   /** Optional. If left out, the card reads /data/basemap.json itself when it needs the orbital view. */
   basemap?: StopCardBasemap | null;
+  scienceScore?: { science: number; extraO2Min: number; score: number };
 };
 
 const BASE = import.meta.env.BASE_URL;
@@ -26,9 +28,7 @@ const HIRISE_CREDIT = "NASA/JPL-Caltech/University of Arizona/USGS";
 
 /** "T+1:42" from seconds. */
 export function tPlus(sec: number): string {
-  if (!Number.isFinite(sec)) return "T+—";
-  const min = Math.round(Math.max(0, sec) / 60);
-  return `T+${Math.floor(min / 60)}:${String(min % 60).padStart(2, "0")}`;
+  return formatMet(Math.max(0, sec));
 }
 
 /** Reads the basemap's file name, bounds and credit from /data/basemap.json. */
@@ -59,7 +59,7 @@ function useBasemap(given: StopCardBasemap | null | undefined, needed: boolean):
  * time, and the ground view. Stops Perseverance sampled show its photo. A stop no
  * rover has visited (the delta front toe) shows a HiRISE crop of the spot instead.
  */
-export function StopCard({ stop, index, poi, arriveSec, onClose, basemap }: StopCardProps) {
+export function StopCard({ stop, index, poi, arriveSec, onClose, basemap, scienceScore }: StopCardProps) {
   const [photoFailed, setPhotoFailed] = useState(false);
   const photoUrl = poi?.photo && !photoFailed ? `${BASE}${poi.photo.replace(/^\//, "")}` : undefined;
   const credit = photoCreditFor(poi?.photo);
@@ -90,11 +90,11 @@ export function StopCard({ stop, index, poi, arriveSec, onClose, basemap }: Stop
         <figure className="stop-card-plugin__view">
           <img
             src={photoUrl}
-            alt={`Perseverance rover photo at ${poi?.name ?? name}${credit ? `, ${credit.camera}, sol ${credit.sol}` : ""}`}
+            alt="Perseverance at this sampling site"
             onError={() => setPhotoFailed(true)}
           />
           <figcaption>
-            <span>Rover view</span>
+            <span>Perseverance at this sampling site</span>
             <span>
               {poi?.photoCredit ?? ROVER_CREDIT}
               {credit && (
@@ -112,7 +112,7 @@ export function StopCard({ stop, index, poi, arriveSec, onClose, basemap }: Stop
             <div
               className="stop-card-plugin__orbital"
               role="img"
-              aria-label={`HiRISE orbital image of the ground around ${name}, about ${(crop.widthM / 1000).toFixed(1)} km across. No rover has photographed this spot.`}
+              aria-label={`HiRISE orbital image of the ground around ${name}, about ${formatKm(crop.widthM)} across. No rover has photographed this spot.`}
               style={{
                 backgroundImage: `url("${map.url}")`,
                 backgroundSize: crop.backgroundSize,
@@ -135,7 +135,7 @@ export function StopCard({ stop, index, poi, arriveSec, onClose, basemap }: Stop
               {crop && (
                 <>
                   {" · about "}
-                  <span className="stop-card-plugin__num">{(crop.widthM / 1000).toFixed(1)} km</span> across
+                  <span className="stop-card-plugin__num">{formatKm(crop.widthM)}</span> across
                 </>
               )}
             </span>
@@ -157,6 +157,12 @@ export function StopCard({ stop, index, poi, arriveSec, onClose, basemap }: Stop
           <dt>Science time</dt>
           <dd>{stop.dwellMin} min</dd>
         </div>
+        {scienceScore && (
+          <div>
+            <dt>Science / oxygen-hour</dt>
+            <dd>{roundHalfUp(scienceScore.score * 60, 2)} · value {roundHalfUp(scienceScore.science, 2)} · {formatMinutes(scienceScore.extraO2Min * 60)} O₂</dd>
+          </div>
+        )}
       </dl>
     </article>
   );

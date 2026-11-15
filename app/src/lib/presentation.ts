@@ -1,14 +1,11 @@
-import { formatMinutes, positionAt, polylineLengthM, type LatLng, type Plan } from "./planner";
+import { formatDuration, formatLmst, formatMinutes, positionAt, polylineLengthM, type LatLng, type Plan } from "./planner";
 import { distanceM, bearingDeg } from "../geo";
 
 export function clock(sec: number): string {
-  if (!Number.isFinite(sec)) return "—";
-  const min = Math.round(Math.abs(sec) / 60);
-  return `${sec < 0 ? "−" : ""}${Math.floor(min / 60)}:${String(min % 60).padStart(2, "0")}`;
+  return formatDuration(sec);
 }
 export function lmst(hours: number): string {
-  const min = Math.floor((((hours % 24) + 24) % 24) * 60);
-  return `${String(Math.floor(min / 60)).padStart(2, "0")}:${String(min % 60).padStart(2, "0")}`;
+  return formatLmst(hours);
 }
 export function shortStop(id: string, label: string): string {
   return (

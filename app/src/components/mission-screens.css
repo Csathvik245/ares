@@ -209,4 +209,6 @@
   padding: 8px;
   margin-top: 8px;
   font-size: 14px;
+  white-space: normal;
+  overflow-wrap: anywhere;
 }
