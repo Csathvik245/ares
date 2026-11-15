@@ -7,7 +7,7 @@ the real `site.json` and formatted with `format.ts`, so they match what the app 
 and route-learning numbers are read from the pipeline's output files. `npm test` fails if this
 file and the code stop agreeing.
 
-**Numbers taken from commit `c0f964d`** (the planner and data at that commit).
+**Numbers taken from commit `995862f`** (the planner and data at that commit).
 
 <!-- numbers start -->
 ## 1. Demo mission
