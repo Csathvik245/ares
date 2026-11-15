@@ -49,6 +49,11 @@ Demo mission on real terrain: three stops: Séítah outcrop "Brac" and Máaz lav
 4. **Route → safety.** Walking and science time become oxygen use (walking burns more than standing work), then margin and status. A search from the habitat gives the walk-home time from every cell; that powers the safe-return zone and the abort route.
 5. **Environment.** Sun elevation uses NASA GISS's Mars24 algorithm. Radiation uses the Curiosity RAD surface baseline, applied to Jezero. A dust storm slows walking because of low visibility and dust on the visor, not wind: Mars air is about 1% as dense as Earth's.
 
+**Validation.**
+
+- **Perseverance's real drive.** We compared the terrain model with 20.57 km of the rover's real path, which was not used to build it. ARES rates 99.8% of that path as passable, and our slope layer agrees with the rover's own tilt sensor (r = 0.82). Details: [`validation.md`](validation.md).
+- **A machine-learning alternative.** We trained a model on 31 of Perseverance's real drives (15.38 km) to learn how NASA's drivers choose routes. On routes it had not seen, it could not beat the ARES physics planner: both are on average 24.8 m from the drivers' routes, against 35.3 m for a straight line. So the planner stays deterministic, and the learning serves as an independent check. Details: [`route-learning.md`](route-learning.md).
+
 Every number is either sourced or labelled as our assumption; the full list is in [`assumptions.md`](assumptions.md). For example, the solar particle event dose multiplier (×30) is illustrative, about ten times larger than the biggest event RAD has measured.
 
 **Benefits.** Existing Mars maps are regional or global. ARES works at the scale of one EVA and answers the astronaut's real questions: where is it safe to walk, where is the best science, and when is it safe to be outside? The safe-return zone borrows from aviation's point of no return and Apollo walkback limits, but computes it live over real terrain.

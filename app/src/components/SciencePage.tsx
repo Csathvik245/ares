@@ -210,6 +210,7 @@ export function SciencePage() {
             Every 25 m cell gets a walking speed. Steeper, sandier and rougher ground is slower, and some ground is
             off limits. ARES then finds the fastest safe path between the stops with a standard shortest-path method
             (Dijkstra and A*). There is no machine learning in it: the same stops always give the same route.
+            We did test a machine-learning alternative (section 4); it didn't beat the physics model.
           </p>
           <p>
             Walking time becomes oxygen. The plan is GO only if the astronaut is home with the reserve untouched. The
@@ -311,6 +312,32 @@ export function SciencePage() {
               </tr>
             </tbody>
           </table>
+
+          <h3>A second check: machine learning</h3>
+          <p>
+            We trained a model on 31 of Perseverance's real drives (<Num>{N.learnRouteLength.value}</Num>) to learn how
+            NASA's drivers choose routes, then tested it on routes it had not seen (<Num>{N.learnRoutes.value}</Num>,
+            each held out in turn). It could not beat the ARES physics planner, whose routes are on average{" "}
+            <Num>{N.learnPhysics.value}</Num> from the drivers' routes, against <Num>{N.learnStraightLine.value}</Num>{" "}
+            for a straight line. The learned model chose the same route as the physics planner on{" "}
+            <Num>{N.learnSameRoute.value}</Num>.
+          </p>
+          <p>
+            So the planner stays deterministic, and the learning serves as an independent check on it: a method that
+            only sees what expert drivers did ends up agreeing with the terrain rules.
+          </p>
+          <figure>
+            <img
+              src={`${import.meta.env.BASE_URL}images/route_learning.jpg`}
+              alt="Left: the Jezero site with Perseverance's real routes in white and the ARES physics routes in orange, lying almost on top of each other. Right: a bar chart of the mean distance from the rover's real route, with the straight line highest and the ARES physics and learned models equal."
+              loading="lazy"
+            />
+            <figcaption>
+              Perseverance's real routes and the ARES routes between the same end points, and how close each planner
+              gets. Routes: NASA/JPL-Caltech (Mars 2020 traverse). Basemap: NASA/JPL-Caltech/University of Arizona/USGS
+              (HiRISE).
+            </figcaption>
+          </figure>
         </section>
 
         <section id={uncertainty.id}>

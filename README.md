@@ -41,6 +41,11 @@ flowchart LR
 4. **Route → safety.** The planner adds up walking and science time, turns it into oxygen used, and checks the margin against the reserve. A full-field search from the habitat gives the walk-home time from every cell. That powers the safe-return zone and the abort route.
 5. **Planner → app.** The React app draws the layers, route and zone on a Leaflet map (equirectangular, `EPSG:4326`, to match Mars Trek tiles). It runs the planner again every time the plan changes.
 
+## Checked against reality
+
+- **Perseverance's real drive.** We compared the terrain model with 20.57 km of the rover's real path, which was not used to build it. ARES rates 99.8% of that path as passable, and our slope layer agrees with the rover's own tilt sensor (r = 0.82). Details: [`docs/validation.md`](docs/validation.md).
+- **A machine-learning alternative.** We trained a model on 31 of Perseverance's real drives (15.38 km) to learn how NASA's drivers choose routes. On routes it had not seen, it could not beat the ARES physics planner: both are on average 24.8 m from the drivers' routes, against 35.3 m for a straight line. So the planner stays deterministic, and the learning serves as an independent check. Details: [`docs/route-learning.md`](docs/route-learning.md).
+
 ## Run it locally
 
 You need Node.js 22.12 or newer.

@@ -1,7 +1,9 @@
 // Result numbers quoted on the Science page that cannot be imported from the planner at
 // render time (they need the pipeline's output files or a whole mission run).
 // Each one is COPIED, character for character, from docs/demo-numbers.md, which
-// `npm test` keeps equal to the planner and the data files. A test
+// `npm test` keeps equal to the planner and the data files. (One number, the length of
+// the rover routes used for route learning, is not in that file; it is copied from
+// docs/route-learning.md and checked against it instead.) A test
 // (components/science-page.test.tsx) fails if any value here is no longer in that file,
 // so these cannot drift. Never type a number here from memory.
 //
@@ -9,6 +11,7 @@
 // page imports them from the planner.
 
 const DEMO = "docs/demo-numbers.md";
+const ROUTE_LEARNING = "docs/route-learning.md";
 
 export type CopiedNumber = { value: string; source: string; section: string };
 const from = (section: string, value: string): CopiedNumber => ({ value, source: DEMO, section });
@@ -36,6 +39,14 @@ export const SCIENCE_NUMBERS = {
   noGoPlace: from("4", "18.4588 N, 77.4060 E"),
   noGoLength: from("4", "41.7 m"),
   noGoSlope: from("4", "25.8°"),
+
+  // 5. Route learning (held-out routes; the physics planner stays the planner)
+  learnRoutes: from("5", "31 held-out routes"),
+  learnStraightLine: from("5", "35.3 m"),
+  learnPhysics: from("5", "24.8 m"),
+  learnSameRoute: from("5", "31 of 31 routes"),
+  /** Not in demo-numbers.md: from the data table of docs/route-learning.md. */
+  learnRouteLength: { value: "15.38 km", source: ROUTE_LEARNING, section: "" } as CopiedNumber,
 
   // 6. Monte Carlo reliability of the demo mission
   demoTrials: from("6", "1000 of 1000 trials"),

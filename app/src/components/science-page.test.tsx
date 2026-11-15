@@ -59,6 +59,22 @@ describe("SciencePage", () => {
     expect(existsSync(repoFile("app/public/images/validation_traverse.jpg"))).toBe(true);
   });
 
+  it("shows the route-learning check in section 4, with its picture and credit", () => {
+    const start = html.indexOf('<section id="science-reality">');
+    const section4 = html.slice(start, html.indexOf("</section>", start));
+    const t = section4.replace(/<[^>]*>/g, " ").replace(/&#x27;/g, "'").replace(/\s+/g, " ");
+    expect(section4).toContain("<h3>A second check: machine learning</h3>");
+    expect(t).toContain("31 of Perseverance's real drives");
+    expect(t).toMatch(/could not beat the ARES physics planner/);
+    expect(t).toMatch(/planner stays deterministic/);
+    expect(section4).toContain('src="/images/route_learning.jpg"');
+    expect(t).toContain("Routes: NASA/JPL-Caltech (Mars 2020 traverse). Basemap: NASA/JPL-Caltech/University of Arizona/USGS (HiRISE).");
+    expect(existsSync(repoFile("app/public/images/route_learning.jpg"))).toBe(true);
+    // Section 3 still says the planner has no machine learning, and points here.
+    expect(text).toContain("There is no machine learning in it: the same stops always give the same route.");
+    expect(text).toContain("We did test a machine-learning alternative (section 4); it didn't beat the physics model.");
+  });
+
   it("uses the planner's own constants", () => {
     expect(text).toContain(`${formatMinutes(RESERVE_MIN * 60)} kept in reserve`);
     expect(text).toContain(`slope over ${MAX_SLOPE_DEG}°`);
@@ -87,9 +103,19 @@ describe("numbers copied onto the Science page", () => {
     return demoNumbers.slice(start, end < 0 ? undefined : end);
   };
 
-  it.each(Object.entries(SCIENCE_NUMBERS))("%s is still in docs/demo-numbers.md, in its section, and on the page", (_name, n) => {
-    expect(n.source).toBe("docs/demo-numbers.md");
-    expect(section(n.section)).toContain(n.value);
+  it.each(Object.entries(SCIENCE_NUMBERS))("%s is still in its source document, in its section, and on the page", (_name, n) => {
+    if (n.source === "docs/route-learning.md") {
+      // The one number that is not in demo-numbers.md: checked against the route-learning write-up.
+      expect(readFileSync(repoFile(n.source), "utf8")).toContain(n.value);
+    } else {
+      expect(n.source).toBe("docs/demo-numbers.md");
+      expect(section(n.section)).toContain(n.value);
+    }
     expect(text).toContain(n.value);
+  });
+
+  it("only the route length comes from outside docs/demo-numbers.md", () => {
+    const outside = Object.entries(SCIENCE_NUMBERS).filter(([, n]) => n.source !== "docs/demo-numbers.md");
+    expect(outside.map(([name]) => name)).toEqual(["learnRouteLength"]);
   });
 });
