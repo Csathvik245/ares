@@ -771,3 +771,42 @@
   margin-right: 8px;
   vertical-align: 1px;
 }
+
+/* ---------- Header: the status pills are never cut short ---------- */
+/* The long product line is only shown where there is room for it. */
+@media (max-width: 1599px) {
+  :is([data-theme="deep-space"], [data-theme="mono"]) .brand-context-long {
+    display: none;
+  }
+}
+:is([data-theme="deep-space"], [data-theme="mono"]) .header-actions > .status {
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+/* "RETURN HOME · CAUTION" always shows in full; only the reason after it may shorten. */
+:is([data-theme="deep-space"], [data-theme="mono"]) .return-status {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+  max-width: 520px;
+}
+:is([data-theme="deep-space"], [data-theme="mono"]) .return-status::before {
+  flex: none;
+}
+:is([data-theme="deep-space"], [data-theme="mono"]) .return-status > b {
+  flex: none;
+  font-weight: inherit;
+  white-space: nowrap;
+}
+:is([data-theme="deep-space"], [data-theme="mono"]) .return-reason {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: pre;
+}
+/* Below 1600 px the reason stays in the status panel and the alert banner, not in the header. */
+@media (max-width: 1599px) {
+  :is([data-theme="deep-space"], [data-theme="mono"]) .return-reason {
+    display: none;
+  }
+}

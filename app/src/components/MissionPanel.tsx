@@ -294,8 +294,11 @@ export function MissionPanel({
                   {formatMet(plan.legs[i]?.arriveSec ?? 0)}{" "}
                   <span>· {s.dwellMin} min science</span>
                 </span>
-                <span className="stop-science-score" title={s.why}>
-                  {scores[i] ? `Science ${roundHalfUp(scores[i].science, 2)} · ${roundHalfUp(scores[i].score, 3).toFixed(3)} per oxygen-minute` : "Science score unavailable"}
+                <span
+                  className="stop-science-score"
+                  title={scores[i] ? `${roundHalfUp(scores[i].score, 3).toFixed(3)} per oxygen-minute${s.why ? ` · ${s.why}` : ""}` : s.why}
+                >
+                  {scores[i] ? `Science ${roundHalfUp(scores[i].science, 2)}` : "Science score unavailable"}
                 </span>
               </div>
               <button

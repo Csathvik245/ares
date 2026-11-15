@@ -300,7 +300,7 @@ function Console() {
           </span>
           {consolidated && (
             <span className="brand-context">
-              Jezero delta front · Surface Traverse Software
+              Jezero delta front<span className="brand-context-long"> · Surface Traverse Software</span>
             </span>
           )}
         </div>
@@ -331,7 +331,8 @@ function Console() {
           )}
           {emergency && abort && (
             <span className={`return-status ink-${abort.status}`}>
-              {m.replanned ? "NEW PLAN" : "RETURN HOME"} · {abort.status}{abort.reasons.length ? ` · ${abort.reasons.filter((r) => !r.startsWith("Shelter")).join(" · ")}` : ""}
+              <b>{m.replanned ? "NEW PLAN" : "RETURN HOME"} · {abort.status}</b>
+              {abort.reasons.length > 0 && <span className="return-reason"> · {abort.reasons.filter((r) => !r.startsWith("Shelter")).join(" · ")}</span>}
             </span>
           )}
           {assistantAvailable && (

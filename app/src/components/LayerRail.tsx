@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { useMission } from "../lib/MissionContext";
 import { layers, type OverlayName } from "../lib/layers";
 import { SAND_TI_THRESHOLD, cellIndexOf, formatLmst, roundHalfUp } from "../lib/planner";
@@ -8,6 +9,12 @@ import { clock } from "../lib/presentation";
  * two collapsible sections of the consolidated desktop column.
  */
 export type LayerPart = "all" | "layers" | "start";
+
+/** The layer the demo mission switches on, so the route is seen to follow the terrain. */
+export const DEMO_LAYER: OverlayName = "difficulty";
+/** The layer list after the demo mission loads: the demo layer added once, nothing else changed. */
+export const withDemoLayer = (active: OverlayName[]): OverlayName[] =>
+  active.includes(DEMO_LAYER) ? active : [...active, DEMO_LAYER];
 
 /** Which instrument and spacecraft a layer comes from. Shown as the row's tooltip. */
 const instrumentOf = (id: string) =>
@@ -33,6 +40,14 @@ export function LayerRail({
   const m = useMission(),
     site = m.site!;
   const cell = probe >= 0 ? probe : cellIndexOf(site, m.position);
+
+  // Loading the demo mission switches "Walking difficulty" on. It happens once per load:
+  // the checkbox still turns it off, and stops added by hand never switch it on.
+  useEffect(() => {
+    if (part === "start" || !m.terrainHint) return;
+    if (!active.includes(DEMO_LAYER)) onChange(withDemoLayer(active));
+    m.clearTerrainHint();
+  }, [m.terrainHint]);
 
   // One compact row per layer: the toggle and the name. Source, type and legend are in the tooltip.
   const layerRows = layers.map((l) => (

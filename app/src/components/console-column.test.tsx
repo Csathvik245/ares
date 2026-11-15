@@ -7,7 +7,8 @@ import { describe, expect, it } from "vitest";
 import { MissionContextForTests, type MissionState } from "../lib/MissionContext";
 import { buildCostGrid, envAt, loadSite, planRoute } from "../planner";
 import type { Conditions, Stop } from "../planner";
-import { homeField } from "../lib/planner";
+import { homeField, roundHalfUp } from "../lib/planner";
+import { scienceScore } from "../planner/science";
 import { LayerRail } from "./LayerRail";
 import { MissionPanel, parseElapsed, type MissionPart } from "./MissionPanel";
 
@@ -133,6 +134,20 @@ describe("with the demo mission", () => {
     expect(t).toContain("T+0:21");
     expect(t).toContain("30 min science");
     expect(panel(demoStops.slice(0, 1), "stops")).toContain("<small>1 stop</small>");
+  });
+
+  it("stops: each row shows only 'Science <value>'; 'per oxygen-minute' is in the tooltip", () => {
+    const html = panel(demoStops, "stops");
+    const rows = [...html.matchAll(/<span class="stop-science-score" title="([^"]*)">([^<]*)<\/span>/g)];
+    expect(rows).toHaveLength(demoStops.length);
+    const scores = scienceScore(site, planRoute(site, cost, site.habitat, demoStops), { stops: demoStops });
+    rows.forEach(([, title, shown], i) => {
+      expect(shown).toMatch(/^Science \d(\.\d{1,2})?$/);
+      expect(shown).toBe(`Science ${roundHalfUp(scores[i].science, 2)}`); // the planner's value, not typed in
+      expect(title.startsWith(`${roundHalfUp(scores[i].score, 3).toFixed(3)} per oxygen-minute`)).toBe(true);
+      expect(title).toMatch(/^\d\.\d{3} per oxygen-minute/);
+    });
+    expect(text(html)).not.toContain("per oxygen-minute");
   });
 
   it("budget: the bar and four tiles, in order, with one evidence tag in the header", () => {

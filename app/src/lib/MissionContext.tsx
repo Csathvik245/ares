@@ -39,6 +39,8 @@ function useMissionState() {
   const [skyView, setSkyView] = useState<Float32Array | null>(null);
   const [basemap, setBasemap] = useState<Basemap | null>(null);
   const [viewRequest, setViewRequest] = useState(0);
+  // Set when the demo mission loads: the layer list then switches "Walking difficulty" on, once.
+  const [terrainHint, setTerrainHint] = useState(false);
   const [stops, setStops] = useState<DemoStop[]>([]),
     [demo, setDemo] = useState<DemoStop[]>([]),
     [selected, setSelected] = useState("");
@@ -223,6 +225,7 @@ function useMissionState() {
     edit(demo.map((stop) => ({ ...stop })));
     setSelected("");
     setViewRequest((n) => n + 1);
+    setTerrainHint(true);
   };
   const add = (p: LatLng) => {
     if (emergency) return;
@@ -292,6 +295,8 @@ function useMissionState() {
     stops,
     demo,
     loadDemo,
+    terrainHint,
+    clearTerrainHint: () => setTerrainHint(false),
     viewRequest,
     selected,
     setSelected,

@@ -92,6 +92,11 @@
 [data-theme="mono"] .leaflet-image-layer {
   filter: grayscale(1) contrast(1.05);
 }
+/* Walking difficulty keeps its colours: amber (--caution) = slow ground, red (--nogo) = impassable.
+   In grey it could not be told apart from the photo under it. */
+[data-theme="mono"] .leaflet-image-layer.terrain-layer--difficulty {
+  filter: none;
+}
 /* Light blues in the zone raster become electric blue; see #ds-zone-blue in Map3DToggle.tsx. */
 [data-theme="mono"] .safe-zone {
   filter: url(#ds-zone-blue);

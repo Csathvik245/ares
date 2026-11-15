@@ -18,27 +18,50 @@ import { removeSmallIslands } from "../lib/zoneCleanup";
 import { distanceM } from "../geo";
 import { routeParts, shortStop } from "../lib/presentation";
 import type { Basemap } from "../lib/basemap";
-import { raster, type OverlayName } from "../lib/layers";
+import { layerOpacity, raster, zoneBounds, zoneRaster, type OverlayName } from "../lib/layers";
 export const TREK_LAYER = "Mars_Viking_MDIM21_ClrMosaic_global_232m";
 
-function fitMissionView(map: L.Map, site: Site, stops: Stop[], shelterTarget?: LatLng) {
+/**
+ * What the map view must keep in sight besides the habitat and the stops: the drawn
+ * routes (`paths`: the plan's legs, and in an emergency the way home), the safe-return
+ * zone and, in a "path blocked" emergency, the blocked area.
+ */
+type ViewExtras = {
+  shelterTarget?: LatLng;
+  paths?: LatLng[][];
+  zone?: Uint8Array;
+  blocked?: { at: LatLng; radiusM: number };
+};
+function fitMissionView(map: L.Map, site: Site, stops: Stop[], extras: ViewExtras = {}) {
+  const points: LatLng[] = [site.habitat, ...stops];
+  if (extras.shelterTarget) points.push(extras.shelterTarget);
+  for (const path of extras.paths ?? []) points.push(...path);
+  if (extras.blocked) points.push(...circleOutline(extras.blocked.at, extras.blocked.radiusM));
+  const box = extras.zone ? zoneBounds(site, extras.zone) : null;
+  if (box) points.push({ lat: box.north, lng: box.west }, { lat: box.south, lng: box.east });
   const bounds = L.latLngBounds(
-    [site.habitat, ...stops, ...(shelterTarget ? [shelterTarget] : [])]
+    points
+      .filter((p) => Number.isFinite(p.lat) && Number.isFinite(p.lng))
       .map((p) => [p.lat, p.lng] as [number, number]),
   );
   const size = map.getSize();
-  const padX = Math.max(48, size.x * 0.12);
-  const padY = Math.max(48, size.y * 0.12);
-  // Emergency guidance overlays the map. Keep fitted targets below its actual
-  // bottom edge, including when its text wraps on a tablet.
+  // The zone is an area, so it needs less air around it than a handful of points.
+  const pad = box ? 0.05 : 0.12;
+  const padX = Math.max(48, size.x * pad);
+  const padY = Math.max(48, size.y * pad);
+  // The legend and the emergency guidance lie over the top of the map. Keep everything
+  // fitted below their real bottom edges, including when their text wraps on a tablet.
   const container = map.getContainer();
-  const alert = container.parentElement?.querySelector(".storm-alert");
-  const alertBottom = alert
-    ? alert.getBoundingClientRect().bottom - container.getBoundingClientRect().top + 24
-    : 0;
+  const top = container.getBoundingClientRect().top;
+  const bottomOf = (selector: string, gap: number) => {
+    const rect = container.parentElement?.querySelector(selector)?.getBoundingClientRect();
+    return rect && rect.height > 0 ? rect.bottom - top + gap : 0;
+  };
+  // A stop marker is 34 px tall and centred on its stop, so the gap under the legend is more than half of that.
+  const padTop = Math.max(padY, bottomOf(".map-legend", 28), bottomOf(".storm-alert", 24));
   map.fitBounds(bounds, {
     animate: false,
-    paddingTopLeft: [padX, Math.max(padY, alertBottom)],
+    paddingTopLeft: [padX, Math.min(padTop, size.y * 0.5)],
     paddingBottomRight: [padX, padY],
     maxZoom: 14,
   });
@@ -212,13 +235,19 @@ export function MissionMap({
       // Read the current panel width before fitting, and avoid Leaflet's default
       // resize pan moving the fitted shelter back under the banner or offscreen.
       m.invalidateSize({ pan: false });
-      fitMissionView(m, site, stops, shelter?.target);
+      const legs = plan.legs.map((l) => l.path);
+      fitMissionView(m, site, stops, {
+        shelterTarget: shelter?.target,
+        paths: emergency ? [abort, ...legs] : legs,
+        zone: emergency ? undefined : drawnZone,
+        blocked,
+      });
     };
     fit();
     const resize = new ResizeObserver(fit);
     resize.observe(root.current!);
     return () => resize.disconnect();
-  }, [site, basemap, viewRequest, stops, emergency, shelter?.target]);
+  }, [site, basemap, viewRequest, stops, emergency, shelter?.target, plan, abort, drawnZone, blocked]);
   useEffect(() => {
     const m = map.current;
     if (!m) return;
@@ -227,6 +256,8 @@ export function MissionMap({
       group.clearLayers();
       const b = m.getBounds(),
         size = m.getSize();
+      // Screen pixels between two neighbouring longitude lines (0.01° apart).
+      const pxPerLine = (size.x * 0.01) / Math.max(1e-9, b.getEast() - b.getWest());
       const label = (point: L.LatLng, text: string) =>
         L.marker(point, {
           interactive: false,
@@ -271,6 +302,8 @@ export function MissionMap({
         ).addTo(group);
         const x = m.latLngToContainerPoint([b.getSouth(), lng]).x;
         if (
+          // Zoomed out, the labels would run into each other: name every second line.
+          (pxPerLine >= 56 || Math.round(lng * 100) % 2 === 0) &&
           x >
             Math.max(
               80,
@@ -311,10 +344,10 @@ export function MissionMap({
         url = raster(site, cost, kind);
         cache.current.set(kind, url);
       }
-      L.imageOverlay(url, bounds, { opacity: 0.8 }).addTo(group);
+      L.imageOverlay(url, bounds, { opacity: layerOpacity(kind), className: `terrain-layer terrain-layer--${kind}` }).addTo(group);
     });
     if (!emergency)
-      L.imageOverlay(raster(site, cost, "zone", drawnZone), bounds, {
+      L.imageOverlay(zoneRaster(site, drawnZone), bounds, {
         className: "safe-zone",
       }).addTo(group);
     return () => {
@@ -368,6 +401,12 @@ export function MissionMap({
           ) < 60;
       const dx = closeToHabitat ? 34 : 0,
         dy = closeToHabitat ? 26 : 0;
+      // The habitat's label sits about 36 px above the habitat. A stop to its left at
+      // that height would write its own label straight across it.
+      const at = m.latLngToContainerPoint([s.lat, s.lng]),
+        hab = m.latLngToContainerPoint([site.habitat.lat, site.habitat.lng]);
+      const overHabitatLabel =
+        !closeToHabitat && at.x < hab.x && hab.x - at.x < 320 && Math.abs(at.y - (hab.y - 36)) < 28;
       const mk = marker(
         s,
         String(i + 1).padStart(2, "0"),
@@ -400,8 +439,11 @@ export function MissionMap({
         }),
         {
           permanent: true,
-          direction: closeToHabitat ? "bottom" : "right",
-          offset: closeToHabitat ? [dx, dy + 22] : [18, 0],
+          // Beside the marker, also when the marker is nudged away from the habitat:
+          // a label under it lands on the next stop's label when the map is zoomed out.
+          // It goes to the left when the habitat's own label is in the way on the right.
+          direction: overHabitatLabel ? "left" : "right",
+          offset: overHabitatLabel ? [-18, 0] : closeToHabitat ? [dx + 18, dy] : [18, 0],
           className: "stop-label",
         },
       );
