@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import { MapLegend, legendItems } from "./PlanChrome";
 import { circleOutline } from "../lib/emergency-run";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
@@ -82,6 +83,7 @@ export function MissionMap({
   abort,
   shelter,
   blocked,
+  toolbar,
   onAdd,
   onMove,
   onSelect,
@@ -108,6 +110,8 @@ export function MissionMap({
   shelter?: Extract<ShelterCheck, { checked: true }>;
   /** The impassable area of a "path blocked" emergency, drawn as a dashed outline. */
   blocked?: { at: LatLng; radiusM: number };
+  /** Extra buttons for the map toolbar, placed between the zoom buttons and the north arrow. */
+  toolbar?: ReactNode;
   onAdd: (p: LatLng) => void;
   onMove: (id: string, p: LatLng) => void;
   onSelect: (id: string) => void;
@@ -137,7 +141,7 @@ export function MissionMap({
       crs: L.CRS.EPSG4326,
       minZoom: 8,
       maxZoom: 17,
-      zoomControl: true,
+      zoomControl: false, // zoom lives in the map toolbar (see the JSX below)
       zoomSnap: 0.1,
     });
     map.current = m;
@@ -530,6 +534,15 @@ export function MissionMap({
       g.remove();
     };
   }, [basemap, position, abort]);
+  const hasZone = useMemo(() => zone.some((inside) => inside === 1), [zone]);
+  const legend = legendItems({
+    route: plan.legs.length > 0,
+    safeZone: hasZone,
+    sampleSites: site.pois.length > 0,
+    emergency,
+    shelter: !!shelter,
+    blocked: !!blocked,
+  });
   return (
     <div className={`map-shell ${emergency ? "is-emergency" : ""}`}>
       <div
@@ -537,25 +550,21 @@ export function MissionMap({
         className="mission-map"
         aria-label="Jezero map. Click to add stops."
       />
-      <div className="map-legend">
-        <span>
-          <em className="legend-glyph">―</em> Planned route
+      {/* The legend lists only what is on the map now, behind a small chip. */}
+      <MapLegend items={legend} />
+      {/* One vertical toolbar on the right edge: zoom, then whatever the page adds (layers, 3D), then north. */}
+      <div className="map-toolbar" role="toolbar" aria-label="Map controls" aria-orientation="vertical">
+        <button type="button" className="map-tool" aria-label="Zoom in" title="Zoom in" onClick={() => map.current?.zoomIn()}>
+          +
+        </button>
+        <button type="button" className="map-tool" aria-label="Zoom out" title="Zoom out" onClick={() => map.current?.zoomOut()}>
+          −
+        </button>
+        {toolbar}
+        <span className="map-tool map-tool--north" aria-label="North is up" title="North is up">
+          ↑<b>N</b>
         </span>
-        <span>
-          <em className="legend-glyph">―</em> Edge of safe return
-        </span>
-        <span>
-          <em className="legend-glyph">●</em> Rover sample site
-        </span>
-        {shelter && (
-          <span className="shelter-legend">
-            <em className="legend-glyph">―</em> Shelter option
-          </span>
-        )}
       </div>
-      <span className="map-north" aria-label="North">
-        ↑<b>N</b>
-      </span>
       <div className="map-corners" aria-hidden="true" />
       {hover && (
         // Flips to the other side of the pointer near the right and bottom edges so it stays on the map.

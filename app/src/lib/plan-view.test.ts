@@ -146,16 +146,19 @@ describe("header", () => {
   const css = read("../styles/theme-deep-space.css");
   const app = read("../App.tsx");
 
-  it("drops '· Surface Traverse Software' below 1600 px", () => {
-    expect(app).toContain('Jezero delta front<span className="brand-context-long"> · Surface Traverse Software</span>');
-    expect(css).toMatch(/@media \(max-width: 1599px\) \{\s*[^{}]*\.brand-context-long \{\s*display: none;/);
+  it("no longer carries the mission name or a second pill: the header is logo, tabs, one pill, Run the demo, View", () => {
+    const start = app.indexOf('<header className="console-header">');
+    const header = app.slice(start, app.indexOf("</header>", start));
+    expect(header).not.toContain("Surface Traverse Software");
+    expect(header).not.toContain("brand-context");
+    expect(header).not.toContain("return-status");
+    expect(header).toContain("<ViewMenu items={viewItems} />");
   });
 
-  it("the status pills cannot shrink or wrap, and only the reason after 'RETURN HOME' may shorten", () => {
+  it("the one status pill cannot shrink or wrap; in an emergency it names the route to follow, with the EVA status in its tooltip", () => {
     expect(css).toMatch(/\.header-actions > \.status \{\s*flex-shrink: 0;\s*white-space: nowrap;/);
-    expect(css).toMatch(/\.return-status > b \{\s*flex: none;[^}]*white-space: nowrap;/);
-    expect(app).toMatch(/<b>\{m\.replanned \? "NEW PLAN" : "RETURN HOME"\} · \{abort\.status\}<\/b>/);
-    expect(app).toContain('className="return-reason"');
+    expect(app).toMatch(/const headerPillText = emergency && abort \? `\$\{m\.replanned \? "NEW PLAN" : "RETURN HOME"\} · \$\{abort\.status\}`/);
+    expect(app).toContain("title={headerPillTitle}");
   });
 });
 

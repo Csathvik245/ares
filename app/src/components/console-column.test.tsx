@@ -188,8 +188,8 @@ describe("with the demo mission", () => {
     expect(html.match(/<select/g)).toHaveLength(1);
     expect([...html.matchAll(/<option value="([^"]+)"[^>]*>([^<]+)<\/option>/g)].map((m) => `${m[1]}=${m[2]}`)).toEqual([
       "storm=Dust storm",
-      "spe=Solar particle event",
-      "oxygen-loss=Oxygen loss",
+      "spe=Solar radiation storm (SPE)",
+      "oxygen-loss=Oxygen leak",
       "slow-walk=Slower walking",
       "blocked-path=Path blocked",
     ]);
@@ -199,8 +199,9 @@ describe("with the demo mission", () => {
     expect(text(html)).toContain("Demo: storm at T+1:16");
     expect(text(html)).toContain("Demo: SPE at Wildcat Ridge");
     expect(html).not.toContain("disabled");
-    // The old row of seven buttons is gone.
-    expect(html.match(/<button/g)).toHaveLength(3);
+    // The old row of seven buttons is gone: Trigger, the two demo links, and the (?) that explains SPE.
+    expect(html.match(/<button/g)).toHaveLength(4);
+    expect(html).toContain('aria-label="SPE: solar particle event: a burst of radiation"');
   });
 });
 

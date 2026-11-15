@@ -21,6 +21,7 @@ import {
 import { scienceScore, suggestStops } from "../planner/science";
 import { EVIDENCE_LABELS } from "../lib/evidenceLabels";
 import { ReliabilityPanel } from "./ReliabilityPanel";
+import { Jargon } from "./PlanChrome";
 import { SCENARIO_BUTTONS, type UiEmergencyKind } from "../lib/emergency-run";
 
 /**
@@ -30,12 +31,18 @@ import { SCENARIO_BUTTONS, type UiEmergencyKind } from "../lib/emergency-run";
  */
 export type MissionPart = "all" | "status" | "stops" | "budget" | "reliability" | "emergency";
 
-/** The emergencies in the order the menu shows them. Labels for the re-planning ones come from emergency-run. */
-const EMERGENCY_OPTIONS: { kind: UiEmergencyKind; label: string }[] = [
-  { kind: "storm", label: "Dust storm" },
-  { kind: "spe", label: "Solar particle event" },
-  ...SCENARIO_BUTTONS,
-];
+/** Plain names for the emergency menu. The official term (SPE) stays visible in brackets. */
+const PLAIN_EMERGENCY_LABELS: Record<UiEmergencyKind, string> = {
+  storm: "Dust storm",
+  spe: "Solar radiation storm (SPE)",
+  "oxygen-loss": "Oxygen leak",
+  "slow-walk": "Slower walking",
+  "blocked-path": "Path blocked",
+};
+/** The emergencies in the order the menu shows them. */
+const EMERGENCY_OPTIONS: { kind: UiEmergencyKind; label: string }[] = (
+  ["storm", "spe", ...SCENARIO_BUTTONS.map((b) => b.kind)] as UiEmergencyKind[]
+).map((kind) => ({ kind, label: PLAIN_EMERGENCY_LABELS[kind] }));
 
 /** T+1:16 of the demo mission: the storm preset used in the video. */
 const DEMO_STORM_SEC = 4560;
@@ -121,7 +128,10 @@ export function MissionPanel({
   const statusSection = (
       <section className="rail-status">
         <div className="panel-heading">
-          <span>{m.replanned ? "EVA" : m.emergency ? "Return home" : "Mission status"}</span>
+          <span>
+            {m.replanned ? "EVA" : m.emergency ? "Return home" : "Mission status"}
+            {hasRoute && <Jargon term="status" />}
+          </span>
           {hasRoute && <small>{m.replanned ? "RE-PLANNED" : m.emergency?.kind === "spe" ? EVIDENCE_LABELS.spe : EVIDENCE_LABELS.route}</small>}
         </div>
         {!hasRoute ? (
@@ -200,7 +210,7 @@ export function MissionPanel({
         </div>
         <p className="budget-key">
           <span>Used <b>{formatMinutes(used)}</b></span>
-          <span>Reserve target <b>{formatMinutes(budget.reserveSec)}</b></span>
+          <span>Reserve target <b>{formatMinutes(budget.reserveSec)}</b><Jargon term="reserve" /></span>
         </p>
         <dl className="telemetry-grid stat-tiles">
           <div>
@@ -443,7 +453,13 @@ export function MissionPanel({
             </button>
           )}
         </div>
-        <p className="emergency-hint">{emergencyHint}</p>
+        <p className="emergency-hint">
+          {emergencyHint}{" "}
+          <span className="jargon-term">
+            SPE
+            <Jargon term="SPE" />
+          </span>
+        </p>
         <div className="emergency-demos">
           <button
             className="text-button storm-preset"

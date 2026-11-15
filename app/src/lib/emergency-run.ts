@@ -34,8 +34,8 @@ export const SCENARIO_BUTTONS: { kind: ScenarioKind; label: string }[] = [
 /** Words for each emergency: the alert title, the short timeline label, and one line of context. */
 export const EMERGENCY_TEXT: Record<UiEmergencyKind, { title: string; short: string; note: string }> = {
   storm: { title: "DUST STORM", short: "Storm", note: "Low visibility and visor dust slow walking." },
-  spe: { title: "SOLAR PARTICLE EVENT", short: "SPE", note: "Illustrative SPE dose rate ×30." },
-  "oxygen-loss": { title: "OXYGEN LOSS", short: "O₂ loss", note: "Illustrative: 25% of the oxygen left is lost at once." },
+  spe: { title: "SOLAR RADIATION STORM (SPE)", short: "SPE", note: "Illustrative SPE dose rate ×30." },
+  "oxygen-loss": { title: "OXYGEN LEAK", short: "O₂ leak", note: "Illustrative: 25% of the oxygen left is lost at once." },
   "slow-walk": { title: "SLOWER WALKING", short: "Slow walk", note: "Illustrative: walking speed drops to 70% of normal." },
   "blocked-path": { title: "PATH BLOCKED", short: "Blocked", note: "Illustrative: ground within 75 m of a point ahead is impassable." },
 };

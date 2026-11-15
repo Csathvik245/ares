@@ -1,0 +1,615 @@
+/*
+ * Left sidebar polish (desktop column, Mono theme variables only).
+ * Visual only: the same sections, information, numbers, buttons and order.
+ *
+ * ONE SYSTEM
+ *   padding 16 px · 12 px between items · a hairline between sections · radius 6 px
+ * FOUR TYPE ROLES (nothing in between)
+ *   title    12 px, uppercase, letter-spaced, muted          (section titles)
+ *   value    large mono                                      (status word, 49%, tile values)
+ *   body     13 px sans, normal text colour                  (reasons, stop names, links)
+ *   meta     11 px mono, muted                               (T+ times, science minutes, evidence chips, hints)
+ *
+ * Selectors start with "html[data-theme] .console-app .telemetry-col" so they win over
+ * the earlier sidebar rules without editing them. A few existing rules use !important
+ * for font sizes; those few are matched here.
+ */
+
+html[data-theme] .console-app .telemetry-col {
+  --sb-pad: 16px;
+  --sb-gap: 12px;
+  --sb-radius: 6px;
+  --sb-hover: rgba(255, 255, 255, 0.05);
+  --sb-ease: 150ms ease;
+}
+
+/* ---------- 1. One system: sections ---------- */
+html[data-theme] .console-app .telemetry-col .telemetry-scroll {
+  /* room under the last tiles, so nothing sits against the pinned emergency block */
+  padding-bottom: var(--sb-pad);
+}
+html[data-theme] .console-app .telemetry-col .telemetry-scroll > section,
+html[data-theme] .console-app .telemetry-col .telemetry-scroll > details.collapsible {
+  padding: var(--sb-pad);
+  border-top: 0;
+  border-bottom: 1px solid var(--hairline);
+}
+html[data-theme] .console-app .telemetry-col .telemetry-scroll > details.collapsible {
+  padding-top: 0;
+  padding-bottom: 0;
+}
+html[data-theme] .console-app .telemetry-col > .emergency-controls {
+  padding: var(--sb-gap) var(--sb-pad);
+  border-top: 1px solid var(--hairline);
+  background: var(--void);
+}
+
+/* ---------- 2. Type: section title + right-aligned meta chip ---------- */
+html[data-theme] .console-app .telemetry-col .panel-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin: 0 0 var(--sb-gap);
+  min-height: 20px;
+}
+html[data-theme] .console-app .telemetry-col .panel-heading > span {
+  display: inline-flex;
+  align-items: center;
+  color: var(--muted);
+  font: 600 12px/16px var(--font-body);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+html[data-theme] .console-app .telemetry-col .panel-heading small {
+  flex: 0 1 auto;
+  min-width: 0;
+  padding: 2px 8px;
+  overflow: hidden;
+  border: 1px solid var(--hairline);
+  border-radius: var(--sb-radius);
+  color: var(--muted);
+  font: 400 11px/14px var(--font-mono);
+  letter-spacing: 0;
+  text-overflow: ellipsis;
+  text-transform: none;
+  white-space: nowrap;
+}
+/* The (?) keeps its sentence-case tooltip inside an uppercase title. */
+html[data-theme] .console-app .telemetry-col .panel-heading .jargon__tip {
+  letter-spacing: 0;
+  text-transform: none;
+  white-space: normal;
+}
+
+/* ---------- Status ---------- */
+html[data-theme] .console-app .telemetry-col .status-line {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+  margin: 0 0 8px;
+}
+html[data-theme] .console-app .telemetry-col .large-status {
+  font: 700 28px/32px var(--font-mono);
+  letter-spacing: 0;
+}
+html[data-theme] .console-app .telemetry-col .status-descriptor {
+  color: var(--muted);
+  font: 400 11px/16px var(--font-mono);
+}
+html[data-theme] .console-app .telemetry-col .rail-status p {
+  margin: 0;
+  color: var(--text);
+  font: 400 13px/20px var(--font-body);
+}
+html[data-theme] .console-app .telemetry-col .rail-status .status-reason {
+  white-space: normal;
+}
+html[data-theme] .console-app .telemetry-col .rail-status .return-readout {
+  margin-top: 4px;
+  color: var(--muted);
+  font: 400 11px/16px var(--font-mono);
+}
+html[data-theme] .console-app .telemetry-col .more-reasons {
+  color: var(--muted);
+  font: 400 11px/16px var(--font-mono);
+}
+html[data-theme] .console-app .telemetry-col .rail-status details {
+  margin-top: 8px;
+  border: 0;
+  padding: 0;
+}
+html[data-theme] .console-app .telemetry-col .rail-status summary {
+  display: inline-flex;
+  align-items: center;
+  min-height: 20px;
+  padding: 0 4px;
+  margin-left: -4px;
+  border-radius: var(--sb-radius);
+  color: var(--muted);
+  font: 400 11px/16px var(--font-mono);
+  cursor: pointer;
+  transition: background-color var(--sb-ease), color var(--sb-ease);
+}
+html[data-theme] .console-app .telemetry-col .rail-status summary:hover {
+  background: var(--sb-hover);
+  color: var(--text);
+}
+html[data-theme] .console-app .telemetry-col .rail-status ul {
+  margin: 8px 0 0;
+  padding-left: 16px;
+}
+html[data-theme] .console-app .telemetry-col .rail-status li {
+  color: var(--text);
+  font: 400 13px/20px var(--font-body);
+}
+
+/* ---------- 3. Buttons: one height (36 px), one radius ---------- */
+html[data-theme] .console-app .telemetry-col button:not(.text-button, .jargon__button, .info-tip__button),
+html[data-theme] .console-app .telemetry-col .emergency-row select,
+html[data-theme] .console-app .telemetry-col .emergency-row input,
+html[data-theme] .console-app .telemetry-col .stop-editor input {
+  min-height: 36px;
+  border-radius: var(--sb-radius);
+  transition: background-color var(--sb-ease), border-color var(--sb-ease), color var(--sb-ease);
+}
+html[data-theme] .console-app .telemetry-col .mission-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr auto;
+  gap: 8px;
+  margin: 0 0 var(--sb-gap);
+}
+html[data-theme] .console-app .telemetry-col .mission-actions button {
+  padding: 0 12px;
+  font: 500 13px/20px var(--font-body);
+  letter-spacing: 0;
+  white-space: nowrap;
+}
+/* Load demo: the filled, primary action. */
+html[data-theme] .console-app .telemetry-col .mission-actions button:nth-child(1):not(:disabled) {
+  background: var(--ds-blue-fill, var(--safe));
+  border: 1px solid var(--ds-blue-fill, var(--safe));
+  color: #ffffff;
+  font-weight: 600;
+}
+html[data-theme] .console-app .telemetry-col .mission-actions button:nth-child(1):not(:disabled):hover {
+  background: var(--safe);
+  border-color: var(--safe);
+  color: #ffffff;
+}
+/* Suggest stops: outlined. */
+html[data-theme] .console-app .telemetry-col .mission-actions button:nth-child(2) {
+  background: transparent;
+  border: 1px solid var(--hairline);
+  color: var(--text);
+}
+html[data-theme] .console-app .telemetry-col .mission-actions button:nth-child(2):not(:disabled):hover {
+  background: var(--sb-hover);
+  border-color: var(--safe);
+}
+/* Clear: a quiet text button. */
+html[data-theme] .console-app .telemetry-col .mission-actions button:nth-child(3) {
+  background: transparent;
+  border: 1px solid transparent;
+  color: var(--muted);
+}
+html[data-theme] .console-app .telemetry-col .mission-actions button:nth-child(3):not(:disabled):hover {
+  background: var(--sb-hover);
+  border-color: transparent;
+  color: var(--text);
+}
+html[data-theme] .console-app .telemetry-col .mission-actions button:disabled {
+  background: transparent;
+  border-color: var(--ds-line-soft, var(--hairline));
+  color: var(--ds-faint, var(--muted));
+  cursor: not-allowed;
+}
+html[data-theme] .console-app .telemetry-col .mission-actions button:nth-child(3):disabled {
+  border-color: transparent;
+}
+
+/* ---------- 4. Stop rows ---------- */
+html[data-theme] .console-app .telemetry-col .stop-list {
+  display: grid;
+  gap: 4px;
+  margin: 0 -8px; /* rows reach a little past the text, so the hover background has air */
+}
+html[data-theme] .console-app .telemetry-col .stop-list > li {
+  position: relative;
+  grid-template-columns: 28px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 4px 12px;
+  padding: 8px;
+  border: 0;
+  border-radius: var(--sb-radius);
+  background: transparent;
+  box-shadow: none;
+  transition: background-color var(--sb-ease);
+}
+html[data-theme] .console-app .telemetry-col .stop-list > li:hover {
+  background: var(--sb-hover);
+}
+html[data-theme] .console-app .telemetry-col .stop-list > li.is-selected {
+  background: var(--console-2);
+}
+/* Selected row: a thin accent bar on the left. */
+html[data-theme] .console-app .telemetry-col .stop-list > li.is-selected::before {
+  content: "";
+  position: absolute;
+  top: 8px;
+  bottom: 8px;
+  left: 0;
+  width: 2px;
+  border-radius: 1px;
+  background: var(--safe);
+}
+html[data-theme] .console-app .telemetry-col .stop-number {
+  width: 28px;
+  height: 28px;
+  border: 1px solid var(--hairline);
+  border-radius: var(--sb-radius);
+  color: var(--text);
+  font: 500 11px/1 var(--font-mono);
+}
+/* Name on the first line; ONE meta line under it: "T+0:21 · 30 min science · Science 0.23". */
+html[data-theme] .console-app .telemetry-col .stop-summary {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0;
+  min-width: 0;
+}
+html[data-theme] .console-app .telemetry-col .stop-name {
+  flex: 0 0 100%;
+  min-height: 20px;
+  color: var(--text);
+  font: 500 13px/20px var(--font-body) !important;
+  letter-spacing: 0;
+}
+html[data-theme] .console-app .telemetry-col .stop-name:hover {
+  color: var(--safe);
+}
+html[data-theme] .console-app .telemetry-col .stop-arrival,
+html[data-theme] .console-app .telemetry-col .stop-arrival span,
+html[data-theme] .console-app .telemetry-col .stop-science-score {
+  display: inline;
+  overflow: visible;
+  color: var(--muted);
+  font: 400 11px/16px var(--font-mono);
+  white-space: nowrap;
+}
+html[data-theme] .console-app .telemetry-col .stop-science-score::before {
+  content: "\00a0· ";
+}
+html[data-theme] .console-app .telemetry-col .edit-stop {
+  min-height: 28px;
+  padding: 0 8px;
+  border-radius: var(--sb-radius);
+  color: var(--muted) !important;
+  font: 400 11px/16px var(--font-mono) !important;
+  transition: background-color var(--sb-ease), color var(--sb-ease);
+}
+html[data-theme] .console-app .telemetry-col .edit-stop:not(:disabled):hover {
+  background: var(--sb-hover);
+  color: var(--text) !important;
+}
+
+/* ---------- 5. Edit form, inside the row's card ---------- */
+html[data-theme] .console-app .telemetry-col .stop-editor {
+  grid-column: 1 / -1;
+  display: grid;
+  gap: 8px;
+  margin-top: 4px;
+  padding: var(--sb-gap) 0 4px;
+  border-top: 1px solid var(--hairline);
+}
+html[data-theme] .console-app .telemetry-col .stop-editor label {
+  display: grid;
+  grid-template-columns: 112px minmax(0, 1fr); /* the same label column for every field */
+  align-items: center;
+  gap: 12px;
+  color: var(--muted);
+  font: 400 11px/16px var(--font-mono);
+}
+html[data-theme] .console-app .telemetry-col .stop-editor input {
+  width: 100%;
+  padding: 0 8px;
+  background: var(--void);
+  border: 1px solid var(--hairline);
+  color: var(--text);
+  font: 400 13px/20px var(--font-body);
+}
+html[data-theme] .console-app .telemetry-col .stop-editor input[type="number"] {
+  font-family: var(--font-mono);
+}
+html[data-theme] .console-app .telemetry-col .stop-editor input:hover {
+  border-color: var(--muted);
+}
+html[data-theme] .console-app .telemetry-col .stop-editor input:focus-visible {
+  border-color: var(--safe);
+}
+html[data-theme] .console-app .telemetry-col .stop-editor > div {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 8px;
+  margin-top: 4px;
+}
+html[data-theme] .console-app .telemetry-col .stop-editor button {
+  min-height: 32px;
+  padding: 0 8px;
+  background: transparent;
+  border: 1px solid var(--hairline);
+  color: var(--text);
+  font: 400 11px/16px var(--font-mono);
+}
+html[data-theme] .console-app .telemetry-col .stop-editor button:not(:disabled):hover {
+  background: var(--sb-hover);
+  border-color: var(--safe);
+}
+html[data-theme] .console-app .telemetry-col .stop-editor button:disabled {
+  color: var(--ds-faint, var(--muted));
+  cursor: not-allowed;
+}
+/* Delete, the last of the three, in the danger colour. */
+html[data-theme] .console-app .telemetry-col .stop-editor > div > button:last-child {
+  border-color: var(--nogo);
+  color: var(--nogo);
+}
+html[data-theme] .console-app .telemetry-col .stop-editor > div > button:last-child:hover {
+  background: rgba(255, 77, 90, 0.12);
+  border-color: var(--nogo);
+  color: var(--nogo);
+}
+
+/* Suggestions under the list keep the same card look. */
+html[data-theme] .console-app .telemetry-col .stop-suggestions {
+  display: grid;
+  gap: 8px;
+  margin: var(--sb-gap) 0 0;
+  padding: 0;
+  list-style: none;
+}
+html[data-theme] .console-app .telemetry-col .stop-suggestions li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  color: var(--muted);
+  font: 400 11px/16px var(--font-mono);
+}
+
+/* ---------- 6. Oxygen ---------- */
+html[data-theme] .console-app .telemetry-col .oxygen-headline {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  margin: 0 0 var(--sb-gap);
+}
+html[data-theme] .console-app .telemetry-col .oxygen-headline strong {
+  font: 700 28px/32px var(--font-mono);
+}
+html[data-theme] .console-app .telemetry-col .oxygen-headline p {
+  margin: 0;
+  color: var(--text);
+  font: 400 13px/20px var(--font-body);
+}
+html[data-theme] .console-app .telemetry-col .budget-bar {
+  height: 10px;
+  padding: 0;
+  gap: 2px;
+  overflow: hidden;
+  border-radius: 5px; /* rounded ends */
+  background: var(--ds-track, var(--console-2));
+}
+html[data-theme] .console-app .telemetry-col .budget-bar span {
+  height: 10px;
+}
+html[data-theme] .console-app .telemetry-col .budget-key {
+  margin: 8px 0 0;
+  color: var(--muted);
+  font: 400 11px/16px var(--font-mono);
+}
+html[data-theme] .console-app .telemetry-col .budget-key b {
+  color: var(--text);
+  font: 500 11px/16px var(--font-mono);
+}
+html[data-theme] .console-app .telemetry-col .stat-tiles {
+  grid-template-columns: 1fr 1fr;
+  grid-auto-rows: 1fr; /* equal heights */
+  gap: 8px;
+  margin: var(--sb-gap) 0 0;
+}
+html[data-theme] .console-app .telemetry-col .stat-tiles > div {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  min-height: 72px;
+  padding: 8px 12px;
+  border: 1px solid var(--hairline);
+  border-radius: var(--sb-radius);
+  background: transparent;
+}
+html[data-theme] .console-app .telemetry-col .stat-tiles dt {
+  color: var(--muted);
+  font: 400 11px/16px var(--font-mono);
+}
+html[data-theme] .console-app .telemetry-col .stat-tiles dd {
+  margin: 4px 0 0;
+  font: 600 18px/24px var(--font-mono);
+}
+html[data-theme] .console-app .telemetry-col .stat-tiles small {
+  margin-top: 2px;
+  color: var(--muted);
+  font: 400 11px/16px var(--font-mono);
+}
+
+/* ---------- More details ---------- */
+html[data-theme] .console-app .telemetry-col .telemetry-scroll > details.collapsible > summary {
+  min-height: 44px;
+  padding: 0;
+  color: var(--muted);
+  font: 600 12px/16px var(--font-body);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  transition: color var(--sb-ease);
+}
+html[data-theme] .console-app .telemetry-col .telemetry-scroll > details.collapsible > summary:hover {
+  color: var(--text);
+}
+html[data-theme] .console-app .telemetry-col .more-details > summary small {
+  color: var(--muted);
+  font: 400 11px/16px var(--font-mono);
+  letter-spacing: 0;
+  text-transform: none;
+}
+html[data-theme] .console-app .telemetry-col .more-details-body {
+  padding-bottom: var(--sb-gap);
+}
+html[data-theme] .console-app .telemetry-col .more-details-body > details > summary {
+  min-height: 36px;
+  color: var(--text);
+  font: 400 13px/20px var(--font-body);
+  letter-spacing: 0;
+  text-transform: none;
+}
+html[data-theme] .console-app .telemetry-col .more-details-body > details > summary small {
+  color: var(--muted);
+  font: 400 11px/16px var(--font-mono);
+}
+html[data-theme] .console-app .telemetry-col .layer-row {
+  min-height: 32px;
+  padding: 0 8px;
+  margin: 0 -8px;
+  border-radius: var(--sb-radius);
+  font: 400 13px/20px var(--font-body);
+  transition: background-color var(--sb-ease);
+}
+html[data-theme] .console-app .telemetry-col .layer-row:hover {
+  background: var(--sb-hover);
+}
+html[data-theme] .console-app .telemetry-col .start-stepper button {
+  width: 36px;
+}
+
+/* ---------- 7. Emergency block: compact, never over content ---------- */
+html[data-theme] .console-app .telemetry-col > .emergency-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 12px;
+}
+html[data-theme] .console-app .telemetry-col > .emergency-controls > .panel-heading,
+html[data-theme] .console-app .telemetry-col > .emergency-controls > .emergency-row {
+  flex: 0 0 100%;
+  margin: 0;
+}
+html[data-theme] .console-app .telemetry-col > .emergency-controls > .panel-heading {
+  margin-bottom: 4px;
+}
+html[data-theme] .console-app .telemetry-col .emergency-row {
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+html[data-theme] .console-app .telemetry-col .emergency-row select,
+html[data-theme] .console-app .telemetry-col .emergency-row input {
+  padding: 0 8px;
+  background: var(--void);
+  border: 1px solid var(--hairline);
+  color: var(--text);
+  font: 400 13px/20px var(--font-body);
+}
+html[data-theme] .console-app .telemetry-col .emergency-time {
+  color: var(--muted);
+  font: 400 11px/16px var(--font-mono);
+}
+html[data-theme] .console-app .telemetry-col .emergency-time input {
+  font-family: var(--font-mono);
+}
+/* Trigger keeps its red tone, as an outline. */
+html[data-theme] .console-app .telemetry-col .emergency-controls .emergency-trigger {
+  padding: 0 16px;
+  background: transparent;
+  border: 1px solid var(--nogo);
+  color: var(--nogo);
+  font: 600 13px/20px var(--font-body);
+  letter-spacing: 0;
+}
+html[data-theme] .console-app .telemetry-col .emergency-controls .emergency-trigger:not(:disabled):hover {
+  background: rgba(255, 77, 90, 0.12);
+  border-color: var(--nogo);
+  color: var(--nogo);
+}
+html[data-theme] .console-app .telemetry-col .emergency-controls .emergency-trigger:disabled {
+  border-color: var(--ds-line-soft, var(--hairline));
+  color: var(--ds-faint, var(--muted));
+}
+/* Hint and demo links share one small line (they wrap together when the column is narrow). */
+html[data-theme] .console-app .telemetry-col .emergency-hint {
+  flex: 1 1 auto;
+  margin: 0;
+  color: var(--muted);
+  font: 400 11px/16px var(--font-mono);
+}
+html[data-theme] .console-app .telemetry-col .emergency-demos {
+  flex: 0 1 auto;
+  gap: 4px 12px;
+  margin: 0;
+}
+html[data-theme] .console-app .telemetry-col .emergency-demos .text-button {
+  min-height: 20px;
+  color: var(--text);
+  font: 400 11px/16px var(--font-mono);
+  text-underline-offset: 3px;
+  transition: color var(--sb-ease);
+}
+html[data-theme] .console-app .telemetry-col .emergency-demos .text-button:not(:disabled):hover {
+  color: var(--safe);
+}
+
+/* ---------- 8. Polish: consistent (?) size, focus rings, reduced motion ---------- */
+html[data-theme] .console-app .telemetry-col .jargon__button {
+  width: 16px;
+  height: 16px;
+  font-size: 10px;
+}
+html[data-theme] .console-app .telemetry-col :is(button, summary, select, input, a):focus-visible {
+  outline: 2px solid var(--safe);
+  outline-offset: 2px;
+}
+@media (prefers-reduced-motion: reduce) {
+  html[data-theme] .console-app .telemetry-col *,
+  html[data-theme] .console-app .telemetry-col *::before {
+    transition: none !important;
+  }
+}
+
+/* ---------- Fit: a little tighter, so more of the column shows at 1440 x 900 ---------- */
+html[data-theme] .console-app .telemetry-col .stop-list > li {
+  padding: 6px 8px;
+}
+html[data-theme] .console-app .telemetry-col .stat-tiles > div {
+  min-height: 64px;
+  padding: 8px 12px;
+}
+html[data-theme] .console-app .telemetry-col .stat-tiles dd {
+  margin: 2px 0 0;
+}
+/* The "Planner reasons" expander keeps a small arrow that turns when it is open. */
+html[data-theme] .console-app .telemetry-col .rail-status summary {
+  list-style: none;
+}
+html[data-theme] .console-app .telemetry-col .rail-status summary::-webkit-details-marker {
+  display: none;
+}
+html[data-theme] .console-app .telemetry-col .rail-status summary::before {
+  content: "▸";
+  display: inline-block;
+  margin-right: 6px;
+  transition: transform var(--sb-ease);
+}
+html[data-theme] .console-app .telemetry-col .rail-status details[open] > summary::before {
+  transform: rotate(90deg);
+}

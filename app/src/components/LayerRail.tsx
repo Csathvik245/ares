@@ -6,9 +6,10 @@ import { clock } from "../lib/presentation";
 
 /**
  * "all" is the classic left rail (tablet, classic theme). "layers" and "start" are the
- * two collapsible sections of the consolidated desktop column.
+ * two collapsible sections of the consolidated desktop column. "list" is the bare list of
+ * layer rows, for the map toolbar's Layers popover.
  */
-export type LayerPart = "all" | "layers" | "start";
+export type LayerPart = "all" | "layers" | "start" | "list";
 
 /** The layer the demo mission switches on, so the route is seen to follow the terrain. */
 export const DEMO_LAYER: OverlayName = "difficulty";
@@ -44,7 +45,7 @@ export function LayerRail({
   // Loading the demo mission switches "Walking difficulty" on. It happens once per load:
   // the checkbox still turns it off, and stops added by hand never switch it on.
   useEffect(() => {
-    if (part === "start" || !m.terrainHint) return;
+    if (part === "start" || part === "list" || !m.terrainHint) return;
     if (!active.includes(DEMO_LAYER)) onChange(withDemoLayer(active));
     m.clearTerrainHint();
   }, [m.terrainHint]);
@@ -100,6 +101,14 @@ export function LayerRail({
       </button>
     </div>
   );
+
+  // Just the rows, for the Layers popover on the map toolbar.
+  if (part === "list")
+    return (
+      <div className="layer-list" aria-label="Terrain layers">
+        {layerRows}
+      </div>
+    );
 
   if (part === "layers")
     return (

@@ -1,8 +1,9 @@
 import { useMission } from "../lib/MissionContext";
 import { EMERGENCY_TEXT } from "../lib/emergency-run";
 import { clock, shortStop } from "../lib/presentation";
-import { formatDose, formatMet, roundHalfUp, SPE_IS_ILLUSTRATIVE, SPE_MEASURED_2017_PEAK_MULTIPLIER } from "../lib/planner";
-export function FlightTimeline() {
+import { formatDose, formatLmst, formatMet, roundHalfUp, SOL_HOURS, SPE_IS_ILLUSTRATIVE, SPE_MEASURED_2017_PEAK_MULTIPLIER } from "../lib/planner";
+import { InfoTip, Jargon } from "./PlanChrome";
+export function FlightTimeline({ profileOn, onToggleProfile }: { profileOn?: boolean; onToggleProfile?: () => void } = {}) {
   const m = useMission(),
     plan = m.plan!;
   const duration = Math.max(
@@ -36,14 +37,40 @@ export function FlightTimeline() {
         </button>
         <span className="timeline-clock">
           {formatMet(m.clockElapsed)} <span>/ {formatMet(end)}</span>
+          <Jargon term="T+" />
         </span>
         <span className="activity" title={activity}>
           {activity}
         </span>
-        <span className="timeline-conditions">
-          Sun {roundHalfUp(m.env.sunElevationDeg)}° · {roundHalfUp(m.env.tempC)} °C{" "}
-          <small>MEDA measured data</small> · {formatDose(m.env.doseRateMsvPerHr).replace(" mSv", " mSv/h")}
-          {SPE_IS_ILLUSTRATIVE && m.conditions.spe && <small> illustrative · measured 2017 event x{SPE_MEASURED_2017_PEAK_MULTIPLIER}</small>}
+        <span className="timeline-right">
+          <span className="timeline-lmst">
+            LMST {formatLmst(m.conditions.startLmst + (m.clockElapsed * 24) / (SOL_HOURS * 3600))}
+            <Jargon term="LMST" />
+          </span>
+          {onToggleProfile && (
+            <button
+              type="button"
+              className={`timeline-profile-toggle${profileOn ? " is-on" : ""}`}
+              aria-pressed={!!profileOn}
+              title="Show or hide the height of the ground along the walk"
+              onClick={onToggleProfile}
+            >
+              Terrain profile
+            </button>
+          )}
+          {/* Sun, temperature and dose rate at this moment: one hover or focus away. */}
+          <InfoTip label="Conditions at this moment: sun, temperature and radiation dose rate">
+            <span className="timeline-conditions">
+              <span>Sun {roundHalfUp(m.env.sunElevationDeg)}° above the horizon</span>
+              <span>
+                Air {roundHalfUp(m.env.tempC)} °C <small>MEDA measured data</small>
+              </span>
+              <span>
+                Dose rate {formatDose(m.env.doseRateMsvPerHr).replace(" mSv", " mSv/h")}
+                {SPE_IS_ILLUSTRATIVE && m.conditions.spe && <small> illustrative · measured 2017 event x{SPE_MEASURED_2017_PEAK_MULTIPLIER}</small>}
+              </span>
+            </span>
+          </InfoTip>
         </span>
       </div>
       <div className="timeline-track">

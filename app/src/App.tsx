@@ -19,6 +19,9 @@ import { EMERGENCY_TEXT } from "./lib/emergency-run";
 import { LayerRail } from "./components/LayerRail";
 import { useMedia } from "./lib/useMedia";
 import { Map3DToggle } from "./components/Map3DToggle";
+import { EmptyPlanCard, Jargon, ViewMenu, type ViewMenuItem } from "./components/PlanChrome";
+import "./styles/plan-view.css";
+import "./styles/sidebar-polish.css";
 
 // 3D terrain view (stretch feature). three.js loads only when someone opens it.
 const Terrain3D = lazy(() => import("./components/Terrain3D"));
@@ -59,6 +62,9 @@ function Console({ initialHash }: { initialHash?: string }) {
     [sidebarCollapsed, setSidebarCollapsed] = useState(false),
     [detail, setDetail] = useState("");
   const [view3d, setView3d] = useState(false);
+  // Layers popover on the map toolbar, and the terrain profile toggle (null = follow playback).
+  const [layersOpen, setLayersOpen] = useState(false);
+  const [profileChoice, setProfileChoice] = useState<boolean | null>(null);
   // Desktop uses one consolidated left panel; tablet keeps the Map / Plan / Layers tabs.
   const desktop = useMedia("(min-width: 1025px)");
   // The consolidated layout belongs to the Deep Space / Mono themes; ?theme=classic keeps the three-column console.
@@ -87,6 +93,7 @@ function Console({ initialHash }: { initialHash?: string }) {
         setDetail("");
         setSources(false);
         setAssistant(false);
+        setLayersOpen(false);
         setScreen((current) => (current === "hud" ? "plan" : current));
         return;
       }
@@ -220,11 +227,32 @@ function Console({ initialHash }: { initialHash?: string }) {
         onExitHud={() => setScreen("plan")}
       />
     );
+  // Header: one pill and its tooltip.
+  const headerPillText = emergency && abort ? `${m.replanned ? "NEW PLAN" : "RETURN HOME"} · ${abort.status}` : `EVA · ${status}`;
+  const headerPillTitle =
+    emergency && abort
+      ? [
+          `EVA · ${status}${m.replanned ? " · RE-PLANNED" : " · ABORTED"}`,
+          ...abort.reasons.filter((r) => !r.startsWith("Shelter")),
+        ].join(" · ")
+      : m.evaReasons.join(" · ");
+  // The less-used views live in one menu.
+  const viewItems: ViewMenuItem[] = [
+    { id: "3d", label: "3D terrain", checked: view3d, onSelect: () => setView3d((v) => !v) },
+    { id: "hud", label: "Helmet HUD", hint: "H", onSelect: () => setScreen("hud") },
+    { id: "sources", label: "Sources", onSelect: () => setSources(true) },
+    ...(consolidated
+      ? [{ id: "sidebar", label: sidebarCollapsed ? "Show sidebar" : "Hide sidebar", onSelect: () => setSidebarCollapsed((c) => !c) }]
+      : []),
+    ...(assistantAvailable ? [{ id: "assistant", label: "Assistant", onSelect: () => setAssistant(true) }] : []),
+  ];
+  // The terrain profile strip: on during playback, unless the toggle was used.
+  const profileOn = profileChoice ?? (m.playing || m.returnPlaying);
   const changeStop = (id: string, patch: object) =>
     m.edit(m.stops.map((s) => (s.id === id ? { ...s, ...patch } : s)));
   const selected = m.stops.find((s) => s.id === detail);
   const mapColumn = (
-        <section className="map-column" aria-label="Mission map and playback">
+        <section className={`map-column${profileOn ? "" : " no-profile"}`} aria-label="Mission map and playback">
           <MissionMap
             site={site}
             basemap={m.basemap}
@@ -251,7 +279,32 @@ function Console({ initialHash }: { initialHash?: string }) {
             }}
             onProbe={setProbe}
             walkHome={m.home?.cost}
+            toolbar={
+              <>
+                <button
+                  type="button"
+                  className={`map-tool${layersOpen ? " is-on" : ""}`}
+                  aria-expanded={layersOpen}
+                  aria-controls="map-layers-popover"
+                  title="Choose the terrain layers drawn on the map"
+                  onClick={() => setLayersOpen((o) => !o)}
+                >
+                  Layers
+                </button>
+                <Map3DToggle active={view3d} onToggle={() => setView3d((v) => !v)} />
+              </>
+            }
           >
+            {layersOpen && (
+              <div className="map-layers-popover" id="map-layers-popover" role="group" aria-label="Map layers">
+                <p>Map layers</p>
+                <LayerRail part="list" active={active} onChange={setActive} probe={probe} onSources={() => setSources(true)} />
+              </div>
+            )}
+            {/* No plan yet: say what the page is for and offer the next click. */}
+            {noPlan && !view3d && (
+              <EmptyPlanCard onRunDemo={() => runDemo(go)} onLoadDemo={m.loadDemo} canLoadDemo={m.demo.length > 0} />
+            )}
             {/* The guided demo's caption card. It stays closed until "Run the demo" starts it. */}
             <GuidedDemo />
             {view3d && (
@@ -310,12 +363,14 @@ function Console({ initialHash }: { initialHash?: string }) {
               </aside>
             )}
           </MissionMap>
-          <ElevationProfile
-            site={site}
-            plan={emergency ? (m.returnPlan ?? plan) : plan}
-            currentTSec={emergency ? m.returnElapsed : m.elapsed}
-          />
-          <FlightTimeline />
+          {profileOn && (
+            <ElevationProfile
+              site={site}
+              plan={emergency ? (m.returnPlan ?? plan) : plan}
+              currentTSec={emergency ? m.returnElapsed : m.elapsed}
+            />
+          )}
+          <FlightTimeline profileOn={profileOn} onToggleProfile={() => setProfileChoice(!profileOn)} />
         </section>
   );
   return (
@@ -324,57 +379,26 @@ function Console({ initialHash }: { initialHash?: string }) {
         <div className="console-brand">
           <AppLogo onSelect={go} />
           <AppTabs current="plan" onSelect={go} />
-          <span className="brand-mission">
-            ARES-1 EVA <small>Jezero delta front</small>
-          </span>
-          {consolidated && (
-            <span className="brand-context">
-              Jezero delta front<span className="brand-context-long"> · Surface Traverse Software</span>
-            </span>
-          )}
         </div>
         <div className="header-actions">
-          {consolidated && (
-            <button
-              aria-controls="mission-sidebar"
-              aria-expanded={!sidebarCollapsed}
-              onClick={() => setSidebarCollapsed((collapsed) => !collapsed)}
-            >
-              {sidebarCollapsed ? "Show sidebar" : "Hide sidebar"}
-            </button>
-          )}
-          <span className="header-clock">
-            LMST{" "}
-            {lmst(
-              m.conditions.startLmst +
-                (m.clockElapsed * 24) / (SOL_HOURS * 3600),
-            )}
-          </span>
+          {/* ONE status pill. In an emergency it is the status of the route to follow now;
+              the EVA's own status and the reasons are in its tooltip. */}
           {noPlan ? (
             <span className="status status--NONE">NO PLAN</span>
+          ) : emergency && abort ? (
+            <span className={`status status--${abort.status}`} title={headerPillTitle} aria-label={`${headerPillText}. ${headerPillTitle}`}>
+              {headerPillText}
+            </span>
           ) : (
-            <span className={`status status--${status}`}>
+            <span className={`status status--${status}`} title={headerPillTitle}>
               EVA · {status}
-              {m.replanned ? " · RE-PLANNED" : emergency ? " · ABORTED" : ""}
             </span>
           )}
-          {emergency && abort && (
-            <span className={`return-status ink-${abort.status}`}>
-              <b>{m.replanned ? "NEW PLAN" : "RETURN HOME"} · {abort.status}</b>
-              {abort.reasons.length > 0 && <span className="return-reason"> · {abort.reasons.filter((r) => !r.startsWith("Shelter")).join(" · ")}</span>}
-            </span>
-          )}
-          {assistantAvailable && (
-            <button onClick={() => setAssistant(true)}>Assistant</button>
-          )}
+          {!noPlan && <Jargon term={emergency ? "status" : "EVA"} />}
           <button type="button" className="app-run-demo" onClick={() => runDemo(go)}>
             Run the demo
           </button>
-          <Map3DToggle active={view3d} onToggle={() => setView3d((v) => !v)} />
-          <button onClick={() => setScreen("hud")}>Helmet HUD · H</button>
-          {consolidated && (
-            <button onClick={() => setSources(true)}>Sources</button>
-          )}
+          <ViewMenu items={viewItems} />
         </div>
       </header>
       <nav className="tablet-tabs" aria-label="Console panels">
@@ -400,21 +424,30 @@ function Console({ initialHash }: { initialHash?: string }) {
                 <MissionPanel part="status" onDetail={setDetail} />
                 <MissionPanel part="stops" onDetail={setDetail} />
                 <MissionPanel part="budget" onDetail={setDetail} />
-                <MissionPanel part="reliability" onDetail={setDetail} />
-                <LayerRail
-                  part="layers"
-                  active={active}
-                  onChange={setActive}
-                  probe={probe}
-                  onSources={() => setSources(true)}
-                />
-                <LayerRail
-                  part="start"
-                  active={active}
-                  onChange={setActive}
-                  probe={probe}
-                  onSources={() => setSources(true)}
-                />
+                {/* Everything a first-time visitor does not need yet, behind one expander. */}
+                <details className="collapsible more-details">
+                  <summary>
+                    <span>More details</span>
+                    <small>reliability · layers · start time</small>
+                  </summary>
+                  <div className="more-details-body">
+                    <MissionPanel part="reliability" onDetail={setDetail} />
+                    <LayerRail
+                      part="layers"
+                      active={active}
+                      onChange={setActive}
+                      probe={probe}
+                      onSources={() => setSources(true)}
+                    />
+                    <LayerRail
+                      part="start"
+                      active={active}
+                      onChange={setActive}
+                      probe={probe}
+                      onSources={() => setSources(true)}
+                    />
+                  </div>
+                </details>
               </div>
               <MissionPanel part="emergency" onDetail={setDetail} />
             </aside>
