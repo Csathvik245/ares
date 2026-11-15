@@ -15,7 +15,7 @@
 import type { IncomingMessage, ServerResponse } from "node:http";
 import { assistantOnline, handleAssistant, MODEL } from "../lib/assistant-core";
 
-const DEFAULT_ORIGINS = "https://ares-mission-console.vercel.app,http://localhost:5173,http://localhost:4173";
+const DEFAULT_ORIGINS = "https://ares-mars-alpha.vercel.app,http://localhost:5173,http://localhost:4173";
 /** Largest request body accepted, bytes. */
 const MAX_BODY_BYTES = 500_000;
 

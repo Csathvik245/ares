@@ -27,7 +27,7 @@ The app and this function are **two Vercel projects** from the same repo, becaus
 
 1. Create a second Vercel project from this repo with **Root Directory = `backend`**. No build command and no output directory are needed.
 2. Add `ANTHROPIC_API_KEY` to that project's environment variables.
-3. Optional: set `ALLOWED_ORIGINS` to a comma-separated list of the origins allowed to call it. The default is `https://ares-mission-console.vercel.app` plus the local dev servers (`http://localhost:5173`, `http://localhost:4173`).
+3. Optional: set `ALLOWED_ORIGINS` to a comma-separated list of the origins allowed to call it. The default is `https://ares-mars-alpha.vercel.app` plus the local dev servers (`http://localhost:5173`, `http://localhost:4173`).
 4. In the **app** project, set `VITE_ASSISTANT_URL` to the function's address, for example `https://<backend-project>.vercel.app/api/assistant`, and redeploy the app. This is a public address, not a secret.
 
 For local development: run `npx vercel dev` in this folder with `ANTHROPIC_API_KEY` set in the shell, and set `VITE_ASSISTANT_URL=http://localhost:3000/api/assistant` for the app.

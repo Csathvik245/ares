@@ -120,7 +120,7 @@ Note: RAD is on Curiosity, not Perseverance. Label it "surface baseline measured
 - **Mars Trek tiles:** `https://trek.nasa.gov/tiles/Mars/EQ/<LAYER_ID>/1.0.0/default/default028mm/{z}/{y}/{x}.jpg` (layer IDs from the Mars Trek site). **Test this in hour 1.** Always keep a fallback basemap: a hillshade drawn from the elevation layer.
 - **Site basemap:** `app/public/data/basemap.png` is the real HiRISE orthomosaic of exactly the site bounds (2400 × 1714, about 3.5 m/pixel, 2.6 MB; source and credit in `basemap.json`). Show it as a Leaflet image overlay over the site bounds: `L.imageOverlay("data/basemap.png", [[18.40, 77.36], [18.50, 77.50]])`. It needs no network, so it also works when Mars Trek is down.
 - **Frontend basemap check:** `Mars_Viking_MDIM21_ClrMosaic_global_232m` WMTS capabilities list native levels **0–7**, 256 px tiles. Use `maxNativeZoom: 7` (level 9 requests returned 404). Jezero tile `7/50/183.jpg` returned HTTP 200, and production Chrome review displayed imagery with terrain overlays. This is coarse Viking imagery, not HiRISE; closer map zooms enlarge the level-7 tiles. Elevation hillshade remains the outage fallback.
-- **Frontend deployment:** https://ares-mission-console.vercel.app (`?frontend` skips briefing/HUD). Vercel project `ares-mission-console`, root directory `app`. Production currently uses CLI deployment. GitHub auto-deploy is pending Vercel access to the GitHub repo; the CLI connection attempt failed.
+- **Frontend deployment:** https://ares-mars-alpha.vercel.app (`#story`, `#plan`, `#science` open a tab; `?frontend` starts on Plan). Vercel project imported from the GitHub repo: root directory `app`, build `npm run build`, output `dist`. It auto-deploys on every push to `main`.
 - **Planner:** TypeScript in `/app/src/planner`, optionally in a Web Worker. Pure functions, no UI code.
 - **Data pipeline:** Python (numpy, GDAL, rasterio) in `/pipeline`; QGIS for visual checks.
 - **Backend (stretch, AI only):** FastAPI or one Vercel serverless function in `/backend`.
@@ -446,11 +446,12 @@ The full script, captions and shot list are in `docs/video-script.md`; that file
 
 | Time | On screen |
 |---|---|
-| 0–7 s | Opening briefing over Jezero: "2040. Jezero Crater. 8 hours of oxygen." Begin planning |
-| 7–12 s | Real data layers switch on, each with its NASA source |
-| 12–19 s | Load demo mission: three stops, route draws in, safe zone, **EVA: GO** |
-| 19–26 s | Walk plays; dust storm hits: **EVA: NO-GO** (aborted), zone collapses, red abort route, **Return home: CAUTION** — she makes it home inside the reserve |
-| 26–30 s | Helmet HUD, then end card: "ARES, by The Ares Initiative. Science first. Safety always." |
+| 0–6 s | Story title screen: "8 hours of oxygen. 5 km of unknown terrain." Click **Run the demo** |
+| 6–10 s | Guided demo step 1: the demo route on the map, **EVA: GO** |
+| 10–14 s | Step 2: the Monte Carlo result for the demo mission |
+| 14–18 s | Step 3: dust storm at T+1:16, **EVA: NO-GO** (aborted), red route home |
+| 18–22 s | Step 4: the walk home plays, **Return home: CAUTION**, home inside the reserve |
+| 22–30 s | Story closing line, then end card with the live URL |
 
 No names, faces or voices of anyone under 18: screen recording and captions only.
 

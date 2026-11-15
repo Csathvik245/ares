@@ -109,7 +109,7 @@ Needs nothing from anyone. Test everything with Vitest: unit tests use the fixtu
 
 Needs nothing from anyone. The real `site.json`, `basemap.png` and the planner are already on `main`. For anything not built yet, use your own stubs.
 
-**Frontend verification update:** Production: https://ares-mission-console.vercel.app/?frontend. Checked items below are existing code already on main and exercised by automated checks or Chrome review. New local fixes still need the user's commit/push. Vercel root is now `app`, but GitHub connection failed; the current production release was uploaded by CLI. Chrome review confirmed demo mission, 4.87 km route, GO status, 174-minute margin, oxygen gauge, hillshade fallback and playback clock/dose changes. A missing optional `stops.json` 404 was found and fixed locally using a public-asset inventory. A later real-terrain Chrome pass verified stop add/drag/reorder/delete, dwell edits, all five layer toggles, playback/scrubbing, both emergencies, missing-photo details and dialog Escape. No app errors were observed in that pass. Exact desktop/tablet dimensions, all keyboard shortcuts, and the final science demo still need verification.
+**Frontend verification update:** Production: https://ares-mars-alpha.vercel.app/?frontend. Checked items below are existing code already on main and exercised by automated checks or Chrome review. New local fixes still need the user's commit/push. Vercel root is `app`; the project is imported from GitHub and auto-deploys on every push to `main`. Chrome review confirmed demo mission, 4.87 km route, GO status, 174-minute margin, oxygen gauge, hillshade fallback and playback clock/dose changes. A missing optional `stops.json` 404 was found and fixed locally using a public-asset inventory. A later real-terrain Chrome pass verified stop add/drag/reorder/delete, dwell edits, all five layer toggles, playback/scrubbing, both emergencies, missing-photo details and dialog Escape. No app errors were observed in that pass. Exact desktop/tablet dimensions, all keyboard shortcuts, and the final science demo still need verification.
 
 I3: adapters are ready; no `app/src/design` files exist. I4: parser and image handling are ready; final `stops.json` and rover photos are absent. I5: lazy ChatPanel mount and Contract 5 frontend tool handlers are implemented locally; the AI component/backend are absent, so end-to-end verification remains pending. No other role's checklist section was changed.
 
@@ -119,7 +119,7 @@ I3: adapters are ready; no `app/src/design` files exist. I4: parser and image ha
 - [x] 🟥 React + Vite + TS in `/app`. **Keep** `src/planner/`, `public/data/`, and the existing deps in `package.json`
 - [x] 🟥 Temporary `src/styles/tokens.css` from Contract 6 (the designer replaces it later; the variable names stay the same)
 - [x] 🟥 Google Fonts: Space Grotesk, Inter, JetBrains Mono (old theme, superseded by the Mono theme); now IBM Plex Sans and IBM Plex Mono
-- [x] 🟥 Deploy to Vercel from `main` (root dir `app`); share the live link: https://ares-mission-console.vercel.app (deployed by CLI; automatic deploys from `main` are not connected yet, so redeploy after the last push)
+- [x] 🟥 Deploy to Vercel from `main` (root dir `app`); share the live link: https://ares-mars-alpha.vercel.app (imported from GitHub; auto-deploys on every push to `main`)
 - [x] 🟥 One plan-state store (React context or Zustand)
 
 **Stand-ins (so you never wait)**
@@ -177,7 +177,7 @@ Needs nothing from anyone. Figma is separate. Code components take **props with 
 - [ ] 🟧 `app/src/design/StopCard.tsx`: props `{ stop, photoUrl, photoCredit, why, dwellMin, tools, oxygenCostMin }`
 - [ ] 🟧 `app/src/design/preview.html` (or a `?design` route) renders all three with mock data, so you can see them without the main app
 - [ ] 🟧 Motion: route draw-in 600 ms, zone pulse 3 s, status 250 ms, gauge 500 ms; respects reduced motion
-- [x] 🟧 ARES logo + mission patch (original, **no NASA logo**) in `app/public/brand/` (`ares-patch.png`; **TEAM: confirm** whether it is AI-generated, see `docs/ai-disclosure.md` item 6)
+- [x] 🟧 ARES logo + mission patch (original, **no NASA logo**) in `app/public/brand/` (`ares-patch.png`; the team still has to confirm whether it is AI-generated, see `docs/ai-disclosure.md` item 6)
 - [ ] 🟧 Slide template
 - [ ] 🟧 Visual QA before the video: spacing, contrast ≥ 4.5:1, fonts, labels
 - [ ] 🟦 Tablet frame 1024 × 768; chat bubble style
@@ -200,7 +200,7 @@ Needs nothing from anyone. Research and docs stand alone. Use Mars Trek screensh
 - [x] 🟧 Demo video script + shot list (by hour 12) → `docs/video-script.md` (30 s caption-only script is the main one; 60 s in appendix, not for submission)
 - [ ] 🟧 Slides: problem, story, how it works, 6 data layers, safe zone, emergencies, HUD, novelty, assumptions, sources, team, next steps (outline: `docs/slides-outline.md`; exact text for 7 slides: `docs/slides-content.md`, numbers filled from `docs/demo-numbers.md`; deck not built)
 - [x] 🟧 README + Space Apps project page text → `README.md`, `docs/project-page.md` (draft; fill its TODO links, then paste into the Project tab)
-- [ ] 🟥 AI use disclosure → `docs/ai-disclosure.md`. TODOs cleared; two **TEAM: confirm** questions left (brainstorming rule with the Local Lead; is the mission patch AI-generated)
+- [ ] 🟥 AI use disclosure → `docs/ai-disclosure.md`. TODOs cleared; one question left for the team (is the mission patch AI-generated)
 - [x] 🟥 No team member names in README, docs or slides (under-18 rule); "The Ares Initiative" only
 - [ ] 🟧 Record + edit the **30 s caption-only** video (once the live link works; no voice, no faces)
 - [ ] 🟧 Judge test: live app in a fresh browser; report issues in the group chat

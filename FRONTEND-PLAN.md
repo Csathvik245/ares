@@ -102,7 +102,7 @@ Checked boxes refer to committed frontend work verified locally; they do not cer
 - Evidence labels are present; review full coverage against the target Figma file when its link is supplied.
 - ARES logo, MEDA data, production browser sign-off and cross-document/video consistency remain outstanding.
 
-Production CLI deployment succeeded at https://ares-mission-console.vercel.app. Public app shell, credits.json and both demo rover JPEGs returned HTTP 200. Exact 4560-second storm numbers pass regression tests; final production browser recording run is still pending.
+Production is live at https://ares-mars-alpha.vercel.app (Vercel, auto-deployed from `main`). Public app shell, credits.json and both demo rover JPEGs returned HTTP 200. Exact 4560-second storm numbers pass regression tests; final production browser recording run is still pending.
 
 
 ## Recording console fixes

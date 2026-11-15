@@ -6,7 +6,7 @@ Text to paste into our team's **Project** tab on spaceappschallenge.org. One sec
 - No team member names anywhere. "The Ares Initiative" only (under-18 rule, see [`submission.md`](submission.md)).
 - All text in English. Every link public and tested in a private window.
 - Re-check every number against the live app; the numbers below were measured on the real terrain (commit `b18348f`).
-- Fill the two **TEAM** links below (video and repo) and confirm the live-app link. Data credits come from [`sources.md`](sources.md); the AI answer comes from [`ai-disclosure.md`](ai-disclosure.md).
+- Fill the two **TEAM** links below (video and repo). Data credits come from [`sources.md`](sources.md); the AI answer comes from [`ai-disclosure.md`](ai-disclosure.md).
 
 ---
 
@@ -24,7 +24,7 @@ ARES is a route planner for an astronaut walking on Mars. It is built for a sing
 
 ## Link to Final Project
 
-- Live app: https://ares-mission-console.vercel.app (**confirm before submitting** that it runs the latest `main`: deploys are not automatic yet)
+- Live app: https://ares-mars-alpha.vercel.app
 - Code and docs: **TEAM: paste the public GitHub repo link** (MIT licence). The current repo address contains a teammate's GitHub username; decide whether to use it or move the repo to a team account first (under-18 rule).
 
 ## Detailed Project Description
@@ -71,7 +71,7 @@ Every number is either sourced or labelled as our assumption; the full list is i
 
 ## Use of Super Intelligence (SI)
 
-Paste the "Disclosure" section of [`ai-disclosure.md`](ai-disclosure.md) once the team has answered its two **TEAM: confirm** questions (brainstorming rule, mission patch). Short version (judges don't see this field, so the full text also goes in the README and repo):
+Paste the "Disclosure" section of [`ai-disclosure.md`](ai-disclosure.md) once the team has answered the one open question in it (is the mission patch AI-generated). Short version (judges don't see this field, so the full text also goes in the README and repo):
 
 > Yes. The Ares Initiative used AI coding assistants, Claude Code (Anthropic) and ChatGPT (OpenAI), to write and review code and documentation, and an AI chat assistant (Claude, by Anthropic) for brainstorming, planning, task breakdown, code review and debugging. In brainstorming the AI proposed early concept options, including a "walkback zone", Jezero as a candidate site, a route planner and a helmet display; a team member then wrote the ARES design document, which the team chose and which shares several of those elements. All route and safety decisions in the app come from deterministic algorithms (Dijkstra / A\* on a terrain grid with documented formulas), not AI. We also trained our own small route-cost model on Perseverance drive data; it is off by default and did not beat the deterministic planner. The code for an in-app AI chat assistant is in our repository but is not enabled in the submission. Mission patch: **TEAM: confirm** whether it is AI-generated (if it is, say so here and watermark it). Details: docs/ai-disclosure.md in our repository.
 

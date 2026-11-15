@@ -1,6 +1,6 @@
 import { scrollToId } from "../lib/scroll";
 
-export const CONSOLE_URL = "https://ares-mission-console.vercel.app";
+export const CONSOLE_URL = "https://ares-mars-alpha.vercel.app";
 
 const links = [
   { id: "studio", label: "Studio" },

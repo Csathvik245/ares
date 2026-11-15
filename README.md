@@ -4,7 +4,7 @@
 
 ARES is a route planner for an astronaut walking on Mars. It works like a map app that also tracks oxygen and tells you when you must turn back. The astronaut picks science stops at Jezero Crater's ancient river delta. ARES plans the fastest safe walk around steep slopes, boulder fields and soft sand, and adds up walking time, oxygen and radiation dose. It draws a **safe-return zone** showing everywhere the astronaut can still reach and get home from. It gives a GO / CAUTION / NO-GO status with the reason written out, and it plays the walk across the Martian day. Dust storm and solar particle event buttons show an instant abort route home. ARES was built by The Ares Initiative for the NASA Space Apps Challenge 2026, challenge *Interplanetary Survival Guide: Martian Map*.
 
-> **Live demo:** _link to be added_
+> **Live demo:** https://ares-mars-alpha.vercel.app
 > **Demo video:** _link to be added_
 
 ## The problem
