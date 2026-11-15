@@ -53,7 +53,17 @@ export function MissionBriefing({
           <button type="button" className="briefing-secondary" onClick={onBeginPlanning}>Start planning</button>
         </div>
       </div>
-      <a className="briefing-scroll" href="#briefing-story">Scroll to explore the story <span aria-hidden="true">↓</span></a>
+      <a
+        className="briefing-scroll"
+        href="#briefing-story"
+        onClick={(event) => {
+          event.preventDefault();
+          document.getElementById("briefing-story")?.scrollIntoView({
+            behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth",
+            block: "start",
+          });
+        }}
+      >Scroll to explore the story <span aria-hidden="true">↓</span></a>
       <footer>
         <span>The Ares Initiative · NASA Space Apps 2026</span>
         <span>{imageCredit ?? "Terrain imagery pending"}</span>
