@@ -122,6 +122,38 @@ const walkHomeSec = await planner.walkHome();                            // Floa
 - `positionAt` is cheap. During playback, calling the planner's own `positionAt(plan, t)` on the main thread with the plan you already have is simpler than a message per frame.
 - Plan + zone through the client takes about 30 ms in tests (worker code run in-process). Call `planner.close()` when done.
 
+## 6. Radiation shelter (solar particle event)
+
+Planner function in `planner/shelter.ts`. In a solar particle event it checks whether waiting at a nearby spot with less open sky (the foot of a scarp, a crater wall) gives a lower dose than walking straight home. It is not exported from `planner/index.ts` yet, and `stormAt` does not call it yet (the planner lead adds both), so import from the file for now.
+
+```ts
+import { readSkyView, shelterRoute } from "../planner/shelter";
+```
+
+Once, where `site.json` is loaded (the sky-view layer is not one of the five layers `loadSite` keeps):
+
+```ts
+const skyView = readSkyView(json);
+```
+
+When an SPE is triggered, with the SPE cost grid and the astronaut's position from `positionAt`:
+
+```ts
+const shelter = skyView ? shelterRoute(site, speCost, position, position.oxygenUsedSec, { skyView }) : null;
+```
+
+It returns `{ target, path, sec, skyView, doseToShelterMsv, doseIfHomeMsv, doseReductionPct, betterThanHome, reasons }`.
+
+- **When `betterThanHome` is false**, the target is the habitat and the result is the same advice as the abort route: walk home. Show nothing extra.
+- **When it is true**, a suggested way to show it:
+  - a cyan shelter marker at `target` (cyan = safety) and `path` drawn as a cyan dashed line, next to the red abort route home;
+  - one line in the SPE banner from `reasons[0]`, for example "Shelter 320 m away (sky view 0.71) cuts the SPE dose by 29% compared with walking home (46 min)." A shorter form: `Shelter: ${Math.round(sec / 60)} min away, −${Math.round(doseReductionPct)}% dose`;
+  - `reasons[1]` and `reasons[2]` (the walk and wait times, and the oxygen check) in the details.
+- **Always show the two caveats** that come at the end of `reasons`: the model is simplified (`SHELTER_MODEL_IS_SIMPLIFIED`) and the SPE dose rate is illustrative (`SPE_IS_ILLUSTRATIVE`). Label the dose numbers "illustrative".
+- **It is an option, not an order.** The EVA status stays NO-GO and the return-home status still comes from `abortRoute`. The astronaut chooses between the red route home and the cyan shelter.
+- The comparison is over an assumed 60 minute event (`waitMin` option), a shelter must cut the dose by at least 5% to be offered (`minReductionPct` option), and it is only offered if there is oxygen to walk home afterwards.
+- It throws if no sky-view layer is given, so keep the `skyView ? … : null` guard.
+
 ## Tests
 
 `npm test` runs `lib/zoneCleanup.test.ts`, `lib/profile.test.ts`, `planner/science.test.ts`, `lib/plannerClient.test.ts` and `components/plugins.test.tsx` (the components are rendered to HTML and checked on the real `site.json`).
