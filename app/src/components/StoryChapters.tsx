@@ -75,7 +75,7 @@ function RouteMap({ data }: { data: StoryData }) {
   const v = data.routeView;
   // The picture is shown through a window (the frame around the route). Sizes in % of that window.
   const scale = v.width / 100;
-  const mark = v.width * 0.023; // marker radius: about 14 px when the map is 620 px wide
+  const mark = v.width * 0.021; // marker radius: about 13 px when the map is 620 px wide
   return (
     <figure className="story-map">
       <div className="story-map__frame" style={{ aspectRatio: `${roundHalfUp(v.width, 1)} / ${roundHalfUp(v.height, 1)}` }}>
@@ -99,7 +99,7 @@ function RouteMap({ data }: { data: StoryData }) {
           ))}
           <g className="story-map__habitat">
             <rect x={data.habitatMark.x - mark} y={data.habitatMark.y - mark} width={mark * 2} height={mark * 2} style={{ strokeWidth: mark * 0.16 }} />
-            <text x={data.habitatMark.x - mark * 1.5} y={data.habitatMark.y + mark * 0.36} fontSize={mark * 0.95} textAnchor="end">
+            <text x={data.habitatMark.x - mark * 1.9} y={data.habitatMark.y + mark * 0.36} fontSize={mark * 0.95} textAnchor="end">
               HAB-1
             </text>
           </g>

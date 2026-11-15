@@ -1,0 +1,67 @@
+/* Tablet (1024 px and narrower): every control a finger has to hit is at least 44 px
+   (--touch-target, Contract 6). The compact sizes stay on the desktop console.
+   Loaded last, and written with the theme prefix so it outranks the compact rules. */
+@media (max-width: 1024px) {
+  /* Console tabs (Map / Mission / Layers): were 28 px tall. */
+  :is([data-theme="deep-space"], [data-theme="mono"]) .console-app .tablet-tabs {
+    height: 56px;
+    padding: 6px 10px;
+    align-items: center;
+  }
+  :is([data-theme="deep-space"], [data-theme="mono"]) .console-app .tablet-tabs button {
+    min-height: var(--touch-target);
+    min-width: 72px;
+    font-size: 12px;
+  }
+  /* 64 px header + 56 px tab row. */
+  :is([data-theme="deep-space"], [data-theme="mono"]) .console-app .console-body {
+    height: calc(100% - 120px);
+  }
+
+  /* Header buttons, the emergency banner, the guided demo card, the 3D controls and Play. */
+  :is([data-theme="deep-space"], [data-theme="mono"]) .console-app .header-actions > button,
+  :is([data-theme="deep-space"], [data-theme="mono"]) .console-app .storm-alert button,
+  :is([data-theme="deep-space"], [data-theme="mono"]) .console-app .guided-demo .guided-demo__actions button,
+  :is([data-theme="deep-space"], [data-theme="mono"]) .console-app .terrain-3d__hud button,
+  :is([data-theme="deep-space"], [data-theme="mono"]) .console-app .timeline-controls button,
+  .app-bar .app-run-demo {
+    min-height: var(--touch-target);
+    min-width: var(--touch-target);
+  }
+  /* The timeline's scrub area (an invisible slider over the thin track): 24 px → 45 px. */
+  .console-app .timeline-track input {
+    inset: -10px 0 -26px;
+    height: 45px;
+  }
+  .console-app .terrain-3d__hud input[type="range"] {
+    min-height: var(--touch-target);
+  }
+  /* "Planner reasons" and the other fold-outs in the bottom sheet. */
+  .console-app .mission-rail details > summary {
+    padding-block: 16px;
+  }
+
+  /* The bottom sheet (Mission / Layers) lies over the map; the map's own credit line
+     and zoom buttons must not show through it. */
+  .console-app .layer-rail,
+  .console-app .mission-rail {
+    z-index: 1050;
+  }
+}
+
+/* Tablet: the emergency banner's two buttons sit side by side, so the banner stays low. */
+@media (max-width: 1024px) {
+  :is([data-theme="deep-space"], [data-theme="mono"]) .console-app .storm-alert > div:last-child {
+    display: flex;
+    flex-direction: row;
+    align-items: flex-start;
+    gap: var(--space-2);
+  }
+}
+
+/* During an emergency the banner lies over the map's zoom buttons. They could not be
+   pressed there and showed through as stray marks, so they are hidden until Reset
+   (scroll and pinch still zoom). */
+.map-shell.is-emergency .leaflet-control-zoom {
+  display: none;
+}

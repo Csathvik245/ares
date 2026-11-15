@@ -5,7 +5,8 @@
 .guided-demo {
   position: absolute;
   left: var(--space-3);
-  bottom: var(--space-12);
+  /* Clear of the map's scale bar and caption underneath. */
+  bottom: calc(var(--space-12) + var(--space-5));
   z-index: 1100;
   width: min(320px, calc(100% - 2 * var(--space-3)));
   padding: var(--space-3);
@@ -56,8 +57,9 @@
 }
 /* Three classes deep, so the console theme's generic button rule does not grey out the main action. */
 .guided-demo .guided-demo__actions button.guided-demo__next {
-  background: var(--safe);
-  border-color: var(--safe);
-  color: var(--void);
+  /* The filled-button blue: white text on it keeps 4.5:1 (Contract 6). */
+  background: var(--ds-blue-fill);
+  border-color: var(--ds-blue-fill);
+  color: #ffffff;
   font-weight: 600;
 }

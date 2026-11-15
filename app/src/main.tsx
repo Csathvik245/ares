@@ -9,6 +9,8 @@ import "./styles/theme-deep-space.css";
 import "./styles/theme-mono.css";
 // Layout of the console column (status, stops, budget, collapsibles, pinned emergency block). Uses theme variables only.
 import "./styles/console-column.css";
+// Tablet: 44 px touch targets. Last, so it outranks the compact desktop sizes.
+import "./styles/tablet-touch.css";
 
 // ?theme=mono (default) | deep-space | classic. "classic" is the Contract 6 palette and the old layout.
 const requested = new URLSearchParams(window.location.search).get("theme");

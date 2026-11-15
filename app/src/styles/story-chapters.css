@@ -325,7 +325,7 @@
   flex-wrap: wrap;
   gap: var(--space-3);
 }
-.story-chapters .story-button {
+.story-chapters .story-closing .story-button {
   min-height: var(--touch-target);
   padding: var(--space-3) var(--space-6);
   background: var(--console);
@@ -335,15 +335,15 @@
   font: 500 14px/1.3 var(--font-body);
   cursor: pointer;
 }
-.story-chapters .story-button--primary {
+.story-chapters .story-closing .story-button--primary {
   background: var(--ds-blue-fill);
   border-color: var(--ds-blue-fill);
   color: #ffffff;
 }
-.story-chapters .story-button:hover {
+.story-chapters .story-closing .story-button:hover {
   border-color: var(--text);
 }
-.story-chapters .story-button:focus-visible {
+.story-chapters .story-closing .story-button:focus-visible {
   outline: 2px solid var(--safe);
   outline-offset: 4px;
 }
@@ -387,6 +387,10 @@
     gap: var(--space-8);
     min-height: 0;
     padding: var(--space-12) 0;
+  }
+  /* Stacked: the picture keeps a comfortable size instead of filling the whole screen. */
+  .story-chapters .story-chapter__visual {
+    max-width: 720px;
   }
   .story-chapters .story-closing {
     padding: var(--space-12) 0 var(--space-8);

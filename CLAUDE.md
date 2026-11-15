@@ -404,13 +404,14 @@ Do **not** use the NASA logo in our branding. Credit images "NASA/JPL-Caltech" (
 
 ## 7. Frontend layout
 
-- **Top bar:** logo, site name, objective, LMST clock, status pill.
+- **Three tabs (main navigation):** Story | Plan | Science, as links to `#story`, `#plan`, `#science` (Story is the default; the logo returns to Story; back and forward work). Story = the title screen and the mission story (`MissionBriefing` + `StoryChapters`); Plan = the console described below; Science = `SciencePage`. "Run the demo" (Story, Science and the Plan header) opens Plan and starts the guided demo (`GuidedDemo`, mounted once inside the map).
+- **Top bar:** logo, the three tabs, LMST clock, status pill. (Below 1600 px the mission and site names are hidden so the status pills are never cut.)
 - **Left panel:** layer cards (toggle, name, data-type chip, source-mission chip, legend) + cursor probe (elevation, slope, sand risk, science value, walk-home time).
 - **Center:** map. Background = `basemap.png` (HiRISE) as an image overlay over the site bounds, hillshade as the fallback. Layers drawn once to a canvas → image overlay (cache; don't redraw per frame). Route = white line; safe zone = electric-blue edge; habitat = electric-blue square; stops = numbered white markers (Mono theme, Contract 6).
 - **Right panel:** oxygen ring gauge; stats (distance, duration, walk time, science time, margin, dose); status with reasons; stop cards (drag to reorder, set dwell, delete).
 - **Bottom (floating):** timeline — play/pause/scrub, start-time selector, track colored walking white / science grey (Mono theme, Contract 6).
 - **Emergency buttons:** Dust Storm, Solar Particle Event → alert banner, red abort route, and two labelled statuses: **EVA: NO-GO** and **Return home: CAUTION / NO-GO** with the abort route's reasons (Contract 3).
-- **Other screens:** opening briefing (slow pan over Jezero, "ARES-1 EVA, JEZERO DELTA FRONT", Begin planning), stop detail card (photo, why it matters, time, tools, oxygen cost), helmet HUD (visor vignette, big electric-blue heading arrow, NEXT stop + distance, oxygen / margin / dose, turns red in NO-GO), "Data sources" panel, tablet layout ≤ 1024 px (full map + bottom sheet with Plan / Layers / Conditions tabs).
+- **Other screens:** opening briefing (slow pan over Jezero, "ARES-1 EVA, JEZERO DELTA FRONT", Begin planning), stop detail card (photo, why it matters, time, tools, oxygen cost), helmet HUD (visor vignette, big electric-blue heading arrow, NEXT stop + distance, oxygen / margin / dose, turns red in NO-GO), "Data sources" panel, tablet layout ≤ 1024 px (full map + bottom sheet with Map / Mission / Layers tabs; controls at least 44 px).
 - **"Load demo mission"** button with three preset stops.
 - **Shortcuts:** Space play/pause, H HUD, Delete removes selected stop.
 - Must work if Mars Trek tiles fail. No console errors.

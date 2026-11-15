@@ -158,3 +158,19 @@ describe("header", () => {
     expect(app).toContain('className="return-reason"');
   });
 });
+
+describe("tablet touch targets", () => {
+  const css = read("../styles/tablet-touch.css");
+  it("the console tabs and the header, banner, demo and Play buttons are at least 44 px on tablet", () => {
+    const tablet = css.slice(css.indexOf("@media (max-width: 1024px)"));
+    expect(tablet).toMatch(/\.tablet-tabs button \{\s*min-height: var\(--touch-target\)/);
+    for (const part of [".header-actions > button", ".storm-alert button", ".guided-demo__actions button", ".timeline-controls button"])
+      expect(tablet).toContain(part);
+    expect(read("../styles/tokens.css")).toMatch(/--touch-target:\s*44px/);
+    expect(read("../main.tsx")).toContain('import "./styles/tablet-touch.css";');
+  });
+  it("the guided demo's main button uses the filled-button blue, which keeps white text readable", () => {
+    const demo = read("../components/guided-demo.css");
+    expect(demo).toMatch(/button\.guided-demo__next \{[^}]*background: var\(--ds-blue-fill\);[^}]*color: #ffffff;/);
+  });
+});
