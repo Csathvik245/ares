@@ -77,6 +77,7 @@ export function MissionBriefing({
         </div>
         <ol className="briefing-beats" aria-label="The mission story">
           <li><span aria-hidden="true">01</span><p>Jezero Crater, 2030s. {CONSUMABLE_HOURS} hours of oxygen, 5 km of unknown terrain.</p></li>
+          {/* "Up to 20 minutes": NASA Human Research Program, "Hazard: Distance From Earth" (docs/sources.md). */}
           <li><span aria-hidden="true">02</span><p>Mission Control is up to 20 minutes away by radio. The answer has to come from the suit.</p></li>
           <li><span aria-hidden="true">03</span><p>ARES plans the walk on real NASA terrain, checked against Perseverance&apos;s own drive.</p></li>
           <li><span aria-hidden="true">04</span><p>When a storm hits, ARES re-plans the way home, right then.</p></li>

@@ -59,6 +59,12 @@ const demo = planRoute(site, cost, site.habitat, demoStops);
 // The same mission by the SHORTEST walkable path (section 9): chosen by distance alone, then
 // timed with the real walking model, so its time and oxygen are what that path would really cost.
 const demoShortest = planRoute(site, cost, site.habitat, demoStops, { shortestPath: true });
+// Section 9 quotes differences between the minutes it shows (228 min against 215 min is 13 min),
+// so the table always adds up for a reader.
+const shownMin = (sec: number) => roundHalfUp(sec / 60);
+const terrainBlindExtraMin = shownMin(demoShortest.totalSec) - shownMin(demo.totalSec);
+const terrainBlindLessSpareMin = shownMin(demo.marginSec) - shownMin(demoShortest.marginSec);
+const terrainBlindSameLength = roundHalfUp(demo.distM - demoShortest.distM) === 0;
 
 // The Wildcat Ridge SPE demo, as the app's "SPE at Wildcat Ridge" button runs it:
 // one stop, no science time, and the event starts on arrival.
@@ -338,24 +344,25 @@ Top sensitivity: **${stretchSim.sensitivity[0].label}** (a swing of ${formatMinu
 
 ${newEmergenciesBlock()}
 
-## 9. ARES vs shortest path
+## 9. ARES vs terrain-blind route
 
-The demo mission planned two ways. **ARES** picks the fastest safe path. The **shortest path** is the
-shortest walkable one in metres: same no-go ground, but slopes, soft sand and rough ground are ignored
-when choosing it. Both are then timed with the same walking model, so the shortest path's numbers are
+The demo mission planned two ways. **ARES** picks the fastest safe path. The **terrain-blind route** is
+chosen by distance alone: same no-go ground, but slopes, soft sand and rough ground are ignored when
+choosing it. Both are then timed with the same walking model, so the terrain-blind route's numbers are
 what it would really cost to walk it. Planner option: \`planRoute(..., { shortestPath: true })\`, off by default.
 
-Distances are measured along the 25 m grid. On a grid several paths can tie for shortest; the search
-keeps the one it finds, without looking at the terrain. So a shortest path can be the same length as the
-ARES route and still be slower: it crosses slower ground.
+In one sentence: the terrain-blind route is ${terrainBlindSameLength ? "the same length as the ARES route" : "no longer than the ARES route"}, but it ignores slope and sand, so it costs ${terrainBlindExtraMin} min more and leaves ${terrainBlindLessSpareMin} min less spare oxygen.
 
-| | ARES route | Shortest path | Difference |
+Distances are measured along the 25 m grid. On a grid several paths can tie for shortest; the search
+keeps the one it finds, without looking at the terrain. Differences are between the minutes shown in the table.
+
+| | ARES route | Terrain-blind route | Difference |
 |---|---|---|---|
-| Distance | ${formatKm(demo.distM)} | ${formatKm(demoShortest.distM)} | ${roundHalfUp(demo.distM - demoShortest.distM) === 0 ? "the same length, to the metre" : `shortest path is ${roundHalfUp(demo.distM - demoShortest.distM)} m shorter`} |
-| Walk time | ${formatDuration(demo.walkSec)} (${formatMinutes(demo.walkSec)}) | ${formatDuration(demoShortest.walkSec)} (${formatMinutes(demoShortest.walkSec)}) | ARES saves ${formatMinutes(demoShortest.walkSec - demo.walkSec)} of walking |
-| Total time | ${formatDuration(demo.totalSec)} | ${formatDuration(demoShortest.totalSec)} | ARES is ${formatMinutes(demoShortest.totalSec - demo.totalSec)} quicker |
-| Oxygen used | ${formatMinutes(demo.oxygenUsedSec)} | ${formatMinutes(demoShortest.oxygenUsedSec)} | ARES saves ${formatMinutes(demoShortest.oxygenUsedSec - demo.oxygenUsedSec)} of oxygen |
-| Oxygen margin | ${formatMinutes(demo.marginSec)} | ${formatMinutes(demoShortest.marginSec)} | ${formatMinutes(demo.marginSec - demoShortest.marginSec)} more spare with ARES |
+| Distance | ${formatKm(demo.distM)} | ${formatKm(demoShortest.distM)} | ${terrainBlindSameLength ? "the same length, to the metre" : `terrain-blind route is ${roundHalfUp(demo.distM - demoShortest.distM)} m shorter`} |
+| Walk time | ${formatDuration(demo.walkSec)} (${formatMinutes(demo.walkSec)}) | ${formatDuration(demoShortest.walkSec)} (${formatMinutes(demoShortest.walkSec)}) | ARES saves ${shownMin(demoShortest.walkSec) - shownMin(demo.walkSec)} min of walking |
+| Total time | ${formatDuration(demo.totalSec)} (${formatMinutes(demo.totalSec)}) | ${formatDuration(demoShortest.totalSec)} (${formatMinutes(demoShortest.totalSec)}) | terrain-blind costs ${terrainBlindExtraMin} min more |
+| Oxygen used | ${formatMinutes(demo.oxygenUsedSec)} | ${formatMinutes(demoShortest.oxygenUsedSec)} | ARES saves ${shownMin(demoShortest.oxygenUsedSec) - shownMin(demo.oxygenUsedSec)} min of oxygen |
+| Oxygen margin | ${formatMinutes(demo.marginSec)} | ${formatMinutes(demoShortest.marginSec)} | terrain-blind leaves ${terrainBlindLessSpareMin} min less spare oxygen |
 | Oxygen at return | ${formatPct(demo.oxygenAtReturnPct)} | ${formatPct(demoShortest.oxygenAtReturnPct)} | |
 | Status | **${demo.status}** | **${demoShortest.status}** | |
 `;
@@ -464,7 +471,7 @@ describe("docs/demo-numbers.md", () => {
     expect(formatMinutes(scenario("blocked-path").after.marginSec)).toBe("193 min");
   });
 
-  it("section 9: the shortest path is shorter in metres, but ARES is at least as quick and uses no more oxygen", () => {
+  it("section 9: the terrain-blind route is no longer in metres, but ARES is at least as quick and uses no more oxygen", () => {
     expect(demoShortest.ok).toBe(true);
     expect(demoShortest.distM).toBeLessThanOrEqual(demo.distM);
     expect(demoShortest.walkSec).toBeGreaterThanOrEqual(demo.walkSec);

@@ -66,7 +66,7 @@ export const SCIENCE_NUMBERS = {
   bigLossHomeMargin: from("8", "111 min"),
   bigLossContinueMargin: from("8", "31 min"),
 
-  // 9. ARES vs shortest path (demo mission)
-  shortestPathSlower: from("9", "14 min quicker"),
-  shortestPathOxygen: from("9", "18 min of oxygen"),
+  // 9. ARES vs terrain-blind route (demo mission)
+  terrainBlindSlower: from("9", "13 min more"),
+  terrainBlindLessSpare: from("9", "18 min less spare oxygen"),
 } as const;

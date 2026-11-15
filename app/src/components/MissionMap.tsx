@@ -23,7 +23,7 @@ import { layerOpacity, raster, zoneBounds, zoneRaster, type OverlayName } from "
 import { PROBE_SOURCES, probeVerdict } from "../lib/probe";
 /** Dark outline on each side of the planned route, in pixels, so the white line reads over amber terrain. */
 export const PLAN_OUTLINE_PX = 2;
-/** The shortest-path comparison line: the Mono theme's muted grey (--muted). */
+/** The terrain-blind comparison line: the Mono theme's muted grey (--muted). */
 export const COMPARE_COLOR = "#a3a3a3";
 export const TREK_LAYER = "Mars_Viking_MDIM21_ClrMosaic_global_232m";
 

@@ -114,7 +114,7 @@ function useMissionState() {
         : null,
     [site, normalCost, stops],
   );
-  // "Compare: shortest path" (off by default). The same stops by the shortest walkable path,
+  // "Compare: terrain-blind route" (off by default). The same stops by a route chosen by distance alone,
   // timed with the real walking model. Only worked out while the toggle is on and the plan is calm.
   const [compareShortest, setCompareShortest] = useState(false);
   const shortestPlan = useMemo(

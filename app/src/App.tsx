@@ -438,15 +438,15 @@ function Console({ initialHash }: { initialHash?: string }) {
                     <small>reliability · layers · start time</small>
                   </summary>
                   <div className="more-details-body">
-                    {/* Off by default. Shows what the shortest walkable path would cost, next to the ARES route. */}
-                    <label className="compare-toggle" title="Draw the shortest walkable path as a dashed grey line, and show its real time and oxygen next to the ARES route.">
+                    {/* Off by default. Shows what a terrain-blind route (chosen by distance alone) would cost, next to the ARES route. */}
+                    <label className="compare-toggle" title="Draw a route chosen by distance alone, ignoring slope and sand, as a dashed grey line, and show its real time and oxygen next to the ARES route.">
                       <input
                         type="checkbox"
                         checked={m.compareShortest}
                         disabled={!!emergency || plan.legs.length === 0}
                         onChange={(event) => m.setCompareShortest(event.target.checked)}
                       />
-                      <span>Compare: shortest path</span>
+                      <span>Compare: terrain-blind route</span>
                     </label>
                     <MissionPanel part="reliability" onDetail={setDetail} />
                     <LayerRail

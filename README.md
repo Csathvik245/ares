@@ -19,7 +19,7 @@ Can an astronaut walk to the science and get back safely?
 
 On Mars that question is hard, for three reasons.
 
-- **Radio delay.** A message to Earth and the answer back can take many minutes. Mission Control cannot talk an astronaut home in real time. The answer has to be ready in the habitat and in the suit.
+- **Radio delay.** A radio message takes up to 20 minutes to reach Earth, and as long again for the answer ([NASA Human Research Program](https://www.nasa.gov/hrp/hazard-distance-from-earth/)). Mission Control cannot talk an astronaut home in real time. The answer has to be ready in the habitat and in the suit.
 - **Oxygen.** The suit carries a fixed supply. Every step and every minute of science uses some of it, and a reserve must still be there at the airlock.
 - **Terrain.** Steep slopes, soft sand and rough ground slow a person on foot or stop them. The shortest line on a map is often not the safest walk.
 
@@ -59,7 +59,7 @@ The demo mission, as the planner computes it today (from [docs/demo-numbers.md](
 
 ## Who it helps
 
-- **Astronauts on a Mars walk:** a clear GO / CAUTION / NO-GO before they leave, and a new route home the moment something goes wrong, without waiting up to 20 minutes for Earth.
+- **Astronauts on a Mars walk:** a clear GO / CAUTION / NO-GO before they leave, and a new route home the moment something goes wrong, without waiting up to 20 minutes for Earth (the one-way radio delay, [NASA Human Research Program](https://www.nasa.gov/hrp/hazard-distance-from-earth/)).
 - **Mission planners:** test a walk against real terrain, oxygen limits and 1,000 simulated versions before anyone steps outside.
 - **Science teams:** see which stops are worth the oxygen they cost, using CRISM clay signals.
 

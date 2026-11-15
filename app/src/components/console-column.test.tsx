@@ -291,7 +291,7 @@ describe("oxygen section: the simulated range under the estimate", () => {
   });
 });
 
-describe("compare: shortest path", () => {
+describe("compare: terrain-blind route", () => {
   const source = (name: string) => readFileSync(new URL(name, import.meta.url), "utf8");
 
   it("is off by default and shows nothing until it is switched on", () => {
@@ -302,7 +302,7 @@ describe("compare: shortest path", () => {
     expect(context).toMatch(/compareShortest && site && normalCost && plan && plan\.legs\.length > 0 && !emergency/); // calm plans only
   });
 
-  it("when on, one line under the tiles gives the shortest path's real numbers next to the ARES route's", async () => {
+  it("when on, one line under the tiles gives the terrain-blind route's real numbers next to the ARES route's", async () => {
     const { formatKm, formatMinutes } = await import("../planner");
     const plan = planRoute(site, cost, site.habitat, demoStops);
     const shortestPlan = planRoute(site, cost, site.habitat, demoStops, { shortestPath: true });
@@ -313,17 +313,17 @@ describe("compare: shortest path", () => {
     );
     const line = text(/<p class="compare-line"[^>]*>([\s\S]*?)<\/p>/.exec(html)![1]).replace(/ ,/g, ",");
     expect(line).toBe(
-      `Shortest path: ${formatKm(shortestPlan.distM)}, ${formatMinutes(shortestPlan.totalSec)}, ${formatMinutes(shortestPlan.marginSec)} spare · ` +
+      `Terrain-blind route: ${formatKm(shortestPlan.distM)}, ${formatMinutes(shortestPlan.totalSec)}, ${formatMinutes(shortestPlan.marginSec)} spare · ` +
         `ARES: ${formatKm(plan.distM)}, ${formatMinutes(plan.totalSec)}, ${formatMinutes(plan.marginSec)} spare`,
     );
     expect(html.indexOf("stat-tiles")).toBeLessThan(html.indexOf("compare-line")); // under the tiles
     expect(shortestPlan.marginSec).toBeLessThanOrEqual(plan.marginSec); // ARES never has less oxygen to spare
   });
 
-  it("the toggle lives inside More details, and the map draws the shortest path as a thin dashed grey line", () => {
+  it("the toggle lives inside More details, and the map draws the terrain-blind route as a thin dashed grey line", () => {
     const app = source("../App.tsx");
     const more = app.slice(app.indexOf('<details className="collapsible more-details">'), app.indexOf("</details>", app.indexOf('<details className="collapsible more-details">')));
-    expect(more).toContain("<span>Compare: shortest path</span>");
+    expect(more).toContain("<span>Compare: terrain-blind route</span>");
     expect(more).toContain("checked={m.compareShortest}");
     expect(app).toContain("comparePaths={m.shortestPlan?.legs.map((leg) => leg.path)}");
     const map = source("./MissionMap.tsx");

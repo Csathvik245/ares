@@ -211,7 +211,7 @@
 
 /* ---------- The mission patch and its "AI" badge ---------- */
 /* The patch is an AI-generated image, so a small "AI" badge sits inside its bottom-right
-   corner: real, always-visible text (not a tooltip), about a quarter of the patch wide.
+   corner: real, always-visible text (not a tooltip), 19 px wide on the 48 px patch.
    The wrapper is exactly the size of the image, so nothing in the header moves. */
 .patch-mark {
   position: relative;
@@ -224,12 +224,12 @@
   right: 0;
   bottom: 0;
   box-sizing: border-box;
-  width: 27%;
+  width: 19px;
   padding: 0 1px;
   border-radius: 2px;
   background: rgba(0, 0, 0, 0.62);
-  color: rgba(255, 255, 255, 0.7);
-  font: 700 8px/10px var(--font-body);
+  color: rgba(255, 255, 255, 0.85);
+  font: 700 10px/14px var(--font-body);
   letter-spacing: 0;
   text-align: center;
   text-transform: none;

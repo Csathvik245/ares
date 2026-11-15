@@ -291,10 +291,13 @@ describe("the AI-generated mission patch always carries its AI mark", () => {
     const badge = /\.patch-mark__badge \{([^}]*)\}/.exec(css)![1];
     expect(badge).toContain("position: absolute"); // drawn over the image: it takes no room of its own
     expect(badge).toMatch(/right: 0;\s*bottom: 0;/);
-    expect(badge).toMatch(/width: 2[0-9]%/); // about a quarter of the patch
+    const width = Number(/width: (\d+)px/.exec(badge)![1]);
+    expect(width).toBeGreaterThanOrEqual(18); // easy to see on the 48 px patch
+    expect(width).toBeLessThanOrEqual(20);
+    expect(badge).toMatch(/font: 700 10px\/14px/); // height in proportion
     expect(badge).toContain("border-radius: 2px");
     expect(badge).toMatch(/background: rgba\(0, 0, 0, 0\.\d+\)/); // dark and translucent
-    expect(badge).toContain("color: rgba(255, 255, 255, 0.7)"); // white at 70%
+    expect(badge).toContain("color: rgba(255, 255, 255, 0.85)"); // white at 85%
     expect(badge).not.toMatch(/display: none|visibility: hidden/);
   });
 

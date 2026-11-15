@@ -20,7 +20,7 @@ ARES is a route planner for an astronaut walking on Mars. It is built for a sing
 
 ## Who it helps
 
-- **Astronauts on a Mars walk:** a clear GO / CAUTION / NO-GO before they leave, and a new route home the moment something goes wrong, without waiting up to 20 minutes for Earth.
+- **Astronauts on a Mars walk:** a clear GO / CAUTION / NO-GO before they leave, and a new route home the moment something goes wrong, without waiting up to 20 minutes for Earth (the one-way radio delay, [NASA Human Research Program](https://www.nasa.gov/hrp/hazard-distance-from-earth/)).
 - **Mission planners:** test a walk against real terrain, oxygen limits and 1,000 simulated versions before anyone steps outside.
 - **Science teams:** see which stops are worth the oxygen they cost, using CRISM clay signals.
 
