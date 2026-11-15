@@ -1100,3 +1100,20 @@ dl {
 [data-theme] .console-body.consolidated .telemetry-col[hidden] {
   display: none;
 }
+
+.console-brand .console-home {
+  display: inline-flex;
+  align-items: center;
+  flex-shrink: 0;
+  gap: var(--space-3);
+  min-height: var(--touch-target);
+  color: var(--mars);
+  font: 700 16px/24px var(--font-mono);
+  letter-spacing: 0.8px;
+  text-decoration: none;
+}
+.console-brand .console-home:hover { color: var(--safe); }
+.console-brand .console-home:focus-visible {
+  outline: 2px solid var(--safe);
+  outline-offset: 4px;
+}

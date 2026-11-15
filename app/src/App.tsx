@@ -282,8 +282,19 @@ function Console() {
     <main className={`console-app ${emergency ? "has-emergency" : ""}`}>
       <header className="console-header">
         <div className="console-brand">
-          <img className="console-patch" src="/brand/ares-patch.png" alt="The Ares Initiative mission patch" width="48" height="40" />
-          <b>ARES</b>
+          <a
+            className="console-home"
+            href="/"
+            aria-label="ARES home"
+            onClick={(event) => {
+              event.preventDefault();
+              setScreen("briefing");
+              window.scrollTo(0, 0);
+            }}
+          >
+            <img className="console-patch" src="/brand/ares-patch.png" alt="" width="48" height="40" />
+            <b>ARES</b>
+          </a>
           <span>
             ARES-1 EVA <small>Jezero delta front</small>
           </span>
