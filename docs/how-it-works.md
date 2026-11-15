@@ -150,6 +150,28 @@ Every exported planner function has a speed test (limit 100 ms; 150 ms for the s
 
 **Robustness:** 500 random plans, with stops anywhere inside and outside the map, random science times and start times, all return a valid plan with a status and a reason. The slowest took 51 ms.
 
+## Related work
+
+ARES builds on a line of traverse planners made for real exploration. Three that shaped how we think about the problem:
+
+- **SEXTANT (MIT and NASA Ames).** The Surface Exploration Traverse Analysis and Navigation Tool plans walking routes for astronauts over rough terrain. Norheim's 2018 MIT thesis updated it for real EVA use: "a web-based interface for both planning and navigation purposes" and "the Holo-SEXTANT Augmented Reality (AR) navigation solution", tested in NASA's BASALT field campaign and connected to NASA Ames's xGDS software. (Norheim 2018, S.M. thesis, MIT, [hdl.handle.net/1721.1/119309](https://hdl.handle.net/1721.1/119309).)
+- **The xGDS traverse planner (NASA Ames).** A planner built into the Exploration Ground Data Systems for rover traverses where the constraints depend on both place and time, using a lunar polar rover mission as its reference case. Its central idea is **reachability**: where can the vehicle still get to, and by when. (Bresina, Morris, Deans, Cohen & Lees 2017, "Traverse Planning with Temporal-Spatial Constraints", SPARK workshop at ICAPS 2017.)
+- **MoonPath.** Automated astronaut traverses near the lunar south pole that minimise **metabolic workload**, computed over LOLA laser-altimeter terrain. News coverage of the paper describes the pipeline, called MoonPath, as using Dijkstra's minimum-cost path algorithm. (Peña-Asensio et al. 2024, *Acta Astronautica* 214, 324–342, doi:10.1016/j.actaastro.2023.10.010.)
+
+We read the thesis abstract, the workshop paper's record and abstract, and the journal record for the third; we did not read the full texts. See [`sources.md`](sources.md) for exactly what was checked.
+
+### What ARES adds
+
+These are differences in emphasis, not claims of being first:
+
+- **Mars, with thermal and mineral layers.** Routes at Jezero use THEMIS thermal inertia for soft sand and CRISM for science targets, on top of HiRISE terrain.
+- **A live, oxygen-aware safe-return zone.** Every change to the plan redraws where the astronaut can still go and get home with the reserve intact.
+- **Emergency re-planning with two statuses.** A dust storm or solar particle event aborts the plan ("EVA") and plans the walk back ("Return home") from wherever she is, each with its own status and reasons.
+- **Science per oxygen-minute.** Stops are scored, and suggested, by what they give for the oxygen they cost.
+- **A check against a real traverse.** The terrain model is compared with Perseverance's actual drive path, with the caveats written down.
+- **Zero setup.** It runs in a web browser from a link; the planner needs no server and no install.
+- **Radiation shelter routing** is being built and is not in this version (see below).
+
 ## Shelter routing (in progress)
 
 *Placeholder: this feature is still being built. Its description will go here when it lands.*
