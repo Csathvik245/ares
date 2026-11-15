@@ -10,7 +10,12 @@
  * word and the reason, which are always shown).
  *
  * Select it with ?theme=mono (the default), ?theme=deep-space or ?theme=classic.
+ *
+ * Accent: electric blue (#3d7bff, 5.2:1 on black) marks safety and interaction. Fills use #2f6bff so white
+ * text on them stays at 4.5:1.
+ * Fonts: IBM Plex Sans + IBM Plex Mono, one family so the text and the numbers match.
  */
+@import url("https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap");
 
 [data-theme="mono"] {
   --void: #0a0a0a;
@@ -20,7 +25,11 @@
   --text: #ededed;
   --muted: #a3a3a3;
   --mars: #ffffff; /* the plan: route, stops, primary marks */
-  --safe: #b8b8b8; /* safety: zone, astronaut, margin */
+  --safe: #3d7bff; /* electric blue: safety, interaction, focus */
+  --ds-blue-fill: #2f6bff;
+  --font-body: "IBM Plex Sans", Inter, -apple-system, "Segoe UI", sans-serif;
+  --font-heading: "IBM Plex Sans", Inter, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: "IBM Plex Mono", "JetBrains Mono", ui-monospace, monospace;
   --science: #d4d4d4; /* science sites */
 
   --ds-value: #ffffff;
@@ -41,7 +50,7 @@
 }
 
 [data-theme="mono"] :focus-visible {
-  outline-color: #ffffff;
+  outline-color: var(--safe);
 }
 /* The shared console block sets its own muted blue; make it grey here. */
 [data-theme="mono"] .console-app {
@@ -56,23 +65,23 @@
   color: rgba(255, 255, 255, 0.7);
 }
 [data-theme="mono"] .console-app button:hover {
-  border-color: #ffffff;
+  border-color: var(--safe);
   color: #ffffff;
 }
 [data-theme="mono"] .stop-list > li.is-selected {
   background: rgba(255, 255, 255, 0.06);
-  box-shadow: inset 2px 0 0 #ffffff;
+  box-shadow: inset 2px 0 0 var(--safe);
 }
 [data-theme="mono"] .stop-number {
   border-color: rgba(255, 255, 255, 0.6);
 }
 [data-theme="mono"] .oxygen-headline strong span {
-  color: rgba(255, 255, 255, 0.7);
+  color: var(--safe);
 }
 
 /* ---------- Oxygen bar: used = white, margin = grey, reserve = hatched ---------- */
 [data-theme="mono"] .budget-margin {
-  background: #8c8c8c;
+  background: var(--safe);
 }
 [data-theme="mono"] .budget-reserve {
   background: rgba(255, 255, 255, 0.08)
@@ -84,7 +93,7 @@
   filter: grayscale(1) contrast(1.05);
 }
 [data-theme="mono"] .safe-zone {
-  filter: grayscale(1) brightness(1.5);
+  filter: hue-rotate(24deg) saturate(1.5) brightness(1.15);
 }
 /* Planned route and the part already walked when an emergency starts. The red abort route is left alone. */
 [data-theme="mono"] .leaflet-routes-pane path[stroke="#ff6b35"] {
@@ -95,16 +104,16 @@
   stroke: #ffffff;
 }
 [data-theme="mono"] .leaflet-astronaut-pane path {
-  fill: #ffffff;
-  stroke: #000000;
+  fill: var(--safe);
+  stroke: #ffffff;
 }
 [data-theme="mono"] .map-marker {
   border-color: #ffffff;
   color: #ffffff;
 }
 [data-theme="mono"] .map-marker.habitat {
-  border-color: #d4d4d4;
-  color: #d4d4d4;
+  border-color: var(--safe);
+  color: var(--safe);
 }
 [data-theme="mono"] .map-marker.poi {
   background: #d4d4d4;
@@ -113,7 +122,7 @@
   color: #ffffff;
 }
 [data-theme="mono"] .map-legend span:nth-child(2) .legend-glyph {
-  color: #b8b8b8;
+  color: var(--safe);
 }
 [data-theme="mono"] .map-legend span:last-child .legend-glyph {
   color: #d4d4d4;
@@ -132,13 +141,55 @@
 
 /* ---------- Opening briefing and HUD ---------- */
 [data-theme="mono"] .mission-briefing button {
-  background: #ffffff;
-  border-color: #ffffff;
-  color: #000000;
-}
-[data-theme="mono"] .hud-direction {
+  background: var(--ds-blue-fill);
+  border-color: var(--ds-blue-fill);
   color: #ffffff;
 }
+[data-theme="mono"] .hud-direction {
+  color: var(--safe);
+}
 [data-theme="mono"] .hud-readouts progress {
-  accent-color: #ffffff;
+  accent-color: var(--safe);
+}
+
+/* ---------- Electric blue accents ---------- */
+[data-theme="mono"] .layer-row input {
+  accent-color: var(--safe);
+}
+/* Play is the main action on the screen. */
+[data-theme="mono"] .timeline-controls button {
+  background: var(--ds-blue-fill);
+  border-color: var(--ds-blue-fill);
+  color: #ffffff;
+  font-weight: 600;
+}
+[data-theme="mono"] .timeline-controls button:hover {
+  background: #4a7fff;
+  border-color: #4a7fff;
+}
+[data-theme="mono"] .console-brand > b::before {
+  content: "";
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  margin-right: 8px;
+  background: var(--safe);
+  vertical-align: 1px;
+}
+[data-theme="mono"] .telemetry-col .panel-heading > span:first-child::before,
+[data-theme="mono"] .telemetry-col .cursor-probe h3::before,
+[data-theme="mono"] .telemetry-col .model-note > span::before {
+  content: "";
+  display: inline-block;
+  width: 2px;
+  height: 9px;
+  margin-right: 8px;
+  background: var(--safe);
+  vertical-align: -1px;
+}
+[data-theme="mono"] .map-north {
+  color: var(--safe);
+}
+[data-theme="mono"] .playhead {
+  background: var(--safe);
 }
