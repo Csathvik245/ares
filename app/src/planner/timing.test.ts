@@ -117,6 +117,8 @@ const CASES: Record<string, [string, () => unknown]> = {
   ltstToLmst: ["1,000 calls", x1000((i) => ltstToLmst((i % 2400) / 100))],
   temperatureC: ["1,000 calls", x1000((i) => temperatureC((i % 2400) / 100))],
   doseRateMsvPerHr: ["1,000 calls", x1000((i) => doseRateMsvPerHr(i % 2 === 0))],
+  // A fresh copy of the site each time, so the emergency grid and its field are really rebuilt.
+  stormAt: ["new site copy: emergency grid + field + abort + re-plan (cache miss)", () => planner.stormAt({ ...site }, plan, 4560, "dust", 13)],
   roundHalfUp: ["1,000 calls", x1000((i) => planner.roundHalfUp(i / 7, 2))],
   wholeMinutes: ["1,000 calls", x1000((i) => planner.wholeMinutes(i * 31))],
   formatMinutes: ["1,000 calls", x1000((i) => planner.formatMinutes(i * 31))],
