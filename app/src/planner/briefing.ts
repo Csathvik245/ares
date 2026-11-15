@@ -63,7 +63,13 @@ const degrees = (deg: number) => `${deg < 0 ? "−" : ""}${roundHalfUp(Math.abs(
  *               (checked every minute with envAt).
  *   WEATHER     NO-GO during a dust storm (the EVA is aborted); otherwise MONITOR.
  */
-export function computeBriefing(site: Site, plan: Plan, conditions: Conditions): Briefing {
+export function computeBriefing(
+  site: Site,
+  plan: Plan,
+  conditions: Conditions,
+  /** "What if?" oxygen overrides the plan was made with (whatif.ts). Leave out for the planner's constants. */
+  overrides: { consumableHours?: number; reserveMin?: number } = {},
+): Briefing {
   const rows: BriefingRow[] = [];
   const hasRoute = plan.legs.length > 0;
 
@@ -93,7 +99,7 @@ export function computeBriefing(site: Site, plan: Plan, conditions: Conditions):
   }
 
   // ---- CONSUMABLES: oxygen margin against the reserve ----------------------------
-  const budget = oxygenBudget(conditions.storm);
+  const budget = oxygenBudget(conditions.storm, overrides);
   const consumables: Status = plan.marginSec < 0 ? "NO-GO" : isLowMargin(plan.marginSec, budget) ? "CAUTION" : "GO";
   rows.push({
     key: "CONSUMABLES",

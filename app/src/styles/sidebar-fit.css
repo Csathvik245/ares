@@ -379,3 +379,32 @@ html[data-theme] .console-app .whatif-off-note {
     min-height: var(--touch-target);
   }
 }
+
+/* ---------- Download briefing / Copy link (inside More details) ---------- */
+html[data-theme] .console-app .plan-share {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 10px 0;
+}
+html[data-theme] .console-app .plan-share button {
+  flex: 1 1 0;
+  min-height: 32px;
+  padding: 0 12px;
+  background: transparent;
+  border: 1px solid var(--hairline);
+  color: var(--text);
+  font: 500 12px/16px var(--font-body);
+  white-space: nowrap;
+}
+html[data-theme] .console-app .plan-share button:not(:disabled):hover {
+  border-color: var(--text);
+}
+html[data-theme] .console-app .plan-share button:disabled {
+  color: var(--muted);
+}
+@media (max-width: 1024px) {
+  html[data-theme] .console-app .plan-share button {
+    min-height: var(--touch-target);
+  }
+}

@@ -40,6 +40,7 @@ import { GuideButton, UserGuide } from "./components/UserGuide";
 import { PLAY_HINT_TEXT, hintNeeded, rememberHint, type GuideAction, type TourStop } from "./lib/guide";
 import { GuideTour } from "./components/GuideTour";
 import { WhatIfPanel, WhatIfTag } from "./components/WhatIfPanel";
+import { PrintBriefing } from "./components/PrintBriefing";
 import { isWhatIf } from "./lib/planner";
 const EMPTY_PATH: LatLng[] = [];
 function Console({ initialHash }: { initialHash?: string }) {
@@ -81,6 +82,8 @@ function Console({ initialHash }: { initialHash?: string }) {
   // The user guide (full screen, on every tab), its first-visit hint on the Plan tab, the spotlight
   // tour of the Plan view (-1 = off), and the "Press Play" pointer shown after the guide loads the demo.
   const [tourIndex, setTourIndex] = useState(-1);
+  // The printable mission briefing ("Download briefing").
+  const [briefingOpen, setBriefingOpen] = useState(false);
   const [playHint, setPlayHint] = useState(false);
   const [guideOpen, setGuideOpen] = useState(false);
   const [guideHint, setGuideHint] = useState(false);
@@ -348,10 +351,13 @@ function Console({ initialHash }: { initialHash?: string }) {
         ].join(" · ")
       : m.evaReasons.join(" · ");
   // The less-used views live in one menu.
+  const canBrief = !emergency && plan.legs.length > 0;
   const viewItems: ViewMenuItem[] = [
     { id: "3d", label: "3D terrain", checked: view3d, onSelect: () => setView3d((v) => !v) },
     { id: "hud", label: "Helmet HUD", hint: "H", onSelect: () => setScreen("hud") },
     { id: "sources", label: "Sources", onSelect: () => setSources(true) },
+    // The briefing is of the plan on screen: it waits while there is no route or an emergency is running.
+    ...(canBrief ? [{ id: "briefing", label: "Download briefing", onSelect: () => setBriefingOpen(true) }] : []),
     ...(consolidated
       ? [{ id: "sidebar", label: sidebarCollapsed ? "Show sidebar" : "Hide sidebar", onSelect: () => setSidebarCollapsed((c) => !c) }]
       : []),
@@ -523,6 +529,17 @@ function Console({ initialHash }: { initialHash?: string }) {
       </header>
       {guidePanel}
       <GuideTour index={guideOpen ? -1 : tourIndex} onChange={setTourIndex} onStop={onTourStop} />
+      {briefingOpen && canBrief && (
+        <PrintBriefing
+          site={site}
+          plan={plan}
+          stops={m.stops}
+          conditions={m.conditions}
+          basemapUrl={m.basemap?.url}
+          whatIf={m.whatIfOn ? m.whatIf : undefined}
+          onClose={() => setBriefingOpen(false)}
+        />
+      )}
       <nav className="tablet-tabs" aria-label="Console panels">
         {CONSOLE_TABS.map((t) => (
           <button key={t.id} aria-pressed={tab === t.id} onClick={() => setTab(t.id)}>
@@ -567,6 +584,11 @@ function Console({ initialHash }: { initialHash?: string }) {
                       />
                       <span>Compare: terrain-blind route</span>
                     </label>
+                    <div className="plan-share">
+                      <button type="button" onClick={() => setBriefingOpen(true)} disabled={!canBrief} title={canBrief ? "Open a one-page briefing of this plan, ready to print or save as PDF." : "Add a route (and reset any emergency) to make a briefing."}>
+                        Download briefing
+                      </button>
+                    </div>
                     <WhatIfPanel
                       values={m.whatIfDraft}
                       active={isWhatIf(m.whatIfDraft)}
