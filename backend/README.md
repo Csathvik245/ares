@@ -1,3 +1,5 @@
+> **Experimental, not enabled in the submitted app (team decision, Nov 14). Do not deploy the backend or mount ChatPanel.**
+
 # backend/ — ARES assistant API
 
 One Vercel serverless function, `api/assistant.ts`. It lets the in-app assistant talk to the model.

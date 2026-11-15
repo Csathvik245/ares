@@ -1,9 +1,9 @@
 // The assistant's browser half, on the real site.json: the tool executor and the
 // tool loop. The model is replaced by a scripted stand-in, so no network and no
 // API key are needed and the tests are deterministic.
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
+import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
-import { LAYER_NAMES, TOOLS, TOOL_NAMES } from "../../../backend/lib/tools";
 import { buildCostGrid, formatKm, formatMinutes, loadSite, planRoute, stormAt } from "../planner";
 import type { Stop } from "../planner";
 import { scienceScore, suggestStops } from "../planner/science";
@@ -21,6 +21,17 @@ const stops: Stop[] = site.pois
 const plan = planRoute(site, cost, site.habitat, stops);
 const session = () => createToolSession({ site, stops, conditions });
 
+// The tool descriptions live in backend/ (the server side). The app must build, typecheck
+// and test without that folder, so they are loaded only if the file is there, and the
+// checks that compare the two sides are skipped when it is not.
+type ToolSchema = { name: string; strict: boolean; input_schema: { required: string[]; additionalProperties: boolean } };
+const backendTools = new URL("../../../backend/lib/tools.ts", import.meta.url);
+const hasBackend = existsSync(fileURLToPath(backendTools));
+const backend: { TOOLS: ToolSchema[]; TOOL_NAMES: string[]; LAYER_NAMES: string[] } = hasBackend
+  ? await import(/* @vite-ignore */ backendTools.href)
+  : { TOOLS: [], TOOL_NAMES: [], LAYER_NAMES: [] };
+const { LAYER_NAMES, TOOLS, TOOL_NAMES } = backend;
+
 /** Example arguments for each tool, so every tool the model is offered is run once. */
 const EXAMPLE_ARGS: Record<string, unknown> = {
   get_plan_summary: {},
@@ -34,7 +45,7 @@ const EXAMPLE_ARGS: Record<string, unknown> = {
   suggest_stops: { n: 2 },
 };
 
-describe("tool schemas and the browser executor agree", () => {
+describe.skipIf(!hasBackend)("tool schemas and the browser executor agree", () => {
   it("offers the seven Contract 5 tools plus score_stops and suggest_stops", () => {
     expect(TOOL_NAMES).toEqual([
       "get_plan_summary",
