@@ -52,6 +52,11 @@ npm run dev     # start the app at the URL Vite prints
 npm test        # run the planner and app tests
 ```
 
+### Testing
+
+- `npm test` checks that the planner gives the right answers. It skips every speed-limit test, so it never fails just because the computer was busy.
+- `npm run test:speed` runs the same tests **plus** the speed limits (for example "every planner function under 100 ms on the real 76,800-cell grid"). It sets `RUN_SPEED_TESTS=1` for you and works on Windows, macOS and Linux. Run it on a quiet machine.
+
 ## Data sources
 
 ARES combines six NASA data types: HiRISE imagery and elevation (Mars Reconnaissance Orbiter), MOLA (Mars Global Surveyor), THEMIS (Mars Odyssey), CRISM (MRO), MEDA (Perseverance) and RAD (Curiosity). Every dataset and paper, with links and how we use it, is in **[docs/sources.md](docs/sources.md)**.

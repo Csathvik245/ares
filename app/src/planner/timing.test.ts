@@ -2,6 +2,9 @@
 // Each function is run several times; the MEDIAN run must take under 100 ms
 // (CLAUDE.md section 6: "well under 100 ms on 76,800 cells").
 // Functions that take microseconds are timed as a batch of 1,000 calls.
+//
+// OPT-IN: these run only with `npm run test:speed` (RUN_SPEED_TESTS=1). A normal
+// `npm test` skips them, and still checks that every exported function has a case here.
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
@@ -195,7 +198,8 @@ describe("every exported planner function is fast", () => {
     });
   }
 
-  it("prints the timing table", () => {
+  // Only meaningful when the timed cases above ran.
+  it("prints the timing table", { skip: SPEED_TEST.skip }, () => {
     console.log(`median of ${RUNS} runs on the real ${site.width} x ${site.height} site.json:\n` + results.join("\n"));
     expect(results).toHaveLength(Object.keys(CASES).length);
   });

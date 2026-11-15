@@ -6,7 +6,7 @@
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
-import { SPEED_TEST, cpuNow } from "../test-utils/cpuClock";
+import { RUN_SPEED_TESTS, cpuNow } from "../test-utils/cpuClock";
 import {
   MAX_SLOPE_DEG,
   ROCK_NO_GO,
@@ -213,7 +213,7 @@ describe("how many stops, and how long", () => {
     expect(exercise(site, calm, CALM, [demo()[0]]).status).toBe("GO");
   });
 
-  it("10 stops: valid plan, in well under 200 ms", SPEED_TEST, () => {
+  it("10 stops: valid plan (and, in speed-test runs, in well under 200 ms)", () => {
     const pts = site.pois.filter((p) => p.kind === "science");
     const ten = Array.from({ length: 10 }, (_, i) => stopAt(`s${i}`, pts[i % pts.length], 5));
     const t0 = cpuNow();
@@ -221,7 +221,7 @@ describe("how many stops, and how long", () => {
     const ms = cpuNow() - t0;
     expectValidPlan(plan);
     expect(plan.legs).toHaveLength(11);
-    expect(ms).toBeLessThan(200);
+    if (RUN_SPEED_TESTS) expect(ms).toBeLessThan(200);
     exercise(site, calm, CALM, ten);
   });
 
@@ -358,7 +358,8 @@ describe("fuzz: 500 random plans", () => {
     };
   }
 
-  it("every plan is valid, has a status and a reason, and takes under 200 ms", { ...SPEED_TEST, timeout: 60_000 }, () => {
+  // The validity checks always run. The 200 ms limit is checked only in speed-test runs.
+  it("every plan is valid and has a status and a reason (and, in speed-test runs, takes under 200 ms)", { timeout: 60_000 }, () => {
     const rnd = mulberry32(20261115);
     const { south, north, west, east } = site.bounds;
     const grids = new Map<string, CostGrid>();
@@ -404,7 +405,7 @@ describe("fuzz: 500 random plans", () => {
       expect(plan.legs).toHaveLength(stopCount === 0 ? 0 : stopCount + 1);
       if (outside) expect(plan.status).toBe("NO-GO");
       if (storm || spe) expect(plan.status).toBe("NO-GO");
-      expect(ms, `plan ${n} took ${ms.toFixed(0)} ms`).toBeLessThan(200);
+      if (RUN_SPEED_TESTS) expect(ms, `plan ${n} took ${ms.toFixed(0)} ms`).toBeLessThan(200);
       counts[plan.status]++;
 
       // Every 50th plan also goes through everything downstream.

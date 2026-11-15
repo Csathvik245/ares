@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "test": "vitest run",
+    "test:speed": "node scripts/test-speed.mjs",
     "typecheck": "tsc --noEmit",
     "dev": "vite",
     "build": "vite build",

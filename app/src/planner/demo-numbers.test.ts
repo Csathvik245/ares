@@ -23,6 +23,7 @@ import {
   formatMinutes,
   formatPct,
   loadSite,
+  lowSunDuring,
   planRoute,
   readSkyView,
   roundHalfUp,
@@ -58,12 +59,15 @@ const wildcatPlan = planRoute(site, cost, site.habitat, [toStop(wildcatPoi, 0)])
 // sampling site at the delta front), visited after Brac, with a long 2-hour sampling session there.
 // With the usual 30 min at Wildcat Ridge the Monte Carlo still gets home with the reserve in 99.9% of
 // trials, and so does every other single extra stop we tried, so the knob used here is the
-// science time at the extra stop (120 min). The start time is not a useful knob: it does not
-// change the oxygen numbers.
+// science time at the extra stop (120 min). The start time does not change the oxygen numbers.
+// It starts at 10:00 LMST, earlier than the demo, so this 6.5-hour EVA is over well before the
+// sun gets low: the only caution left is the oxygen margin, which is the point of the example.
 const STRETCH_DWELL_MIN = 120;
+const STRETCH_START_LMST = 10;
 const stretchStops = [toStop(demoPois[0], 30), toStop(wildcatPoi, STRETCH_DWELL_MIN), toStop(demoPois[1], 30), toStop(demoPois[2], 30)];
-const stretch = planRoute(site, cost, site.habitat, stretchStops);
-const stretchSim = simulateMission(site, stretch, { seed: 42, startLmst: START_LMST });
+const stretchCost = buildCostGrid(site, { ...CALM, startLmst: STRETCH_START_LMST });
+const stretch = planRoute(site, stretchCost, site.habitat, stretchStops);
+const stretchSim = simulateMission(site, stretch, { seed: 42, startLmst: STRETCH_START_LMST });
 
 const lmstAt = (sec: number) => formatLmst(START_LMST + ((sec / 3600) * 24) / SOL_HOURS);
 /** A percentage with one decimal, half up (formatPct shows whole percents, which would turn 99.8% into 100%). */
@@ -219,12 +223,15 @@ ${monteCarloBlock()}
 
 The demo route plus one more real stop: **${wildcatPoi.name}**, a Perseverance sampling site at the
 delta front. ${wildcatPoi.note} It is visited after the first stop, with a long
-${STRETCH_DWELL_MIN} min sampling session there; the other three stops keep 30 min. Start ${formatLmst(START_LMST)} LMST, calm conditions.
+${STRETCH_DWELL_MIN} min sampling session there; the other three stops keep 30 min. Start ${formatLmst(STRETCH_START_LMST)} LMST (earlier than the
+demo, so the EVA ends well before the sun gets low), calm conditions.
 
 Knob used: the science time at the extra stop. With the usual 30 min there, no single extra stop
 we tried brings the Monte Carlo below 99% home with the reserve.
 
 **Why it is riskier:** the deterministic plan says ${stretch.status} with ${formatMinutes(stretch.marginSec)} of margin, but in about 1 in ${roundHalfUp(1 / (1 - stretchSim.pReturnWithReserve))} plausible versions (${stretchSim.failCount} of ${stretchSim.trials} trials) the astronaut gets home below the 45-minute reserve.
+
+In about 1 in ${roundHalfUp(1 / (1 - stretchSim.pReturnAtAll))} plausible versions the oxygen runs out before the astronaut reaches home.
 
 ### The plan (deterministic)
 
@@ -288,8 +295,33 @@ describe("docs/demo-numbers.md", () => {
     expect(stretchSim.pReturnWithReserve).toBeGreaterThanOrEqual(0.6);
     expect(stretchSim.pReturnWithReserve).toBeLessThanOrEqual(0.9);
     // The extra stop alone, with the usual 30 min, is not what makes it risky.
-    const usual = planRoute(site, cost, site.habitat, stretchStops.map((s) => ({ ...s, dwellMin: 30 })));
-    expect(simulateMission(site, usual, { seed: 42, startLmst: START_LMST }).pReturnWithReserve).toBeGreaterThan(0.99);
+    const usual = planRoute(site, stretchCost, site.habitat, stretchStops.map((s) => ({ ...s, dwellMin: 30 })));
+    expect(simulateMission(site, usual, { seed: 42, startLmst: STRETCH_START_LMST }).pReturnWithReserve).toBeGreaterThan(0.99);
+  });
+
+  it("the stretch mission starts at 10:00, so its only caution is the low oxygen margin", () => {
+    expect(STRETCH_START_LMST).toBe(10);
+    expect(stretch.status).toBe("CAUTION");
+    expect(stretch.reasons).toHaveLength(1);
+    expect(stretch.reasons[0]).toMatch(/^Oxygen margin is low/);
+    expect(stretch.reasons.join(" ")).not.toMatch(/sun|darkness/i);
+    // The sun never gets below 10 degrees during the EVA.
+    expect(lowSunDuring(STRETCH_START_LMST, stretch.totalSec)).toBeNull();
+  });
+
+  it("the start time does not move the stretch mission's oxygen numbers", () => {
+    const at13 = planRoute(site, cost, site.habitat, stretchStops);
+    expect(at13.marginSec).toBe(stretch.marginSec);
+    expect(at13.distM).toBe(stretch.distM);
+    expect(at13.totalSec).toBe(stretch.totalSec);
+    const simAt13 = simulateMission(site, at13, { seed: 42, startLmst: START_LMST });
+    expect(simAt13.successCount).toBe(stretchSim.successCount);
+    expect(simAt13.pReturnAtAll).toBe(stretchSim.pReturnAtAll);
+    expect(simAt13.marginMin).toEqual(stretchSim.marginMin);
+    expect(simAt13.sensitivity).toEqual(stretchSim.sensitivity);
+    // The numbers quoted in the doc.
+    expect(stretchSim.successCount).toBe(721);
+    expect(roundHalfUp(1 / (1 - stretchSim.pReturnAtAll))).toBe(50); // "about 1 in 50" run out of oxygen
   });
 
   it("the demo mission is the one in CLAUDE.md", () => {

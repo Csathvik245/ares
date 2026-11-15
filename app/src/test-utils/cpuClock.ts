@@ -14,9 +14,19 @@ export function cpuNow(): number {
 }
 
 /**
- * Options for every test that checks a time limit: retry up to 2 more times, so a
- * speed test fails only if the code is slow on 3 separate tries. One unlucky moment
- * (the OS parks the test on a slow efficiency core, or another app grabs the CPU)
- * cannot fail the suite; really slow code still does. Never use it on logic tests.
+ * Speed-limit tests are OPT-IN. They run only when the environment variable
+ * RUN_SPEED_TESTS is "1", which `npm run test:speed` sets. A normal `npm test` skips
+ * them, so it can never fail because the laptop was busy at that moment.
  */
-export const SPEED_TEST = { retry: 2 } as const;
+export const RUN_SPEED_TESTS = process.env.RUN_SPEED_TESTS === "1";
+
+/**
+ * Options for every test that ONLY checks a time limit:
+ * - skipped unless RUN_SPEED_TESTS is on (see above);
+ * - when it does run, retried up to 2 more times, so it fails only if the code is slow
+ *   on 3 separate tries. One unlucky moment (the OS parks the test on a slow efficiency
+ *   core, or another app grabs the CPU) cannot fail it; really slow code still does.
+ * Never use it on a test that also checks logic: that logic would be skipped too. For
+ * those, keep the test always on and wrap only the time check in `if (RUN_SPEED_TESTS)`.
+ */
+export const SPEED_TEST = { retry: 2, skip: !RUN_SPEED_TESTS } as const;

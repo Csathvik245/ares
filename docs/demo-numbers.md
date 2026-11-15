@@ -152,12 +152,15 @@ What moves the margin most (one input at a time, the others as planned):
 
 The demo route plus one more real stop: **Wildcat Ridge (Hawksbill Gap)**, a Perseverance sampling site at the
 delta front. Delta-front mudstone with sulfate and small amounts of clay minerals. Perseverance cored samples Hazeltop and Bearwallow here (sols 509-516). It is visited after the first stop, with a long
-120 min sampling session there; the other three stops keep 30 min. Start 13:00 LMST, calm conditions.
+120 min sampling session there; the other three stops keep 30 min. Start 10:00 LMST (earlier than the
+demo, so the EVA ends well before the sun gets low), calm conditions.
 
 Knob used: the science time at the extra stop. With the usual 30 min there, no single extra stop
 we tried brings the Monte Carlo below 99% home with the reserve.
 
 **Why it is riskier:** the deterministic plan says CAUTION with 18 min of margin, but in about 1 in 4 plausible versions (279 of 1000 trials) the astronaut gets home below the 45-minute reserve.
+
+In about 1 in 50 plausible versions the oxygen runs out before the astronaut reaches home.
 
 ### The plan (deterministic)
 
@@ -175,7 +178,6 @@ we tried brings the Monte Carlo below 99% home with the reserve.
 Reasons, as the app shows them:
 
   - Oxygen margin is low: 18 min above reserve, under 25% of the 435 min usable budget (480 min minus the 45 min reserve).
-  - Low sun: below 10° at 18:00 LMST (5 h 08 min into the EVA, elevation 9.9°), dropping to −8.1° at 19:16 LMST — part of the EVA is in darkness.
 
 ### The same plan, 1000 plausible versions (Monte Carlo)
 
