@@ -58,16 +58,16 @@
 .mission-briefing .briefing-terrain {
   position: fixed;
   z-index: -2;
-  inset: -12%;
+  inset: -20%;
   pointer-events: none;
   background-size: cover;
   background-position: center;
   filter: grayscale(1) brightness(0.4);
 }
-.mission-briefing::before {
+/* Tint shares the terrain's transform and overscan, including during Safari rubber-band scrolling. */
+.mission-briefing .briefing-terrain::after {
   content: "";
-  position: fixed;
-  z-index: -1;
+  position: absolute;
   inset: 0;
   pointer-events: none;
   background:
