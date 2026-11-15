@@ -68,7 +68,7 @@ describe("StopCard", () => {
     expect(html).toContain("Séítah outcrop (Brac)");
     expect(html).toContain(poiOf("seitah-brac").note!.slice(0, 40));
     expect(html).toContain('src="/photos/seitah-brac.jpg"');
-    expect(html).toMatch(/alt="Perseverance rover photo at Séítah outcrop \(Brac\), Front Left Hazcam, sol 262"/);
+    expect(html).toContain('alt="Perseverance at this sampling site"');
     expect(html).toContain("NASA/JPL-Caltech");
     expect(html).toContain("Front Left Hazcam");
     expect(html).toContain(">262<");
@@ -107,7 +107,7 @@ describe("StopCard", () => {
     expect(tPlus(0)).toBe("T+0:00");
     expect(tPlus(21 * 60 + 20)).toBe("T+0:21");
     expect(tPlus(3 * 3600 + 35 * 60)).toBe("T+3:35");
-    expect(tPlus(Infinity)).toBe("T+—");
+    expect(tPlus(Infinity)).toBe("—");
   });
 });
 
