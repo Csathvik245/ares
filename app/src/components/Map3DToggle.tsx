@@ -1,6 +1,6 @@
 import "./terrain3d.css";
 
-/** Small switch that sits on the map. Kept separate from Terrain3D so three.js stays out of the default bundle. */
+/** Single toggle button in the console toolbar. Kept separate from Terrain3D so three.js stays out of the default bundle. */
 export function Map3DToggle({ active, onToggle }: { active: boolean; onToggle: () => void }) {
   return (
     <>
@@ -15,10 +15,11 @@ export function Map3DToggle({ active, onToggle }: { active: boolean; onToggle: (
         type="button"
         className={`map-3d-toggle${active ? " is-on" : ""}`}
         aria-pressed={active}
+        aria-label="3D terrain"
         onClick={onToggle}
         title={active ? "Back to the 2D map" : "Show the terrain in 3D"}
       >
-        {active ? "2D map" : "3D view"}
+        3D
       </button>
     </>
   );

@@ -1,10 +1,6 @@
 /* 3D terrain view. Uses only tokens that exist in every theme, with fallbacks. */
-/* Top row, left of the N indicator, so the emergency alert bar (below it) never covers the switch. */
+/* Compact toolbar button; the pressed state indicates that 3D terrain is open. */
 .map-3d-toggle {
-  position: absolute;
-  z-index: 1200;
-  top: 12px;
-  right: 70px;
   min-height: 30px;
   padding: 4px 12px;
   background: var(--console, #111318);

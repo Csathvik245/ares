@@ -211,7 +211,6 @@ function Console() {
             }}
             onProbe={setProbe}
           >
-            <Map3DToggle active={view3d} onToggle={() => setView3d((v) => !v)} />
             {view3d && (
               <Suspense
                 fallback={
@@ -320,6 +319,7 @@ function Console() {
           {assistantAvailable && (
             <button onClick={() => setAssistant(true)}>Assistant</button>
           )}
+          <Map3DToggle active={view3d} onToggle={() => setView3d((v) => !v)} />
           <button onClick={() => setScreen("hud")}>Helmet HUD · H</button>
           {consolidated && (
             <button onClick={() => setSources(true)}>Sources</button>
