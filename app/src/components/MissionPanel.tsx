@@ -20,6 +20,7 @@ import {
 } from "../lib/planner";
 import { scienceScore, suggestStops } from "../planner/science";
 import { EVIDENCE_LABELS } from "../lib/evidenceLabels";
+import { ReliabilityPanel } from "./ReliabilityPanel";
 
 /** "all" is the classic single rail. The other parts let the consolidated desktop panel interleave sections. */
 export type MissionPart = "all" | "telemetry" | "stops" | "emergency";
@@ -377,6 +378,7 @@ export function MissionPanel({
         {statusSection}
         {oxygenSection}
         {statsGrid}
+        {!m.emergency && <ReliabilityPanel site={m.site!} plan={plan} startLmst={m.conditions.startLmst} />}
       </>
     );
   if (part === "stops") return stopsSection;
@@ -386,6 +388,7 @@ export function MissionPanel({
       {statusSection}
       {oxygenSection}
       {statsGrid}
+      {!m.emergency && <ReliabilityPanel site={m.site!} plan={plan} startLmst={m.conditions.startLmst} />}
       {stopsSection}
       {emergencyFooter}
     </aside>

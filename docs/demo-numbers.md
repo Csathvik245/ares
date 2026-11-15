@@ -7,7 +7,7 @@ the real `site.json` and formatted with `format.ts`, so they match what the app 
 and route-learning numbers are read from the pipeline's output files. `npm test` fails if this
 file and the code stop agreeing.
 
-**Numbers taken from commit `9e68871`** (the planner and data at that commit).
+**Numbers taken from commit `eb91fb1`** (the planner and data at that commit).
 
 <!-- numbers start -->
 ## 1. Demo mission
@@ -132,8 +132,8 @@ The learned model chose the same route as physics on 31 of 31 routes (closer on 
 
 | | |
 |---|---|
-| Home with the oxygen reserve intact | 100.0% (1000 of 1000 trials) |
-| Home at all (before the oxygen runs out) | 100.0% |
+| Home with the oxygen reserve intact | 1000 of 1000 trials home with reserve (0 failures: failure rate likely below 0.3%) |
+| Home at all (before the oxygen runs out) | 1000 of 1000 trials |
 | Oxygen margin, low / middle / high (5th / 50th / 95th percentile) | 160 min / 191 min / 221 min |
 | Oxygen at return, low / middle / high | 43% / 49% / 55% |
 | Total time, low / middle / high | 3:21 / 3:35 / 3:51 |

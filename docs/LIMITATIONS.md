@@ -16,6 +16,7 @@ What ARES does **not** do, or does only approximately. Values are from `app/src/
   - Dust storm: walking × `STORM_SPEED_FACTOR` = 0.55 (low visibility and dust on the visor, not wind). The factor is our assumption.
 
 - **The re-planning emergencies use made-up sizes** (`app/src/planner/emergencies.ts`). The 25% oxygen loss, the 75 m blocked area and the 0.7 walking-speed factor are illustrative demo values, not measured suit-failure or rockfall data. An oxygen leak is modelled as one sudden loss, not a steady leak. Stops are only dropped from the end of the plan, never re-ordered. A blocked area is a simple circle.
+- **The Monte Carlo reliability numbers cover calm conditions only, and every range in them is ASSUMED** (`app/src/planner/montecarlo.ts`). No dust storm or solar particle event happens inside a trial, the route is never re-planned, and injury, equipment failure and navigation errors are not modelled. The ranges it samples (walking speed ±15%, terrain ±10% per leg, oxygen burn rates ±20%, ±5 min per stop) are our own modest guesses, not suit or astronaut data. It is a model-based simulation of our own assumptions, not an empirical mission success probability. When no trial fails we report "1000 of 1000" with the bound "failure rate likely below 0.3%" (3 ÷ trials), never a bare 100%; that bound also holds only inside the model.
 - **No rover model, so no rover-breakdown scenario.** ARES plans for an astronaut on foot. There is no support rover, so there is nothing to break down and no rover rescue to plan.
 
 ## Radiation

@@ -24,6 +24,7 @@ type Props = {
 };
 
 /** A share 0..1 as a percentage with one decimal, half up, so 99.6% is not shown as 100%. */
+const count = (n: number) => n.toLocaleString("en-US");
 const share = (p: number) => `${roundHalfUp(p * 100, 1).toFixed(1)}%`;
 const minutes = (min: number) => formatMinutes(min * 60);
 const duration = (min: number) => formatDuration(min * 60);
@@ -82,13 +83,16 @@ export function ReliabilityPanel({ site, plan, trials, seed, startLmst, defaultO
   const r = useMemo(() => simulateMission(site, plan, { trials, seed, startLmst }), [site, plan, trials, seed, startLmst]);
   const walkable = plan.ok && plan.legs.length > 0;
   const top = r.sensitivity.slice(0, 3);
+  // With no failures a bare "100%" would overclaim: show the counts and the failure-rate bound instead.
+  const noFailures = r.failureUpperBound95 !== null;
+  const allHome = `${count(r.successCount)} of ${count(r.trials)}`;
   const widest = Math.max(1e-9, ...top.map((s) => s.swingMin));
 
   return (
     <details className="reliability" open={defaultOpen}>
       <summary>
         <span>MISSION RELIABILITY</span>
-        <small>{walkable ? `${share(r.pReturnWithReserve)} with reserve` : "no route"}</small>
+        <small>{!walkable ? "no route" : noFailures ? `${allHome} with reserve` : `${share(r.pReturnWithReserve)} with reserve`}</small>
       </summary>
       <div className="reliability__body">
         {!walkable ? (
@@ -101,12 +105,17 @@ export function ReliabilityPanel({ site, plan, trials, seed, startLmst, defaultO
               {r.trials.toLocaleString("en-US")} trials · seed {r.seed} <EvidenceTag level="ASSUMED" />
             </p>
             <p className="reliability__headline">
-              <b>{share(r.pReturnWithReserve)}</b>
-              <span>returned with the reserve intact</span>
+              <b>{noFailures ? allHome : share(r.pReturnWithReserve)}</b>
+              <span>{noFailures ? "trials home with reserve" : "returned with the reserve intact"}</span>
             </p>
+            {noFailures && (
+              <p className="reliability__counts">
+                0 failures: failure rate likely below {roundHalfUp(r.failureUpperBound95! * 100, 1)}%
+              </p>
+            )}
             <p className="reliability__counts">
-              Success {r.successCount.toLocaleString("en-US")} · Fail {r.failCount.toLocaleString("en-US")} · Home at all{" "}
-              {share(r.pReturnAtAll)}
+              Success {count(r.successCount)} · Fail {count(r.failCount)} · Home at all{" "}
+              {r.pReturnAtAll === 1 ? "in every trial" : share(r.pReturnAtAll)}
             </p>
             <table className="reliability__table">
               <thead>

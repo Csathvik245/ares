@@ -122,8 +122,11 @@ function monteCarloBlock(r = simulateMission(site, demo, { seed: 42, startLmst: 
     "",
     "| | |",
     "|---|---|",
-    `| Home with the oxygen reserve intact | ${pct1(r.pReturnWithReserve * 100)} (${r.successCount} of ${r.trials} trials) |`,
-    `| Home at all (before the oxygen runs out) | ${pct1(r.pReturnAtAll * 100)} |`,
+    // With no failures, never a bare "100%": the counts and the rule-of-three bound instead.
+    r.failureUpperBound95 !== null
+      ? `| Home with the oxygen reserve intact | ${r.successCount} of ${r.trials} trials home with reserve (0 failures: failure rate likely below ${roundHalfUp(r.failureUpperBound95 * 100, 1)}%) |`
+      : `| Home with the oxygen reserve intact | ${pct1(r.pReturnWithReserve * 100)} (${r.successCount} of ${r.trials} trials) |`,
+    `| Home at all (before the oxygen runs out) | ${r.pReturnAtAll === 1 ? `${r.trials} of ${r.trials} trials` : pct1(r.pReturnAtAll * 100)} |`,
     `| Oxygen margin, low / middle / high (5th / 50th / 95th percentile) | ${three(r.marginMin, min)} |`,
     `| Oxygen at return, low / middle / high | ${three(r.oxygenAtReturnPct, formatPct)} |`,
     `| Total time, low / middle / high | ${three(r.durationMin, (m) => formatDuration(m * 60))} |`,

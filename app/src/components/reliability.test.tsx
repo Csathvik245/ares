@@ -30,8 +30,11 @@ describe("ReliabilityPanel", () => {
     const r = simulateMission(site, demo);
     const html = renderToStaticMarkup(<ReliabilityPanel site={site} plan={demo} defaultOpen />);
     expect(html).toContain("1,000 trials · seed 42");
-    expect(html).toContain("100.0%</b>");
-    expect(html).toContain("returned with the reserve intact");
+    // No failures: counts and the failure-rate bound, never a bare "100%".
+    expect(html).toContain("1,000 of 1,000</b>");
+    expect(html).toContain("trials home with reserve");
+    expect(html).toContain("0 failures: failure rate likely below 0.3%");
+    expect(html.replace(/<[^>]*>/g, " ")).not.toMatch(/100(\.0)?%/); // visible text only, not bar widths
     expect(html).toContain(`Success ${r.successCount.toLocaleString("en-US")} · Fail ${r.failCount}`);
     for (const q of ["p5", "p50", "p95"] as const) {
       expect(html).toContain(`<td>${formatPct(r.oxygenAtReturnPct[q])}</td>`);
@@ -56,6 +59,9 @@ describe("ReliabilityPanel", () => {
     expect(html).toContain('class="reliability__reserve"');
     expect(html).toContain("reliability__bar--fail");
     expect(html).toContain("red line = reserve");
+    // Some failures: the percentage is shown, and no failure-rate bound.
+    expect(html).toContain("returned with the reserve intact");
+    expect(html).not.toContain("0 failures");
     // The demo plan never touches the reserve: no line, and the caption says so.
     const demoHtml = renderToStaticMarkup(<ReliabilityPanel site={site} plan={demo} defaultOpen />);
     expect(demoHtml).not.toContain('class="reliability__reserve"');

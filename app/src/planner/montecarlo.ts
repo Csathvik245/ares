@@ -64,6 +64,12 @@ export type ReliabilityResult = {
   pReturnWithReserve: number;
   /** Share of trials that got home before the oxygen ran out (reserve used or not), 0 to 1. */
   pReturnAtAll: number;
+  /**
+   * When NO trial failed: an upper limit on the true failure rate, 3 ÷ trials (the
+   * "rule of three", a 95% bound; 0.003 for 1,000 trials). Zero failures in the
+   * trials does not mean zero risk. null when at least one trial failed.
+   */
+  failureUpperBound95: number | null;
   /** Oxygen left at return, % of the full supply (0 if it ran out). */
   oxygenAtReturnPct: Percentiles;
   /** Total EVA time, minutes. */
@@ -281,6 +287,7 @@ export function simulateMission(_site: Site, plan: Plan, options: SimulateOption
       failCount: trials,
       pReturnWithReserve: 0,
       pReturnAtAll: 0,
+      failureUpperBound95: null,
       oxygenAtReturnPct: none,
       durationMin: none,
       marginMin: none,
@@ -363,6 +370,7 @@ export function simulateMission(_site: Site, plan: Plan, options: SimulateOption
     failCount: trials - successCount,
     pReturnWithReserve: successCount / trials,
     pReturnAtAll: returnedCount / trials,
+    failureUpperBound95: successCount === trials ? 3 / trials : null,
     oxygenAtReturnPct: percentiles(oxygenPct),
     durationMin: percentiles(durationMin),
     marginMin: percentiles(marginMin),

@@ -113,6 +113,18 @@ describe("simulateMission", () => {
     expect(r.failCount).toBe(r.trials);
   });
 
+  it("gives a failure-rate bound (rule of three) only when no trial failed", () => {
+    const go = simulateMission(site, demo);
+    expect(go.failCount).toBe(0);
+    expect(go.failureUpperBound95).toBeCloseTo(3 / 1000, 12);
+    expect(simulateMission(site, demo, { trials: 300 }).failureUpperBound95).toBeCloseTo(0.01, 12);
+    const tight = simulateMission(site, planRoute(site, cost, site.habitat, stopsWith(100)));
+    expect(tight.failCount).toBeGreaterThan(0);
+    expect(tight.failureUpperBound95).toBeNull();
+    const unreachable = planRoute(site, cost, site.habitat, [{ id: "x", label: "x", lat: 10, lng: 10, dwellMin: 10 }]);
+    expect(simulateMission(site, unreachable).failureUpperBound95).toBeNull();
+  });
+
   it("every parameter is documented, and none claims to be validated", () => {
     expect(PARAMS.map((p) => p.name)).toEqual(["walkSpeed", "terrainSpeed", "walkBurn", "workBurn", "dwell"]);
     for (const p of PARAMS) {
