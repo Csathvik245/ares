@@ -410,6 +410,10 @@ function Console({ initialHash }: { initialHash?: string }) {
           </button>
         ))}
       </nav>
+      {/* Phones: the console needs more room than a phone has. CSS shows this note under 700 px wide and hides the console. */}
+      <p className="phone-note" role="note">
+        ARES is built for laptop and tablet screens. The Story and Science tabs work here.
+      </p>
       <div
         className={`console-body ${consolidated ? "consolidated" : ""} ${sidebarCollapsed ? "sidebar-collapsed" : ""} tablet-${tab.toLowerCase()}`}
       >

@@ -210,3 +210,52 @@ describe("Run the demo", () => {
     off();
   });
 });
+
+describe("page title, link preview and the phone note", () => {
+  const html = read("../index.html");
+  const meta = (key: string) => new RegExp(`<meta (?:name|property)="${key}" content="([^"]*)"`).exec(html)?.[1];
+  const file = (relative: string) => readFileSync(new URL(relative, import.meta.url));
+
+  it("has the title, a one-sentence description and a favicon made from the mission patch", () => {
+    expect(html).toContain("<title>ARES · Mars EVA safety planner</title>");
+    const description = meta("description")!;
+    expect(description).toMatch(/Mars spacewalk on real NASA terrain/);
+    expect(description).toMatch(/get there and back\.$/);
+    expect(description.match(/\./g)).toHaveLength(1); // one sentence
+    expect(html).toContain('<link rel="icon" href="/favicon.ico"');
+    expect(html).toContain('href="/favicon.png"');
+    expect(file("../public/favicon.png").subarray(1, 4).toString()).toBe("PNG");
+    expect(file("../public/favicon.ico").length).toBeGreaterThan(500);
+  });
+
+  it("has Open Graph and Twitter card tags that agree with the title and description", () => {
+    expect(meta("og:title")).toBe("ARES · Mars EVA safety planner");
+    expect(meta("twitter:title")).toBe(meta("og:title"));
+    expect(meta("og:description")).toBe(meta("description"));
+    expect(meta("twitter:description")).toBe(meta("description"));
+    expect(meta("twitter:card")).toBe("summary_large_image");
+    expect(meta("og:image")).toBe("https://ares-mars-alpha.vercel.app/og.png");
+    expect(meta("twitter:image")).toBe(meta("og:image"));
+    expect(meta("og:image:alt")!.length).toBeGreaterThan(40);
+  });
+
+  it("the preview picture is a 1200 x 630 PNG of at most 300 KB", () => {
+    const png = file("../public/og.png");
+    expect(png.subarray(1, 4).toString()).toBe("PNG");
+    expect(png.readUInt32BE(16)).toBe(1200);
+    expect(png.readUInt32BE(20)).toBe(630);
+    expect(png.length).toBeLessThanOrEqual(300_000);
+    expect(file("../../docs/images/plan-view.jpg").length).toBeLessThanOrEqual(300_000);
+  });
+
+  it("phones get a short note on the Plan tab, and keep the tabs to reach Story and Science", () => {
+    const app = read("./App.tsx");
+    expect(app).toContain("ARES is built for laptop and tablet screens. The Story and Science tabs work here.");
+    const css = read("./styles/app-tabs.css");
+    const phone = css.slice(css.indexOf("@media (max-width: 699px)"));
+    expect(css).toMatch(/\.phone-note \{\s*display: none;/); // hidden on laptop and tablet
+    expect(phone).toMatch(/\.phone-note \{\s*display: grid;/);
+    expect(phone).toMatch(/\.console-body,[\s\S]*\.header-actions \{\s*display: none !important;/);
+    expect(phone).not.toMatch(/\.app-tabs[^{]*\{[^}]*display: none/);
+  });
+});

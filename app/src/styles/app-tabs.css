@@ -185,3 +185,26 @@
     right: var(--space-2);
   }
 }
+
+/* ---------- Phones (under 700 px wide): the Plan tab shows a short note instead of the console ---------- */
+.phone-note {
+  display: none;
+}
+@media (max-width: 699px) {
+  html[data-theme] .console-app .phone-note {
+    display: grid;
+    place-items: center;
+    height: calc(100% - 64px);
+    margin: 0;
+    padding: var(--space-6);
+    color: var(--text);
+    font: 400 16px/1.5 var(--font-body);
+    text-align: center;
+  }
+  /* The map console and its own controls step aside; the tabs stay, so Story and Science are one tap away. */
+  html[data-theme] .console-app .console-body,
+  html[data-theme] .console-app .tablet-tabs,
+  html[data-theme] .console-app .header-actions {
+    display: none !important;
+  }
+}

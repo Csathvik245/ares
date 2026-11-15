@@ -1,10 +1,19 @@
+**Live demo: https://ares-mars-alpha.vercel.app**
+
 # ARES — Astronaut Route & EVA Safety system
 
 **Science first. Safety always.**
 
+![The ARES Plan view: a walking route between three science stops at Jezero Crater, drawn on a NASA HiRISE image, with the oxygen budget and a GO status](docs/images/plan-view.jpg)
+
+*The Plan view with the demo mission loaded. Map image: NASA/JPL-Caltech/University of Arizona/USGS (HiRISE).*
+
+- **What it does:** ARES plans a spacewalk on Mars. The astronaut picks science stops; ARES finds the safest walking route, adds up the oxygen, and says GO, CAUTION or NO-GO: can the astronaut get there and back? If a dust storm or solar particle event hits, it re-plans the way home at once.
+- **The data:** six kinds of real NASA data on one 25 m grid of Jezero Crater: HiRISE images and elevation (MRO), THEMIS thermal inertia (Mars Odyssey), CRISM minerals (MRO), MEDA air temperature (Perseverance) and RAD radiation (Curiosity). Sources: [docs/sources.md](docs/sources.md).
+- **How it was validated:** we laid Perseverance's real 20.57 km drive over our terrain model. ARES rates 99.8% of that path as passable, and our slope layer matches the rover's own tilt sensor (r = 0.82 over 313 waypoints). What this does and does not show: [docs/validation.md](docs/validation.md).
+
 ARES is a route planner for an astronaut walking on Mars. It works like a map app that also tracks oxygen and tells you when you must turn back. The astronaut picks science stops at Jezero Crater's ancient river delta. ARES plans the fastest safe walk around steep slopes, boulder fields and soft sand, and adds up walking time, oxygen and radiation dose. It draws a **safe-return zone** showing everywhere the astronaut can still reach and get home from. It gives a GO / CAUTION / NO-GO status with the reason written out, and it plays the walk across the Martian day. Dust storm and solar particle event buttons show an instant abort route home. ARES was built by The Ares Initiative for the NASA Space Apps Challenge 2026, challenge *Interplanetary Survival Guide: Martian Map*.
 
-> **Live demo:** https://ares-mars-alpha.vercel.app
 > **Demo video:** _link to be added_
 
 ## The problem
