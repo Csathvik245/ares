@@ -35,6 +35,7 @@ function fitMissionView(map: L.Map, site: Site, stops: Stop[], shelterTarget?: L
     ? alert.getBoundingClientRect().bottom - container.getBoundingClientRect().top + 24
     : 0;
   map.fitBounds(bounds, {
+    animate: false,
     paddingTopLeft: [padX, Math.max(padY, alertBottom)],
     paddingBottomRight: [padX, padY],
     maxZoom: 14,
@@ -184,11 +185,8 @@ export function MissionMap({
     m.on("mousemove", (e: L.LeafletMouseEvent) =>
       callbacks.current.onProbe(cellIndexOf(site, e.latlng)),
     );
-    const resize = new ResizeObserver(() => m.invalidateSize());
-    resize.observe(root.current!);
     return () => {
       disposed = true;
-      resize.disconnect();
       m.remove();
       map.current = null;
     };
@@ -196,7 +194,16 @@ export function MissionMap({
   useEffect(() => {
     const m = map.current;
     if (!m) return;
-    fitMissionView(m, site, stops, shelter?.target);
+    const fit = () => {
+      // Read the current panel width before fitting, and avoid Leaflet's default
+      // resize pan moving the fitted shelter back under the banner or offscreen.
+      m.invalidateSize({ pan: false });
+      fitMissionView(m, site, stops, shelter?.target);
+    };
+    fit();
+    const resize = new ResizeObserver(fit);
+    resize.observe(root.current!);
+    return () => resize.disconnect();
   }, [site, basemap, viewRequest, stops, emergency, shelter?.target]);
   useEffect(() => {
     const m = map.current;
