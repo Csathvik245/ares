@@ -8,6 +8,7 @@ import {
   type Stop,
   type Plan,
   type CostGrid,
+  type ShelterCheck,
   roundHalfUp,
 } from "../lib/planner";
 import { removeSmallIslands } from "../lib/zoneCleanup";
@@ -40,6 +41,7 @@ export function MissionMap({
   active,
   position,
   abort,
+  shelter,
   onAdd,
   onMove,
   onSelect,
@@ -62,6 +64,7 @@ export function MissionMap({
   active: OverlayName[];
   position: LatLng;
   abort: LatLng[];
+  shelter?: Extract<ShelterCheck, { checked: true }>;
   onAdd: (p: LatLng) => void;
   onMove: (id: string, p: LatLng) => void;
   onSelect: (id: string) => void;
@@ -408,12 +411,19 @@ export function MissionMap({
       const parts = routeParts(plan, incidentAt);
       parts.walked.forEach((p) => draw(p, "#ff6b35", 3, 0.35));
       parts.cancelled.forEach((p) => draw(p, "#8a919e", 2, 0.65, "6 6"));
-      draw(abort, "#ff4d5a", 5);
+      draw(abort, "#ff4d5a", shelter ? 3 : 5, shelter ? 0.4 : 1, shelter ? "6 6" : undefined);
+      if (shelter?.path && shelter.target) {
+        draw(shelter.path, "#4fd1ff", 4, 1, "6 4");
+        L.circleMarker([shelter.target.lat, shelter.target.lng], {
+          pane: "stops", radius: 5, color: "#4fd1ff", fillColor: "#4fd1ff",
+          fillOpacity: 1, weight: 2,
+        }).addTo(g).bindTooltip("SHELTER · simplified model", { direction: "bottom" });
+      }
     } else plan.legs.forEach((l) => draw(l.path, "#ff6b35", 3));
     return () => {
       g.remove();
     };
-  }, [site, basemap, stops, plan, emergency, incidentAt, abort]);
+  }, [site, basemap, stops, plan, emergency, incidentAt, abort, shelter]);
   useEffect(() => {
     const m = map.current;
     if (!m) return;
@@ -441,6 +451,7 @@ export function MissionMap({
         <span>― Planned route</span>
         <span>― Edge of safe return</span>
         <span>● Rover sample site</span>
+        {shelter && <span className="shelter-legend">― Shelter option</span>}
       </div>
       <span className="map-north" aria-label="North">
         ↑<b>N</b>

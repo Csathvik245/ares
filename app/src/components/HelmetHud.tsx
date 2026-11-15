@@ -16,6 +16,8 @@ export type HelmetHudProps = {
   localTime: string;
   temperatureC: number;
   abortWalkMin?: number;
+  shelterWalkSec?: number;
+  shelterSimplified?: boolean;
   returnStatus?: HudStatus;
   doseIsIllustrative?: boolean;
   measuredEventMultiplier?: number;
@@ -58,12 +60,15 @@ export function HelmetHud(p: HelmetHudProps) {
         </div>
         <div>
           <p>
-            {p.status === "NO-GO" ? "ABORT · RETURN TO HAB-1" : "NEXT WAYPOINT"}
+            {p.nextStop === "SHELTER" ? "ABORT · SHELTER OPTION" : p.status === "NO-GO" ? "ABORT · RETURN TO HAB-1" : "NEXT WAYPOINT"}
           </p>
           <h1>{p.nextStop}</h1>
           <strong>
             {formatKm(p.distanceM)}
           </strong>
+          {p.shelterWalkSec !== undefined && (
+            <p>Shelter walk {formatMinutes(p.shelterWalkSec)} {p.shelterSimplified && <small className="model-tag">simplified model</small>}</p>
+          )}
           {p.abortWalkMin !== undefined && (
             <p>Walk home {formatMinutes(p.abortWalkMin * 60)}</p>
           )}

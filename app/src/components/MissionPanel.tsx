@@ -1,3 +1,4 @@
+import { ShelterGuidance } from "./ShelterGuidance";
 import { useMemo, useState } from "react";
 import { useMission } from "../lib/MissionContext";
 import { clock, shortStop, stopKind, minutes } from "../lib/presentation";
@@ -31,7 +32,7 @@ export function MissionPanel({ onDetail }: { onDetail: (id: string) => void }) {
     Math.max(0, budget.budgetSec - used),
   );
   const status = m.emergency ? m.emergencyOutcome!.abort.status : m.evaStatus;
-  const reasons = m.emergency ? m.emergencyOutcome!.abort.reasons : m.evaReasons;
+  const reasons = m.emergency ? m.emergencyOutcome!.abort.reasons.filter((r) => !r.startsWith("Shelter")) : m.evaReasons;
   const lowest = useMemo(() => {
     const start =
       m.conditions.startLmst +
@@ -67,7 +68,7 @@ export function MissionPanel({ onDetail }: { onDetail: (id: string) => void }) {
       <section className="rail-status">
         <div className="panel-heading">
           <span>{m.emergency ? "RETURN HOME" : "MISSION STATUS"}</span>
-          <small>calculated</small>
+          <small>{m.emergency?.kind === "spe" ? "illustrative" : "calculated"}</small>
         </div>
         <strong className={`large-status ink-${status}`}>{status}</strong>
         <p>{reasons.join(" · ")}</p>
@@ -78,10 +79,11 @@ export function MissionPanel({ onDetail }: { onDetail: (id: string) => void }) {
             min · margin {minutes(margin)} min
           </p>
         )}
+        {m.emergencyOutcome && <ShelterGuidance shelter={m.emergencyOutcome.shelter} from={m.emergencyOutcome.position} />}
         <details>
           <summary>Planner reasons</summary>
           <ul>
-            {reasons.map((r, i) => (
+            {[...new Set([...reasons, ...(m.emergencyOutcome?.shelter.checked ? m.emergencyOutcome.shelter.reasons : [])])].map((r, i) => (
               <li key={i}>{r}</li>
             ))}
           </ul>
@@ -311,6 +313,9 @@ export function MissionPanel({ onDetail }: { onDetail: (id: string) => void }) {
         </button>
         <button disabled={!!m.emergency} onClick={() => m.trigger("spe")}>
           Solar particle event
+        </button>
+        <button disabled={!m.wildcat || !!m.emergency} onClick={m.loadWildcatSpe}>
+          SPE at Wildcat Ridge
         </button>
         <button
           className="storm-preset"

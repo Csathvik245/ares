@@ -8,6 +8,7 @@ import {
 } from "react";
 import {
   loadSite,
+  readSkyView,
   buildCostGrid,
   planRoute,
   safeZone,
@@ -36,6 +37,7 @@ function useMissionState() {
   const [site, setSite] = useState<Site | null>(null),
     [fake, setFake] = useState(false),
     [error, setError] = useState("");
+  const [skyView, setSkyView] = useState<Float32Array | null>(null);
   const [basemap, setBasemap] = useState<Basemap | null>(null);
   const [viewRequest, setViewRequest] = useState(0);
   const [stops, setStops] = useState<DemoStop[]>([]),
@@ -81,6 +83,7 @@ function useMissionState() {
       ]);
       if (control.signal.aborted) return;
       setSite(loadedSite);
+      setSkyView(readSkyView(json));
       setFake(json.fake === true);
       setDemo(readDemoStops(stopData) ?? demoStopsFromSite(loadedSite));
       setBasemap(readBasemap(mapData, loadedSite.bounds));
@@ -154,7 +157,7 @@ function useMissionState() {
           legIndex: plannedPosition.legIndex,
           oxygenUsedSec: emergencyOutcome!.position.oxygenUsedSec + returning.oxygenUsedSec,
         }
-      : plannedPosition;
+      : emergencyOutcome?.position ?? plannedPosition;
   const clockElapsed = emergency ? emergency.at + returnElapsed : elapsed;
   useEffect(() => {
     if (!returnPlaying || !returnPlan) return;
@@ -244,15 +247,16 @@ function useMissionState() {
     ]);
     setSelected(id);
   };
-  const trigger = (kind: "storm" | "spe", at = elapsed) => {
-    const incidentAt = plan ? Math.max(0, Math.min(plan.totalSec, at)) : 0;
-    if (!site || !plan) return null;
+  const trigger = (kind: "storm" | "spe", at = elapsed, incidentPlan = plan) => {
+    const incidentAt = incidentPlan ? Math.max(0, Math.min(incidentPlan.totalSec, at)) : 0;
+    if (!site || !incidentPlan) return null;
     const outcome = stormAt(
       site,
-      plan,
+      incidentPlan,
       incidentAt,
       kind === "storm" ? "dust" : "spe",
       conditions.startLmst,
+      { skyView },
     );
     setElapsed(incidentAt);
     setPlaying(false);
@@ -271,7 +275,20 @@ function useMissionState() {
     setConditions(nextConditions);
     return outcome.abort;
   };
+  const wildcat = site?.pois.find((p) => p.id === "delta-wildcat-ridge");
+  const loadWildcatSpe = () => {
+    if (!site || !normalCost || !wildcat) return;
+    const stop = { ...wildcat, label: wildcat.name, dwellMin: 0 };
+    const demoPlan = planRoute(site, normalCost, site.habitat, [stop]);
+    if (!demoPlan.ok) return;
+    setStops([stop]);
+    setSelected("");
+    setViewRequest((n) => n + 1);
+    trigger("spe", demoPlan.legs[0].arriveSec, demoPlan);
+  };
   return {
+    wildcat,
+    loadWildcatSpe,
     site,
     basemap,
     fake,

@@ -1,3 +1,4 @@
+import { ShelterGuidance } from "./components/ShelterGuidance";
 import { useEffect, useMemo, useState } from "react";
 import { Hud, OpeningScreen } from "./components/DesignIntegration";
 import { ElevationProfile } from "./components/ElevationProfile";
@@ -113,6 +114,8 @@ function Console() {
       </main>
     );
   const next = m.stops[position.legIndex] ?? site.habitat;
+  const shelter = m.emergencyOutcome?.shelter;
+  const winningShelter = emergency?.kind === "spe" && shelter?.checked && shelter.betterThanHome ? shelter : undefined;
   const target = emergency ? site.habitat : next;
   const status = m.evaStatus;
   if (screen === "hud")
@@ -120,9 +123,11 @@ function Console() {
       <Hud
         status={status}
         returnStatus={emergency ? abort?.status : undefined}
-        nextStop={"label" in target ? target.label : target.name}
+        nextStop={winningShelter ? "SHELTER" : "label" in target ? target.label : target.name}
         distanceM={
-          emergency
+          winningShelter
+            ? distanceM(position, winningShelter.target)
+            : emergency
             ? m.returnPlan
               ? m.returnPlan.distM *
                 (1 -
@@ -133,11 +138,15 @@ function Console() {
             : distanceM(position, target)
         }
         headingDeg={routeHeading(
-          emergency
+          winningShelter
+            ? winningShelter.path
+            : emergency
             ? (abort?.path ?? [])
             : (plan.legs[position.legIndex]?.path ?? []),
           position,
         )}
+        shelterWalkSec={winningShelter?.sec}
+        shelterSimplified={winningShelter?.simplified}
         abortWalkMin={
           emergency
             ? Math.max(0, (abort?.sec ?? 0) - m.returnElapsed) / 60
@@ -185,7 +194,7 @@ function Console() {
           </span>
           {emergency && abort && (
             <span className={`return-status ink-${abort.status}`}>
-              RETURN HOME · {abort.status}{abort.reasons.length ? ` · ${abort.reasons.join(" · ")}` : ""}
+              RETURN HOME · {abort.status}{abort.reasons.length ? ` · ${abort.reasons.filter((r) => !r.startsWith("Shelter")).join(" · ")}` : ""}
             </span>
           )}
           {assistantAvailable && (
@@ -219,6 +228,7 @@ function Console() {
             active={active}
             position={position}
             abort={abort?.path ?? EMPTY_PATH}
+            shelter={winningShelter}
             emergency={!!emergency}
             incidentAt={emergency?.at}
             viewRequest={m.viewRequest}
@@ -242,7 +252,8 @@ function Console() {
                       : "SOLAR PARTICLE EVENT"}{" "}
                     · T+{clock(emergency.at)}
                   </strong>
-                  <p>{abort?.reasons[0] ?? "No return guidance available."}</p>
+                  <p>{abort?.reasons.find((r) => r.startsWith("Return home:")) ?? "No return guidance available."}</p>
+                  <ShelterGuidance shelter={shelter} from={m.emergencyOutcome!.position} />
                   <small>
                     {emergency.kind === "storm"
                       ? "Low visibility and visor dust slow walking."
