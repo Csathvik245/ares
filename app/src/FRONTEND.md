@@ -68,3 +68,14 @@ The seven supplied JPEGs now have credits.json metadata transcribed from the sci
 At 1440 × 900 in local Chrome, the demo remained GO at 4.97 km / 3:35 / 49%; Brac's rover image and attribution loaded correctly. Chrome became unavailable before the remaining photo dialogs could be visually checked. Automated checks verify all seven photo paths are real JPEGs with corresponding source metadata; 146 tests, TypeScript and build pass. Credits are sourced from the team's document, not independently re-researched. These additions require commit/push.
 
 Production CLI deployment of this photo-credit update succeeded. The public app shell, seven-entry credits.json and Brac/Sid JPEGs returned HTTP 200; downloaded JPEG signatures were verified. GitHub push was not performed. Fresh production-browser visual review remains pending.
+
+
+## Recording fixes and screenshots
+
+Map fit now uses approximately 12% screen padding, with extra top clearance for the emergency overlay. HAB-1 and nearby stop markers have separate screen positions and labels; the displaced marker has a leader to the true coordinate. Numbered stop markers remain above rover markers. The map has a subtle 0.01-degree coordinate grid, edge labels, corner brackets and north arrow. The 500 m scale label is above its bar.
+
+Status reasons wrap without ellipses. Left rail spacing is tighter and the probe defaults to the current astronaut position until a cursor cell is selected. A Storm at T+1:16 control triggers the real planner at exactly 4560 seconds. Both HUD and console show EVA and return-home statuses and use the shared minutes formatter for remaining walk-home time and margin. Planner and pipeline files were not edited.
+
+Chrome screenshots and QA notes: docs/frontend-screenshots/. All four PNGs are 1440 × 900 at DPR 1: GO, playback on leg 2, exact storm preset on leg 2, and storm HUD. No page scroll or overlapping waypoint labels was visible; the stop list scrolls internally. The exact preset displayed NO-GO/ABORTED, return CAUTION, 57 min home, 244 min margin and 66% oxygen on arrival. The HUD matched 57 min and 244 min. All 147 tests, typecheck, build and diff whitespace check passed.
+
+The Git email uses the authenticated account's GitHub private noreply address; commit display name is The Ares Initiative. The requested plugin files and README-plugins.md were not yet present at the initial pull; no replacements for those components were built.

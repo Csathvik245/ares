@@ -100,3 +100,10 @@ Checked boxes refer to committed frontend work verified locally; they do not cer
 - ARES logo, MEDA data, production browser sign-off and cross-document/video consistency remain outstanding.
 
 Production CLI deployment succeeded at https://ares-mission-console.vercel.app. Public app shell, credits.json and both demo rover JPEGs returned HTTP 200. Exact 4560-second storm numbers pass regression tests; final production browser recording run is still pending.
+
+
+## Recording console fixes
+
+Implemented and checked locally at 1440 × 900: padded mission fit with storm-banner clearance, separate HAB-1/03 labels and marker leader, wrapping status reasons, exact T+1:16 dust-storm preset, dual emergency HUD statuses, shared minute rounding, scale label above bar, populated lower-left probe, subtle coordinate grid, frame corners and north arrow. Screenshots and reproduction notes are in docs/frontend-screenshots/. All 147 tests, typecheck and build pass.
+
+Plugin integration is pending receipt of zoneCleanup.ts, ElevationProfile.tsx, StopCard.tsx and app/src/components/README-plugins.md. No planner or pipeline code was edited. Approved branding, MEDA observations, Figma comparison and final cross-document/video review remain separate inputs.
