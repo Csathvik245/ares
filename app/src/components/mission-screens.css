@@ -12,11 +12,48 @@
   min-height: 100svh;
   display: flex;
   flex-direction: column;
-  gap: var(--space-6);
-  padding: var(--space-6) var(--space-12);
   background: var(--void-deep);
   color: var(--text);
   font-family: var(--font-body);
+}
+.mission-briefing .briefing-hero {
+  position: relative;
+  isolation: isolate;
+  min-height: 100svh;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+  padding: var(--space-6) var(--space-12);
+}
+.mission-briefing .briefing-title-content {
+  width: 100%;
+  max-width: 1120px;
+  display: grid;
+  gap: var(--space-6);
+  margin: auto;
+  padding: var(--space-12) 0;
+}
+.mission-briefing .briefing-title-content h1 {
+  font-size: clamp(40px, 5vw, 72px);
+}
+.mission-briefing .briefing-tagline {
+  color: var(--muted);
+  font: 16px/1.5 var(--font-body);
+}
+.mission-briefing .briefing-scroll {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-3);
+  min-height: var(--touch-target);
+  color: var(--muted);
+  font: 12px/1.5 var(--font-mono);
+  text-decoration: none;
+}
+.mission-briefing .briefing-scroll:hover { color: var(--text); }
+.mission-briefing .briefing-scroll:focus-visible {
+  outline: 2px solid var(--safe);
+  outline-offset: 4px;
 }
 .mission-briefing .briefing-terrain {
   position: absolute;
@@ -42,16 +79,19 @@
 }
 .mission-briefing .briefing-content {
   width: 100%;
-  max-width: 1120px;
+  max-width: 1216px;
   display: grid;
   gap: var(--space-6);
-  margin: auto;
+  margin: 0 auto;
+  padding: var(--space-12);
+  scroll-margin-top: var(--space-6);
 }
 .mission-briefing p,
 .mission-briefing h2 {
   margin: 0;
 }
-.mission-briefing h1 {
+.mission-briefing h1,
+.mission-briefing #briefing-story-title {
   margin: var(--space-2) 0 0;
   font: 500 clamp(28px, 3vw, 40px)/1.15 var(--font-heading);
   letter-spacing: -0.02em;
@@ -189,12 +229,14 @@
   font: 10px/1.5 var(--font-mono);
 }
 @media (max-width: 1100px), (max-height: 800px) {
-  .mission-briefing { padding: var(--space-5) var(--space-8); gap: var(--space-4); }
+  .mission-briefing .briefing-hero { padding: var(--space-5) var(--space-8); gap: var(--space-4); }
+  .mission-briefing .briefing-content { padding: var(--space-8); }
   .mission-briefing .briefing-content { gap: var(--space-4); }
   .mission-briefing .briefing-beats li { font-size: 14px; }
 }
 @media (max-width: 700px) {
-  .mission-briefing { padding: var(--space-5); }
+  .mission-briefing .briefing-hero,
+  .mission-briefing .briefing-content { padding: var(--space-5); }
   .mission-briefing .briefing-poll { padding: var(--space-3); }
   .mission-briefing .briefing-poll-heading,
   .mission-briefing footer { flex-wrap: wrap; }

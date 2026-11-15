@@ -31,6 +31,7 @@ export function MissionBriefing({
 }: MissionBriefingProps) {
   return (
     <main className="mission-briefing" aria-label="Story">
+      <section className="briefing-hero" aria-labelledby="briefing-title">
       <div
         className="briefing-terrain"
         aria-hidden="true"
@@ -43,10 +44,25 @@ export function MissionBriefing({
       <header>
         ARES <span>MISSION CONTROL · STORY</span>
       </header>
-      <section className="briefing-content" aria-labelledby="briefing-title">
+      <div className="briefing-title-content">
+        <p className="briefing-eyebrow">{missionTitle} · {siteName}</p>
+        <h1 id="briefing-title">{CONSUMABLE_HOURS} hours of oxygen.<br />5 km of unknown terrain.</h1>
+        <p className="briefing-tagline">Sample carbonate and clay. Return safely.</p>
+        <div className="briefing-actions">
+          {onRunDemo && <button type="button" className="briefing-primary" onClick={onRunDemo}>Run the demo</button>}
+          <button type="button" className="briefing-secondary" onClick={onBeginPlanning}>Start planning</button>
+        </div>
+      </div>
+      <a className="briefing-scroll" href="#briefing-story">Scroll to explore the story <span aria-hidden="true">↓</span></a>
+      <footer>
+        <span>The Ares Initiative · NASA Space Apps 2026</span>
+        <span>{imageCredit ?? "Terrain imagery pending"}</span>
+      </footer>
+      </section>
+      <section id="briefing-story" className="briefing-content" aria-labelledby="briefing-story-title">
         <div className="briefing-intro">
-          <p className="briefing-eyebrow">{missionTitle} · {siteName}</p>
-          <h1 id="briefing-title">Can the astronaut get there and back?</h1>
+          <p className="briefing-eyebrow">THE MISSION STORY</p>
+          <h2 id="briefing-story-title">Can the astronaut get there and back?</h2>
         </div>
         <ol className="briefing-beats" aria-label="The mission story">
           <li><span aria-hidden="true">01</span><p>Jezero Crater, 2030s. {CONSUMABLE_HOURS} hours of oxygen, 5 km of unknown terrain.</p></li>
@@ -86,15 +102,9 @@ export function MissionBriefing({
             </>
           ) : <p className="briefing-empty" role="status">Loading mission data…</p>}
         </section>
-        <div className="briefing-actions">
-          {onRunDemo && <button type="button" className="briefing-primary" onClick={onRunDemo}>Run the demo</button>}
-          <button type="button" className="briefing-secondary" onClick={onBeginPlanning}>Start planning</button>
-        </div>
+
       </section>
-      <footer>
-        <span>The Ares Initiative · NASA Space Apps 2026</span>
-        <span>{imageCredit ?? "Terrain imagery pending"}</span>
-      </footer>
+
     </main>
   );
 }

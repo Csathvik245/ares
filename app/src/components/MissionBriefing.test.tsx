@@ -15,7 +15,11 @@ const rows: BriefingRow[] = [
 describe("MissionBriefing Story", () => {
   it("renders the four numbered story beats, terrain, header and credit", () => {
     const html = renderToStaticMarkup(<MissionBriefing onBeginPlanning={() => {}} terrainImageUrl="/data/basemap.png" imageCredit="NASA/JPL-Caltech · HiRISE" />);
-    expect(html).toContain("Can the astronaut get there and back?");
+    expect(html).toContain(`id="briefing-title">${CONSUMABLE_HOURS} hours of oxygen.<br/>5 km of unknown terrain.</h1>`);
+    expect(html).toContain('href="#briefing-story"');
+    expect(html).toContain("Scroll to explore the story");
+    expect(html.indexOf('class="briefing-hero"')).toBeLessThan(html.indexOf('id="briefing-story"'));
+    expect(html).toContain('id="briefing-story-title">Can the astronaut get there and back?</h2>');
     for (const number of ["01", "02", "03", "04"]) expect(html).toContain(`>${number}</span>`);
     expect(html).toContain(`Jezero Crater, 2030s. ${CONSUMABLE_HOURS} hours of oxygen, 5 km of unknown terrain.`);
     expect(html).toContain("Mission Control is up to 20 minutes away by radio. The answer has to come from the suit.");
