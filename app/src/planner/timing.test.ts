@@ -117,6 +117,15 @@ const CASES: Record<string, [string, () => unknown]> = {
   ltstToLmst: ["1,000 calls", x1000((i) => ltstToLmst((i % 2400) / 100))],
   temperatureC: ["1,000 calls", x1000((i) => temperatureC((i % 2400) / 100))],
   doseRateMsvPerHr: ["1,000 calls", x1000((i) => doseRateMsvPerHr(i % 2 === 0))],
+  roundHalfUp: ["1,000 calls", x1000((i) => planner.roundHalfUp(i / 7, 2))],
+  wholeMinutes: ["1,000 calls", x1000((i) => planner.wholeMinutes(i * 31))],
+  formatMinutes: ["1,000 calls", x1000((i) => planner.formatMinutes(i * 31))],
+  formatDuration: ["1,000 calls", x1000((i) => planner.formatDuration(i * 31))],
+  formatKm: ["1,000 calls", x1000((i) => planner.formatKm(i * 13.7))],
+  formatPct: ["1,000 calls", x1000((i) => planner.formatPct(i / 10))],
+  formatDose: ["1,000 calls", x1000((i) => planner.formatDose(i / 1000))],
+  formatLmst: ["1,000 calls", x1000((i) => planner.formatLmst(i / 40))],
+  formatMet: ["1,000 calls", x1000((i) => planner.formatMet(i * 31))],
 };
 
 describe("every exported planner function is fast", () => {
