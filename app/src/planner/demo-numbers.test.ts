@@ -54,6 +54,17 @@ const demo = planRoute(site, cost, site.habitat, demoPois.map((p) => toStop(p, 3
 const wildcatPoi = site.pois.find((p) => p.id === "delta-wildcat-ridge")!;
 const wildcatPlan = planRoute(site, cost, site.habitat, [toStop(wildcatPoi, 0)]);
 
+// The stretch mission: the demo route plus ONE more real stop, Wildcat Ridge (a Perseverance
+// sampling site at the delta front), visited after Brac, with a long 2-hour sampling session there.
+// With the usual 30 min at Wildcat Ridge the Monte Carlo still gets home with the reserve in 99.9% of
+// trials, and so does every other single extra stop we tried, so the knob used here is the
+// science time at the extra stop (120 min). The start time is not a useful knob: it does not
+// change the oxygen numbers.
+const STRETCH_DWELL_MIN = 120;
+const stretchStops = [toStop(demoPois[0], 30), toStop(wildcatPoi, STRETCH_DWELL_MIN), toStop(demoPois[1], 30), toStop(demoPois[2], 30)];
+const stretch = planRoute(site, cost, site.habitat, stretchStops);
+const stretchSim = simulateMission(site, stretch, { seed: 42, startLmst: START_LMST });
+
 const lmstAt = (sec: number) => formatLmst(START_LMST + ((sec / 3600) * 24) / SOL_HOURS);
 /** A percentage with one decimal, half up (formatPct shows whole percents, which would turn 99.8% into 100%). */
 const pct1 = (value: number) => `${roundHalfUp(value, 1).toFixed(1)}%`;
@@ -100,8 +111,7 @@ function shelterBlock(plan: Plan, tSec: number): string {
   ].join("\n");
 }
 
-function monteCarloBlock(): string {
-  const r = simulateMission(site, demo, { seed: 42, startLmst: START_LMST });
+function monteCarloBlock(r = simulateMission(site, demo, { seed: 42, startLmst: START_LMST })): string {
   const min = (m: number) => formatMinutes(m * 60);
   const three = (v: { p5: number; p50: number; p95: number }, f: (x: number) => string) => `${f(v.p5)} / ${f(v.p50)} / ${f(v.p95)}`;
   const range = (p: (typeof PARAMS)[number]) => `${roundHalfUp(p.low, 3)} to ${roundHalfUp(p.high, 3)} (planned ${roundHalfUp(p.nominal, 3)})`;
@@ -201,6 +211,40 @@ The learned model chose the same route as physics on ${vs.same} of ${evaluation.
 ## 6. Monte Carlo reliability of the demo mission
 
 ${monteCarloBlock()}
+
+## 7. Stretch mission
+
+The demo route plus one more real stop: **${wildcatPoi.name}**, a Perseverance sampling site at the
+delta front. ${wildcatPoi.note} It is visited after the first stop, with a long
+${STRETCH_DWELL_MIN} min sampling session there; the other three stops keep 30 min. Start ${formatLmst(START_LMST)} LMST, calm conditions.
+
+Knob used: the science time at the extra stop. With the usual 30 min there, no single extra stop
+we tried brings the Monte Carlo below 99% home with the reserve.
+
+**Why it is riskier:** the deterministic plan says ${stretch.status} with ${formatMinutes(stretch.marginSec)} of margin, but in about 1 in ${roundHalfUp(1 / (1 - stretchSim.pReturnWithReserve))} plausible versions (${stretchSim.failCount} of ${stretchSim.trials} trials) the astronaut gets home below the 45-minute reserve.
+
+### The plan (deterministic)
+
+| | |
+|---|---|
+| Route | ${["HAB-1", ...stretchStops.map((s) => s.label), "HAB-1"].join(" → ")} |
+| Distance | ${formatKm(stretch.distM)} |
+| Walk time | ${formatDuration(stretch.walkSec)} (${formatMinutes(stretch.walkSec)}) |
+| Science time | ${formatDuration(stretch.workSec)} (${formatMinutes(stretch.workSec)}) |
+| Total time | ${formatDuration(stretch.totalSec)} |
+| Status | **${stretch.status}** |
+| Oxygen margin | ${formatMinutes(stretch.marginSec)} |
+| Oxygen at return | ${formatPct(stretch.oxygenAtReturnPct)} |
+
+Reasons, as the app shows them:
+
+${list(stretch.reasons)}
+
+### The same plan, 1000 plausible versions (Monte Carlo)
+
+${monteCarloBlock(stretchSim)}
+
+Top sensitivity: **${stretchSim.sensitivity[0].label}** (a swing of ${formatMinutes(stretchSim.sensitivity[0].swingMin * 60)} in the margin).
 `;
 }
 
@@ -228,6 +272,21 @@ describe("docs/demo-numbers.md", () => {
     if (process.env.UPDATE_DEMO_NUMBERS) writeFileSync(DOC, header() + body, "utf8");
     const committed = readFileSync(DOC, "utf8").replace(/\r\n/g, "\n");
     expect(committed.slice(committed.indexOf(HEADER_END) + HEADER_END.length)).toBe(body);
+  });
+
+  it("the stretch mission is still flyable on paper, but the Monte Carlo shows real risk", () => {
+    expect(stretch.ok).toBe(true);
+    expect(["GO", "CAUTION"]).toContain(stretch.status);
+    expect(stretch.marginSec).toBeGreaterThan(0);
+    expect(stretchStops).toHaveLength(4); // the demo route plus ONE more stop
+    expect(stretchSim.trials).toBe(1000);
+    expect(stretchSim.seed).toBe(42);
+    // "Home with the reserve" lands between 60% and 90%: risky, not hopeless.
+    expect(stretchSim.pReturnWithReserve).toBeGreaterThanOrEqual(0.6);
+    expect(stretchSim.pReturnWithReserve).toBeLessThanOrEqual(0.9);
+    // The extra stop alone, with the usual 30 min, is not what makes it risky.
+    const usual = planRoute(site, cost, site.habitat, stretchStops.map((s) => ({ ...s, dwellMin: 30 })));
+    expect(simulateMission(site, usual, { seed: 42, startLmst: START_LMST }).pReturnWithReserve).toBeGreaterThan(0.99);
   });
 
   it("the demo mission is the one in CLAUDE.md", () => {

@@ -7,7 +7,7 @@ the real `site.json` and formatted with `format.ts`, so they match what the app 
 and route-learning numbers are read from the pipeline's output files. `npm test` fails if this
 file and the code stop agreeing.
 
-**Numbers taken from commit `731eb20`** (the planner and data at that commit).
+**Numbers taken from commit `9e68871`** (the planner and data at that commit).
 
 <!-- numbers start -->
 ## 1. Demo mission
@@ -147,3 +147,58 @@ What moves the margin most (one input at a time, the others as planned):
 | Terrain (per leg) | 0.9 to 1.1 (planned 1) × planned speed, drawn separately for each leg | 174 min | 206 min | 33 min |
 | Oxygen use during science | 0.72 to 1.08 (planned 0.9) × nominal oxygen rate | 208 min | 175 min | 32 min |
 | Time at each stop | -5 to 5 (planned 0) min added to each stop's planned science time, drawn separately for each stop | 205 min | 178 min | 27 min |
+
+## 7. Stretch mission
+
+The demo route plus one more real stop: **Wildcat Ridge (Hawksbill Gap)**, a Perseverance sampling site at the
+delta front. Delta-front mudstone with sulfate and small amounts of clay minerals. Perseverance cored samples Hazeltop and Bearwallow here (sols 509-516). It is visited after the first stop, with a long
+120 min sampling session there; the other three stops keep 30 min. Start 13:00 LMST, calm conditions.
+
+Knob used: the science time at the extra stop. With the usual 30 min there, no single extra stop
+we tried brings the Monte Carlo below 99% home with the reserve.
+
+**Why it is riskier:** the deterministic plan says CAUTION with 18 min of margin, but in about 1 in 4 plausible versions (279 of 1000 trials) the astronaut gets home below the 45-minute reserve.
+
+### The plan (deterministic)
+
+| | |
+|---|---|
+| Route | HAB-1 → Séítah outcrop (Brac) → Wildcat Ridge (Hawksbill Gap) → Delta front toe → Máaz lava rock (Sid) → HAB-1 |
+| Distance | 6.87 km |
+| Walk time | 2:55 (175 min) |
+| Science time | 3:30 (210 min) |
+| Total time | 6:25 |
+| Status | **CAUTION** |
+| Oxygen margin | 18 min |
+| Oxygen at return | 13% |
+
+Reasons, as the app shows them:
+
+  - Oxygen margin is low: 18 min above reserve, under 25% of the 435 min usable budget (480 min minus the 45 min reserve).
+  - Low sun: below 10° at 18:00 LMST (5 h 08 min into the EVA, elevation 9.9°), dropping to −8.1° at 19:16 LMST — part of the EVA is in darkness.
+
+### The same plan, 1000 plausible versions (Monte Carlo)
+
+> Model-based simulation of our own assumptions, not an empirical mission success probability.
+
+1000 trials, seed 42. The route is fixed; walking speed, terrain, oxygen use and time at each stop are varied.
+
+| | |
+|---|---|
+| Home with the oxygen reserve intact | 72.1% (721 of 1000 trials) |
+| Home at all (before the oxygen runs out) | 98.0% |
+| Oxygen margin, low / middle / high (5th / 50th / 95th percentile) | −29 min / 16 min / 64 min |
+| Oxygen at return, low / middle / high | 3% / 13% / 23% |
+| Total time, low / middle / high | 6:07 / 6:26 / 6:47 |
+
+What moves the margin most (one input at a time, the others as planned):
+
+| Input | Range (all assumed) | Margin at low value | Margin at high value | Swing |
+|---|---|---|---|---|
+| Oxygen use while walking | 1.04 to 1.56 (planned 1.3) × nominal oxygen rate | 64 min | −27 min | 91 min |
+| Oxygen use during science | 0.72 to 1.08 (planned 0.9) × nominal oxygen rate | 56 min | −20 min | 76 min |
+| Walking speed | 0.85 to 1.15 (planned 1) × planned speed (3 km/h on flat firm ground) | −22 min | 48 min | 70 min |
+| Terrain (per leg) | 0.9 to 1.1 (planned 1) × planned speed, drawn separately for each leg | −7 min | 39 min | 46 min |
+| Time at each stop | -5 to 5 (planned 0) min added to each stop's planned science time, drawn separately for each stop | 36 min | 0 min | 36 min |
+
+Top sensitivity: **Oxygen use while walking** (a swing of 91 min in the margin).
