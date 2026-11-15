@@ -19,6 +19,7 @@ import {
   formatMet,
 } from "../lib/planner";
 import { scienceScore, suggestStops } from "../planner/science";
+import { EVIDENCE_LABELS } from "../lib/evidenceLabels";
 
 /** "all" is the classic single rail. The other parts let the consolidated desktop panel interleave sections. */
 export type MissionPart = "all" | "telemetry" | "stops" | "emergency";
@@ -85,7 +86,7 @@ export function MissionPanel({
       <section className="rail-status">
         <div className="panel-heading">
           <span>{m.emergency ? "RETURN HOME" : "MISSION STATUS"}</span>
-          <small>{m.emergency?.kind === "spe" ? "illustrative" : "calculated"}</small>
+          <small>{m.emergency?.kind === "spe" ? EVIDENCE_LABELS.spe : EVIDENCE_LABELS.route}</small>
         </div>
         <div className="status-line">
           <strong className={`large-status ink-${status}`}>{status}</strong>
@@ -114,7 +115,7 @@ export function MissionPanel({
       <section className="oxygen-panel">
         <div className="panel-heading">
           <span>OXYGEN BUDGET</span>
-          <small>calculated · assumed burn rates</small>
+          <small>{EVIDENCE_LABELS.oxygen}</small>
         </div>
         <div className="oxygen-headline">
           <strong>
@@ -161,32 +162,32 @@ export function MissionPanel({
           [
             "Distance",
             display ? formatKm(display.distM) : "—",
-            "calculated",
+            EVIDENCE_LABELS.route,
           ],
           [
             stitch ? "Total Duration" : "Duration",
             display ? clock(display.totalSec) : "—",
-            "calculated",
+            EVIDENCE_LABELS.route,
           ],
           [
             stitch ? "Walking Time" : "Walking",
             display ? clock(display.walkSec) : "—",
-            "calculated",
+            EVIDENCE_LABELS.route,
           ],
           [
             stitch ? "Station Science" : "Science",
             display ? clock(display.workSec) : "—",
-            "calculated",
+            EVIDENCE_LABELS.route,
           ],
           [
             stitch ? "Radiation Dose" : "Radiation dose",
             formatDose(dose) + (SPE_IS_ILLUSTRATIVE && m.emergency?.kind === "spe" ? ` · illustrative · measured 2017 event x${SPE_MEASURED_2017_PEAK_MULTIPLIER}` : ""),
-            "projected · RAD baseline",
+            m.emergency?.kind === "spe" ? EVIDENCE_LABELS.spe : EVIDENCE_LABELS.radiation,
           ],
             [
               stitch ? "Lowest Sun" : "Lowest sun",
               `${roundHalfUp(lowest)}°`,
-              "calculated · Mars24",
+              EVIDENCE_LABELS.sun,
             ],
         ].map(([label, value, evidence]) => (
           <div key={label}>
@@ -350,7 +351,7 @@ export function MissionPanel({
   const emergencyFooter = (
       <footer className="emergency-controls">
         <span>
-          EMERGENCY SIMULATION <small>assumed response</small>
+          EMERGENCY SIMULATION <small>{EVIDENCE_LABELS.emergency}</small>
         </span>
         <button disabled={!!m.emergency} onClick={() => m.trigger("storm")}>
           Dust storm

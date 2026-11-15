@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import type { Bounds, Poi, Stop } from "../planner";
 import { formatKm, formatMet, formatMinutes, roundHalfUp } from "../planner";
+import { EVIDENCE_LABELS } from "../lib/evidenceLabels";
 import { orbitalCrop } from "../lib/orbitalCrop";
 import { photoCreditFor } from "../lib/photoCredits";
 import "./plugins.css";
@@ -159,7 +160,7 @@ export function StopCard({ stop, index, poi, arriveSec, onClose, basemap, scienc
         </div>
         {scienceScore && (
           <div>
-            <dt>Science per oxygen-minute</dt>
+            <dt>Science per oxygen-minute · {EVIDENCE_LABELS.science}</dt>
             <dd>{roundHalfUp(scienceScore.score, 3).toFixed(3)} · value {roundHalfUp(scienceScore.science, 2)} · {formatMinutes(scienceScore.extraO2Min * 60)} O₂</dd>
           </div>
         )}
