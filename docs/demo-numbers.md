@@ -7,7 +7,7 @@ the real `site.json` and formatted with `format.ts`, so they match what the app 
 and route-learning numbers are read from the pipeline's output files. `npm test` fails if this
 file and the code stop agreeing.
 
-**Numbers taken from commit `44c3a51`** (the planner and data at that commit).
+**Numbers taken from commit `c0f964d`** (the planner and data at that commit).
 
 <!-- numbers start -->
 ## 1. Demo mission
@@ -215,34 +215,38 @@ differ by a couple of minutes from the margin in section 1.
 
 ### The three default cases
 
-| Emergency | Size (planner default) | Kept stops | Dropped stops | Oxygen margin before → after | EVA status | Return-home status |
-|---|---|---|---|---|---|---|
-| Oxygen loss | 25% of the oxygen left is lost | Delta front toe, Máaz lava rock (Sid) | none | 194 min → 96 min | **CAUTION** | **CAUTION** |
-| Slower walking | walking speed drops to 70% of normal | Delta front toe, Máaz lava rock (Sid) | none | 194 min → 151 min | **GO** | **CAUTION** |
-| Path blocked | ground within 75 m of a point on the route ahead is impassable | Delta front toe, Máaz lava rock (Sid) | none | 194 min → 193 min | **GO** | **CAUTION** |
+| Emergency | Size (planner default) | Recommendation | Kept stops | Dropped stops | Oxygen margin before → after | EVA status | Return-home status |
+|---|---|---|---|---|---|---|---|
+| Oxygen loss | 25% of the oxygen left is lost | continue | Delta front toe, Máaz lava rock (Sid) | none | 194 min → 96 min | **CAUTION** | **CAUTION** |
+| Slower walking | walking speed drops to 70% of normal | continue | Delta front toe, Máaz lava rock (Sid) | none | 194 min → 151 min | **GO** | **CAUTION** |
+| Path blocked | ground within 75 m of a point on the route ahead is impassable | continue | Delta front toe, Máaz lava rock (Sid) | none | 194 min → 193 min | **GO** | **CAUTION** |
 
-### Demo case: a bigger oxygen loss that drops a stop
+### Demo case: a bigger oxygen loss, where going home is the safer choice
+
+ARES compares carrying on with going straight home. It recommends going home when carrying on would leave less than 45 min of margin (one more reserve), or when stops were already dropped and carrying on would leave less than 50% of the straight-home margin. Both limits are our assumptions.
 
 | | |
 |---|---|
 | Setting | `lossFraction` = 0.5 (50% of the oxygen left is lost) |
-| Kept stops | Delta front toe |
-| Dropped stops | Máaz lava rock (Sid) |
-| New route | astronaut's position → Delta front toe → HAB-1 |
-| Oxygen margin before → after | 194 min → 31 min |
-| New plan ends | T+2:58 (15:53 LMST) |
-| Oxygen on arrival | 16% |
-| EVA status | **CAUTION** |
-| Return-home status (if she walked straight home instead) | **CAUTION**, 111 min margin |
+| Recommendation | **return home** |
+| Stops cancelled | Delta front toe, Máaz lava rock (Sid) |
+| New route | astronaut's position → HAB-1 |
+| Walk home | 31 min |
+| Oxygen margin before → after | 194 min → 111 min |
+| Arrival at the habitat | T+1:47 (14:45 LMST) |
+| Oxygen on arrival | 32% |
+| EVA status | **NO-GO** |
+| Return-home status | **CAUTION** |
+| Riskier option (not recommended) | continue to Delta front toe: 31 min margin, CAUTION, home at T+2:58 |
 
 Reasons, as the app shows them:
 
-  - Oxygen loss at T+1:16: 50% of the oxygen left is gone (197 min of life support).
-  - Dropped 1 stop to keep the 45 min reserve: Máaz lava rock (Sid).
-  - Oxygen margin is low: 31 min above reserve, under 25% of the 435 min usable budget (480 min minus the 45 min reserve).
+  - EVA aborted: Oxygen loss at T+1:16: 50% of the oxygen left is gone (197 min of life support).
+  - Returning home is safer: continuing to Delta front toe would leave 31 min of margin, against 111 min going straight home.
+  - Return home: 31 min walk, oxygen margin 111 min on arrival (above the 45 min reserve).
 
 **Sentence for the slides:**
 
-> A 50% oxygen loss at T+1:16 drops the Máaz lava rock (Sid) stop; ARES re-plans through Delta front toe and home with 31 min of margin.
+> A 50% oxygen loss at T+1:16: ARES cancels the remaining stops and sends her straight home with 111 min of margin. Continuing to Delta front toe would leave only 31 min.
 
-The app's "Oxygen loss" button uses the default 25%, which drops no stop on the demo mission. This demo case needs `lossFraction` passed to `scenarioAt`.
+The app's "Oxygen loss" button uses the default 25%, which keeps every stop on the demo mission. This demo case needs `lossFraction` passed to `scenarioAt`.

@@ -119,6 +119,8 @@ Each one starts from where the astronaut is at `tSec` (`positionAt`), re-plans t
 
 The defaults are illustrative demo values, not measured failure rates. On the demo mission at T+1:16 each default keeps both remaining stops: oxygen loss cuts the margin from 194 to 96 min (CAUTION), slow walking to 151 min (GO), and a 75 m block costs a 1 min detour (GO). Harsher settings drop stops; the tests in `emergencies.test.ts` check both.
 
+**Continue or go home?** After re-planning, ARES compares carrying on with the kept stops against walking straight home (`abortRoute`). It recommends going home (`recommendation: "return home"`) when carrying on would leave less than 45 min of oxygen margin (one more reserve), or when stops were already dropped and carrying on would still leave less than half the straight-home margin. The outcome then describes the walk home (**EVA: NO-GO**, **Return home: CAUTION** or **NO-GO**), and the carry-on option is kept as `alternative`, with its stops, margin and status, so the screen can show it as the riskier choice. Both limits are our assumptions. Example: a 50% oxygen loss at T+1:16 of the demo mission. Carrying on to the delta front toe would leave 31 min; going home leaves 111 min, so ARES recommends home. The three default emergencies keep every stop with a healthy margin and are not changed by this rule.
+
 ## 8. Sun, temperature and radiation
 
 - **Sun:** NASA's Mars24 algorithm (Allison & McEwen 2000) gives the sun's height at 18.45 N through the day, for one fixed season (Ls 0°, the northern spring equinox). At that season sunrise is 06:41 and sunset 18:41 on the local clock, and the sun peaks at 71.5°.

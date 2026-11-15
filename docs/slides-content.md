@@ -47,11 +47,11 @@ The Ares Initiative · NASA Space Apps 2026 · *Interplanetary Survival Guide: M
 - **EVA: NO-GO**: the plan is aborted; the zone collapses.
 - **Return home: CAUTION**: red route home, 57 min walk, 244 min margin, 66% oxygen on arrival.
 
-**Oxygen loss at T+1:16 (ARES re-plans instead of aborting):**
-- A 50% oxygen loss drops the Máaz lava rock (Sid) stop; ARES re-plans through Delta front toe and home with 31 min of margin (was 194 min). **EVA: CAUTION**.
+**Oxygen loss at T+1:16 (ARES compares carrying on with going home, and picks the safer one):**
+- A 50% oxygen loss: ARES cancels the remaining stops and sends her straight home with 111 min of margin. Continuing to Delta front toe would leave only 31 min. **EVA: NO-GO**, **Return home: CAUTION**.
 - The size of the loss is illustrative, not measured failure data.
 
-*Visual:* console with the demo GO plan; console mid-storm with both statuses; if there is room, the re-planned route after the oxygen loss. Credit: NASA/JPL-Caltech/University of Arizona (HiRISE basemap).
+*Visual:* console with the demo GO plan; console mid-storm with both statuses; if there is room, the route home after the oxygen loss. Credit: NASA/JPL-Caltech/University of Arizona (HiRISE basemap).
 
 ## Slide 5 — Checked against Perseverance, and against our own assumptions
 
@@ -120,9 +120,9 @@ Every number on the slides and where it comes from. `demo-numbers.md` is checked
 | N21 | SPE multiplier (illustrative) | ×30 | `SPE_MULTIPLIER`, constants.ts |
 | N22 | Measured 2017 SPE peak | ×1.5 | `SPE_MEASURED_2017_PEAK_MULTIPLIER`, constants.ts |
 | N23 | Demo oxygen loss | 50% at T+1:16 | demo-numbers.md §8 (demo case) |
-| N24 | Stop dropped / stop kept | Máaz lava rock (Sid) / Delta front toe | demo-numbers.md §8 (demo case) |
-| N25 | Margin before → after the oxygen loss | 194 min → 31 min | demo-numbers.md §8 (demo case) |
-| N26 | EVA status after the oxygen loss | CAUTION | demo-numbers.md §8 (demo case) |
+| N24 | Recommendation; riskier option | return home; continue to Delta front toe | demo-numbers.md §8 (demo case) |
+| N25 | Margin going home; margin if she continued | 111 min; 31 min | demo-numbers.md §8 (demo case) |
+| N26 | Statuses after the oxygen loss | EVA NO-GO, Return home CAUTION | demo-numbers.md §8 (demo case) |
 | N27 | Demo plan reliability | 1000 of 1000 trials; failure rate likely below 0.3% | demo-numbers.md §6 |
 | N28 | Stretch plan: extra stop and sampling time | Wildcat Ridge, 120 min | demo-numbers.md §7 |
 | N29 | Stretch plan: distance, total time | 6.87 km, 6:25 | demo-numbers.md §7 |

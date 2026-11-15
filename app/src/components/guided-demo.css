@@ -1,0 +1,63 @@
+/* Guided demo caption card. Scoped to .guided-demo; uses only the shared theme variables
+   (Mono theme: IBM Plex fonts through --font-body / --font-mono, electric blue through --safe).
+   It sits bottom-left inside the map area, above the scale bar, and stays narrow so it
+   does not reach the middle of the map or the status pills in the header. */
+.guided-demo {
+  position: absolute;
+  left: var(--space-3);
+  bottom: var(--space-12);
+  z-index: 1100;
+  width: min(320px, calc(100% - 2 * var(--space-3)));
+  padding: var(--space-3);
+  background: var(--console);
+  border: 1px solid var(--hairline);
+  border-left: 2px solid var(--safe);
+  color: var(--text);
+  font: 400 13px/1.45 var(--font-body);
+}
+.guided-demo p {
+  margin: 0;
+}
+.guided-demo__step {
+  color: var(--muted);
+  font: 500 11px var(--font-mono);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.guided-demo__caption {
+  margin-top: var(--space-2) !important;
+}
+.guided-demo__note {
+  margin-top: var(--space-1) !important;
+  color: var(--muted);
+  font-size: 10px;
+  line-height: 1.4;
+}
+.guided-demo__actions {
+  display: flex;
+  gap: var(--space-2);
+  margin-top: var(--space-3);
+}
+.guided-demo__actions button {
+  padding: var(--space-1) var(--space-3);
+  background: transparent;
+  border: 1px solid var(--hairline);
+  color: var(--text);
+  font: 500 12px var(--font-mono);
+  cursor: pointer;
+}
+.guided-demo__actions button:disabled {
+  color: var(--muted);
+  cursor: default;
+}
+.guided-demo__actions button:focus-visible {
+  outline: 2px solid var(--safe);
+  outline-offset: 2px;
+}
+/* Three classes deep, so the console theme's generic button rule does not grey out the main action. */
+.guided-demo .guided-demo__actions button.guided-demo__next {
+  background: var(--safe);
+  border-color: var(--safe);
+  color: var(--void);
+  font-weight: 600;
+}

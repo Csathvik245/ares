@@ -11,12 +11,14 @@ import {
   planRoute,
   positionAt,
   readSkyView,
+  scenarioAt,
   stormAt,
   type Stop,
 } from "./planner";
 import {
   EMERGENCY_TEXT,
   SCENARIO_BUTTONS,
+  alternativeLine,
   circleOutline,
   emergencyCourse,
   isReplanned,
@@ -135,6 +137,19 @@ describe("the three new emergency buttons", () => {
     const outline = circleOutline(at, radiusM);
     expect(outline).toHaveLength(48);
     for (const p of outline) expect(distanceM(p, at)).toBeCloseTo(radiusM, 0);
+  });
+
+  it("a 50% oxygen loss: the screens show the walk home, and one line for the riskier option", () => {
+    const raw50 = scenarioAt(site, plan, AT, "oxygen-loss", { startLmst: 13, stops, lossFraction: 0.5 });
+    expect(raw50.recommendation).toBe("return home");
+    expect(isReplanned(raw50)).toBe(false);
+    const course = emergencyCourse(raw50, false);
+    expect(course.abort).toBe(raw50.abort); // drawn and played back exactly like a storm
+    expect(course.abort.status).toBe("CAUTION");
+    expect(alternativeLine(raw50)).toBe("Riskier option: continue to Delta front toe, 31 min margin");
+    // No alternative for the default buttons or for a storm.
+    for (const b of SCENARIO_BUTTONS) expect(alternativeLine(runEmergency(site, plan, AT, b.kind, options))).toBeNull();
+    expect(alternativeLine(runEmergency(site, plan, AT, "storm", options))).toBeNull();
   });
 
   it("an emergency too big to continue is an abort, shown like a storm: the walk home", () => {

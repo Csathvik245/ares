@@ -223,3 +223,34 @@ import { EvidenceTag } from "./EvidenceTag";
 ```
 
 Use it next to any briefing row (`computeBriefing(...).rows[i].evidence`) and next to science values (`SCIENCE_EVIDENCE`).
+
+## 8. Guided demo and the "riskier option" line
+
+`GuidedDemo.tsx` is a small caption card (bottom-left of the map area) that walks through the demo story in four steps, driving the real app through `MissionContext`: load the demo mission, Monte Carlo result, dust storm at T+1:16, walk home. Back / Next / Exit, "Step n of 4", and the keys → ← Esc. It first resets any emergency and clears the plan, so it works from any state. Every number in a caption is read from the planner at run time.
+
+**To mount it** (in `App.tsx`; it must be inside the map area, which needs `position: relative`, as a child of `<MissionMap>`):
+
+```tsx
+import { GuidedDemo, startGuidedDemo } from "./components/GuidedDemo";
+
+<MissionMap ...>
+  ...
+  <GuidedDemo />
+</MissionMap>
+
+<MissionBriefing ... onRunDemo={() => { setScreen("plan"); startGuidedDemo(); }} />
+```
+
+`setScreen("plan")` closes the briefing, the same as "Begin planning". If the card is not on screen yet when `startGuidedDemo()` is called, the start is remembered and happens when the card mounts.
+
+The logic is in `lib/guided-demo.ts` (`settleStep`, `guidedCaption`); styles are in `guided-demo.css` and use only the theme variables.
+
+**Riskier-option line.** When an oxygen loss, slower walking or blocked path leaves too little margin to carry on, the planner now recommends going home and keeps the other choice as `outcome.alternative`. The existing emergency screens already draw the recommended route. To show the other choice, add one line in `MissionPanel.tsx`, right after the `return-readout` paragraph:
+
+```tsx
+import { alternativeLine } from "../lib/emergency-run";
+
+{alternativeLine(m.emergencyOutcome) && <p className="return-readout">{alternativeLine(m.emergencyOutcome)}</p>}
+```
+
+It prints, for example, "Riskier option: continue to Delta front toe, 31 min margin".

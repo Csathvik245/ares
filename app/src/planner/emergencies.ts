@@ -13,7 +13,7 @@
 // There is no rover model, so there is no rover-breakdown scenario.
 
 import { abortRoute } from "./abort";
-import { CONSUMABLE_HOURS, WALK_BURN } from "./constants";
+import { CONSUMABLE_HOURS, RESERVE_MIN, WALK_BURN } from "./constants";
 import { formatMet, roundHalfUp } from "./format";
 import { distanceM } from "./geom";
 import { oxygenBudget } from "./oxygen";
@@ -32,6 +32,34 @@ export const DEFAULT_OXYGEN_LOSS_FRACTION = 0.25;
 export const DEFAULT_BLOCK_RADIUS_M = 75;
 /** Default walking-speed multiplier in "slow-walk" (ASSUMPTION, illustrative). */
 export const DEFAULT_SLOW_WALK_FACTOR = 0.7;
+
+/**
+ * Continuing with stops is only recommended if it leaves at least this much oxygen margin
+ * above the reserve: one more reserve's worth (RESERVE_MIN). ASSUMPTION, our safety rule.
+ */
+export const SAFE_CONTINUE_MARGIN_MIN = RESERVE_MIN;
+/**
+ * When stops already had to be dropped, continuing is only recommended if it keeps at
+ * least this share of the margin that going straight home would give. ASSUMPTION.
+ */
+export const MIN_SHARE_OF_HOME_MARGIN = 0.5;
+
+/** What ARES recommends after re-planning. */
+export type Recommendation = "continue" | "return home";
+
+/** The option that was NOT recommended: carrying on with some stops. */
+export type ScenarioAlternative = {
+  /** Stops this option would still visit, in order. */
+  stops: Stop[];
+  /** Oxygen margin above the reserve on reaching the habitat this way, seconds. */
+  marginSec: number;
+  /** EVA status this option would have (GO or CAUTION). */
+  status: Status;
+  /** Mission elapsed time on reaching the habitat this way, seconds. */
+  endSec: number;
+  /** The plan for this option, from the astronaut's position (times start at the emergency). */
+  route: Plan;
+};
 
 export type ScenarioOptions = {
   /** EVA start time, LMST hours (for the low-sun check). Default 13, as in stormAt. */
@@ -65,7 +93,18 @@ export type ScenarioSnapshot = {
 
 export type ScenarioOutcome = StormOutcome & {
   kind: ScenarioKind;
-  /** True when stops were still ahead and none fit, or the way home fails: the EVA is aborted (EVA NO-GO). */
+  /**
+   * "continue": carry on with keptStops (or nothing was ahead). "return home": the EVA is
+   * aborted and the route is the walk home, because no stop fits, or because carrying on
+   * would leave too little margin compared with going straight home (see `alternative`).
+   */
+  recommendation: Recommendation;
+  /**
+   * Set only when carrying on was possible but ARES recommends going home instead:
+   * the riskier "continue" option, with its margin and status. null otherwise.
+   */
+  alternative: ScenarioAlternative | null;
+  /** True when the recommendation is to return home with stops still ahead, or the way home fails: the EVA is aborted (EVA NO-GO). */
   aborted: boolean;
   /**
    * The new plan from the astronaut's position: kept stops, then the habitat.
@@ -264,14 +303,34 @@ export function scenarioAt(
     kept--;
     route = replan(ahead.slice(0, kept));
   }
-  const keptStops = ahead.slice(0, kept).map(original);
-  const droppedStops = ahead.slice(kept).map(original);
-  // Aborted: stops were ahead and none fit, or even the way home fails.
-  const aborted = (ahead.length > 0 && kept === 0) || !route.ok;
 
   // 4. The straight-home option, with its Contract 3 return-home status.
   const homeAbort = abortRoute(site, grid, from, usedNow);
   const abort = { ...homeAbort, reasons: [...homeAbort.reasons, event] };
+
+  // 5. Is carrying on really the safer choice? Compare it with going straight home.
+  //    Return home instead when carrying on would leave less margin than one more
+  //    reserve, or when stops were already dropped and it would still leave less than
+  //    half the margin of going home. A healthy plan that keeps all its stops is never
+  //    changed by the second rule: early in an EVA, science always costs margin.
+  let alternative: ScenarioAlternative | null = null;
+  let safetyNote: string | null = null;
+  if (kept > 0 && route.ok && route.marginSec >= 0 && Number.isFinite(homeAbort.sec) && homeAbort.marginSec > route.marginSec) {
+    const tooThin = route.marginSec < SAFE_CONTINUE_MARGIN_MIN * 60;
+    const poorTrade = kept < ahead.length && route.marginSec < MIN_SHARE_OF_HOME_MARGIN * homeAbort.marginSec;
+    if (tooThin || poorTrade) {
+      const stopsKept = ahead.slice(0, kept).map(original);
+      alternative = { stops: stopsKept, marginSec: route.marginSec, status: route.status, endSec: startSec + route.totalSec, route };
+      safetyNote = `Returning home is safer: continuing to ${stopsKept.map((s) => s.label).join(", ")} would leave ${minutes(route.marginSec)} min of margin, against ${minutes(homeAbort.marginSec)} min going straight home.`;
+      kept = 0;
+      route = replan([]);
+    }
+  }
+  const keptStops = ahead.slice(0, kept).map(original);
+  const droppedStops = ahead.slice(kept).map(original);
+  // Aborted: stops were ahead and none are kept, or even the way home fails.
+  const aborted = (ahead.length > 0 && kept === 0) || !route.ok;
+  const recommendation: Recommendation = aborted ? "return home" : "continue";
 
   const dropNote =
     droppedStops.length > 0
@@ -284,7 +343,7 @@ export function scenarioAt(
   let after: ScenarioSnapshot;
   if (aborted) {
     evaStatus = "NO-GO";
-    evaReasons = [`EVA aborted: ${event}`, ...(dropNote ? [dropNote] : []), ...homeAbort.reasons];
+    evaReasons = [`EVA aborted: ${event}`, ...(safetyNote ? [safetyNote] : dropNote ? [dropNote] : []), ...homeAbort.reasons];
     returnRoute = { to: "home", path: homeAbort.path, sec: homeAbort.sec };
     after = {
       marginSec: homeAbort.marginSec,
@@ -330,6 +389,8 @@ export function scenarioAt(
     walkHomeMin: homeAbort.sec / 60,
     marginMin: after.marginSec / 60,
     arriveSec: after.endSec,
+    recommendation,
+    alternative,
     aborted,
     route,
     startSec,

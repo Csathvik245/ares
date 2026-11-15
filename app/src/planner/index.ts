@@ -75,8 +75,10 @@ export {
   DEFAULT_OXYGEN_LOSS_FRACTION,
   DEFAULT_BLOCK_RADIUS_M,
   DEFAULT_SLOW_WALK_FACTOR,
+  SAFE_CONTINUE_MARGIN_MIN,
+  MIN_SHARE_OF_HOME_MARGIN,
 } from "./emergencies";
-export type { ScenarioKind, ScenarioOptions, ScenarioOutcome, ScenarioSnapshot } from "./emergencies";
+export type { Recommendation, ScenarioAlternative, ScenarioKind, ScenarioOptions, ScenarioOutcome, ScenarioSnapshot } from "./emergencies";
 export type { EmergencyKind, ReturnRoute, ShelterCheck, StormOptions, StormOutcome } from "./storm";
 export { shelterRoute, readSkyView, SHELTER_MODEL_IS_SIMPLIFIED, DEFAULT_WAIT_MIN, MIN_DOSE_REDUCTION_PCT } from "./shelter";
 export type { ShelterRoute, ShelterOptions } from "./shelter";

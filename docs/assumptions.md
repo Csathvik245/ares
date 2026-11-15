@@ -120,6 +120,15 @@ If such a map is published later, compare it with the roughness layer first (`do
 | Shelter model (`shelter.ts`) | SPE dose at a spot = SPE dose rate × sky view × time; habitat = full shelter (0); event lasts 60 min; shelter offered only for a dose cut of 5% or more | In a solar particle event, whether waiting at a shielded spot beats walking home | **Simplified** (`SHELTER_MODEL_IS_SIMPLIFIED`). Assumes the SPE flux is roughly the same from every direction of the sky, so dose scales with visible sky. Ignores that the atmosphere shields low directions more than high ones (so hiding the low sky helps less than the model says), and ignores secondary particles from the ground and rock walls. The SPE size is illustrative (`SPE_IS_ILLUSTRATIVE`). **The 60 min event length is assumed** (real events last hours); the astronaut walks to the shelter and waits there for the rest of it. The 5% minimum and the oxygen rate while waiting (the planner's 0.9 work rate) are our choices. A shelter is offered only if there is oxygen to walk home afterwards with the reserve intact. Sky view is per 25 m cell from a 5 m DTM. **What it gives at Jezero:** on the demo mission it never beats walking home (home is at most about 50 min away). Across the site a shelter is offered only from places about an hour or more from the habitat, and the largest dose cut is about 14%. That depends directly on the 60 min assumption: for a longer event, walking home wins. | Assumption |
 
 
+### Emergencies that re-plan: when ARES says "go home" (`emergencies.ts`)
+
+| Rule | Value | What it does | Status |
+|---|---|---|---|
+| `SAFE_CONTINUE_MARGIN_MIN` | 45 min (equal to `RESERVE_MIN`) | After an oxygen loss, slower walking or a blocked path, carrying on with stops is recommended only if it leaves at least this much margin above the reserve. Below it, ARES recommends walking straight home. | Assumption (our safety rule) |
+| `MIN_SHARE_OF_HOME_MARGIN` | 0.5 | If stops already had to be dropped, carrying on must still keep at least half the margin that going straight home would give. Not applied when every stop is kept: early in an EVA, doing science always costs margin. | Assumption (our safety rule) |
+
+The option that was not recommended is still reported (`alternative`), with its margin, so the astronaut sees both.
+
 ### Monte Carlo simulator: the ranges we sample (`montecarlo.ts`)
 
 `simulateMission` replays a fixed plan 1,000 times with these inputs drawn at random (see `docs/how-it-works.md`, "Monte Carlo"). **Every range is our assumption.** No source in `docs/sources.md` supports a range, and none has been checked with astronauts or suit tests. The results are a model-based simulation of our own assumptions, not an empirical mission success probability.

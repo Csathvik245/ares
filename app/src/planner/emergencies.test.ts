@@ -113,6 +113,54 @@ describe("oxygen-loss", () => {
   });
 });
 
+describe("recommendation: continue or return home", () => {
+  it("a healthy re-plan keeps going: recommendation continue, no alternative", () => {
+    for (const o of [oxygenLossAt(site, plan, T, opts), slowWalkAt(site, plan, T, opts), blockedPathAt(site, plan, T, opts)]) {
+      expect(o.recommendation).toBe("continue");
+      expect(o.alternative).toBeNull();
+      expect(o.aborted).toBe(false);
+      expect(o.droppedStops).toEqual([]);
+    }
+  });
+
+  it("a thin margin sends her home, and keeps continuing as the alternative with its margin", () => {
+    const o = oxygenLossAt(site, plan, T, { ...opts, lossFraction: 0.5 });
+    expect(o.recommendation).toBe("return home");
+    expect(o.aborted).toBe(true);
+    expect(o.evaStatus).toBe("NO-GO"); // Contract 3: the EVA is aborted
+    expect(o.abort.status).toBe("CAUTION"); // the walk home is never GO
+    expect(o.keptStops).toEqual([]);
+    expect(o.returnRoute.path).toEqual(o.abort.path);
+    expect(o.after.marginSec).toBe(o.abort.marginSec);
+    const alt = o.alternative!;
+    expect(alt.stops.map((s) => s.id)).toEqual([stops[1].id]);
+    expect(alt.route.ok).toBe(true);
+    expect(alt.marginSec).toBe(alt.route.marginSec);
+    expect(alt.marginSec).toBeGreaterThanOrEqual(0);
+    expect(alt.marginSec).toBeLessThan(o.abort.marginSec);
+    expect(["GO", "CAUTION"]).toContain(alt.status);
+    expect(o.evaReasons.some((r) => r.startsWith("Returning home is safer"))).toBe(true);
+  });
+
+  it("when no stop fits at all there is nothing to offer as an alternative", () => {
+    const o = oxygenLossAt(site, plan, T, { ...opts, lossFraction: 0.7 });
+    expect(o.recommendation).toBe("return home");
+    expect(o.alternative).toBeNull();
+  });
+
+  it("never recommends continuing with less margin than one more reserve", () => {
+    for (let f = 0.05; f < 1; f += 0.05) {
+      for (const t of [600, T, 7200, 10800]) {
+        const o = oxygenLossAt(site, plan, t, { ...opts, lossFraction: f });
+        if (o.recommendation === "continue" && o.keptStops.length > 0) {
+          expect(o.after.marginSec).toBeGreaterThanOrEqual(45 * 60);
+        }
+        if (o.alternative) expect(o.alternative.marginSec).toBeLessThan(o.abort.marginSec);
+      }
+    }
+  });
+});
+
 describe("slow-walk", () => {
   const mild = slowWalkAt(site, plan, T, { ...opts, speedFactor: 0.9 });
   const severe = slowWalkAt(site, plan, T, { ...opts, speedFactor: 0.15 });

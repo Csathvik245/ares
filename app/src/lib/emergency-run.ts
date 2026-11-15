@@ -8,6 +8,7 @@
 import {
   CONSUMABLE_HOURS,
   MARS_RADIUS_M,
+  formatMinutes,
   scenarioAt,
   stormAt,
   type AbortRoute,
@@ -100,6 +101,16 @@ export function emergencyCourse(outcome: StormOutcome, storm: boolean): { abort:
     // oxygen used before the emergency themselves, so the playback plan holds only the rest.
     returnPlan: { ...route, oxygenUsedSec: Math.max(0, route.oxygenUsedSec - outcome.position.oxygenUsedSec) },
   };
+}
+
+/**
+ * One small line for the option ARES did NOT recommend, or null when there is none:
+ * "Riskier option: continue to Delta front toe, 31 min margin".
+ */
+export function alternativeLine(outcome: StormOutcome | null | undefined): string | null {
+  if (!isScenario(outcome) || !outcome.alternative) return null;
+  const { stops, marginSec } = outcome.alternative;
+  return `Riskier option: continue to ${stops.map((s) => s.label).join(", ")}, ${formatMinutes(marginSec)} margin`;
 }
 
 /** Outline of a circle on the ground, as map points (for the blocked area). */

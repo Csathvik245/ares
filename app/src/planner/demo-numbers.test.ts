@@ -16,6 +16,8 @@ import {
   DEFAULT_BLOCK_RADIUS_M,
   DEFAULT_OXYGEN_LOSS_FRACTION,
   DEFAULT_SLOW_WALK_FACTOR,
+  MIN_SHARE_OF_HOME_MARGIN,
+  SAFE_CONTINUE_MARGIN_MIN,
   SOL_HOURS,
   buildCostGrid,
   formatDose,
@@ -78,9 +80,10 @@ const stretchSim = simulateMission(site, stretch, { seed: 42, startLmst: STRETCH
 // dropped stops their real names; every size is the planner's default unless stated.
 const scenario = (kind: ScenarioKind, extra: ScenarioOptions = {}): ScenarioOutcome =>
   scenarioAt(site, demo, INCIDENT_SEC, kind, { startLmst: START_LMST, stops: demoStops, ...extra });
-// The "demo" oxygen loss for the slides: big enough to drop a stop, small enough that the
-// EVA goes on and she still gets home with the reserve. With the default 25% no stop is
-// dropped; from about 60% the EVA is aborted. A test below keeps this setting honest.
+// The "demo" oxygen loss for the slides: big enough that a stop no longer fits, small
+// enough that she still gets home with the reserve. Carrying on to the one stop that fits
+// would leave less margin than one more reserve, so ARES recommends going straight home
+// and keeps "continue" only as the riskier alternative. A test below keeps this honest.
 const DEMO_LOSS_FRACTION = 0.5;
 const demoLoss = scenario("oxygen-loss", { lossFraction: DEMO_LOSS_FRACTION });
 
@@ -171,10 +174,7 @@ function newEmergenciesBlock(): string {
     ["Path blocked", `ground within ${roundHalfUp(DEFAULT_BLOCK_RADIUS_M)} m of a point on the route ahead is impassable`, scenario("blocked-path")],
   ];
   const d = demoLoss;
-  const dropped = d.droppedStops;
-  const droppedText =
-    dropped.length === 1 ? `the ${dropped[0].label} stop` : `${dropped.length} stops (${names(dropped)})`;
-  const via = d.keptStops.length ? `through ${names(d.keptStops)} and home` : "straight home";
+  const alt = d.alternative;
   return [
     `Each emergency starts at ${formatMet(INCIDENT_SEC)} of the demo mission (walking to stop 2), and ARES re-plans the rest of the EVA.`,
     "The sizes are **illustrative** demo values, not measured failure data.",
@@ -184,26 +184,30 @@ function newEmergenciesBlock(): string {
     "",
     "### The three default cases",
     "",
-    "| Emergency | Size (planner default) | Kept stops | Dropped stops | Oxygen margin before → after | EVA status | Return-home status |",
-    "|---|---|---|---|---|---|---|",
+    "| Emergency | Size (planner default) | Recommendation | Kept stops | Dropped stops | Oxygen margin before → after | EVA status | Return-home status |",
+    "|---|---|---|---|---|---|---|---|",
     ...cases.map(
       ([label, size, o]) =>
-        `| ${label} | ${size} | ${names(o.keptStops)} | ${names(o.droppedStops)} | ${beforeAfter(o)} | **${o.evaStatus}** | **${o.abort.status}** |`,
+        `| ${label} | ${size} | ${o.recommendation} | ${names(o.keptStops)} | ${names(o.droppedStops)} | ${beforeAfter(o)} | **${o.evaStatus}** | **${o.abort.status}** |`,
     ),
     "",
-    "### Demo case: a bigger oxygen loss that drops a stop",
+    "### Demo case: a bigger oxygen loss, where going home is the safer choice",
+    "",
+    `ARES compares carrying on with going straight home. It recommends going home when carrying on would leave less than ${formatMinutes(SAFE_CONTINUE_MARGIN_MIN * 60)} of margin (one more reserve), or when stops were already dropped and carrying on would leave less than ${formatPct(MIN_SHARE_OF_HOME_MARGIN * 100)} of the straight-home margin. Both limits are our assumptions.`,
     "",
     "| | |",
     "|---|---|",
     `| Setting | \`lossFraction\` = ${roundHalfUp(DEMO_LOSS_FRACTION, 2)} (${formatPct(DEMO_LOSS_FRACTION * 100)} of the oxygen left is lost) |`,
-    `| Kept stops | ${names(d.keptStops)} |`,
-    `| Dropped stops | ${names(dropped)} |`,
+    `| Recommendation | **${d.recommendation}** |`,
+    `| Stops cancelled | ${names(d.droppedStops)} |`,
     `| New route | astronaut's position → ${[...d.keptStops.map((s) => s.label), "HAB-1"].join(" → ")} |`,
+    `| Walk home | ${formatMinutes(d.abort.sec)} |`,
     `| Oxygen margin before → after | ${beforeAfter(d)} |`,
-    `| New plan ends | ${formatMet(d.after.endSec)} (${lmstAt(d.after.endSec)} LMST) |`,
+    `| Arrival at the habitat | ${formatMet(d.after.endSec)} (${lmstAt(d.after.endSec)} LMST) |`,
     `| Oxygen on arrival | ${formatPct(d.oxygenOnArrivalPct)} |`,
     `| EVA status | **${d.evaStatus}** |`,
-    `| Return-home status (if she walked straight home instead) | **${d.abort.status}**, ${formatMinutes(d.abort.marginSec)} margin |`,
+    `| Return-home status | **${d.abort.status}** |`,
+    `| Riskier option (not recommended) | ${alt ? `continue to ${names(alt.stops)}: ${formatMinutes(alt.marginSec)} margin, ${alt.status}, home at ${formatMet(alt.endSec)}` : "none"} |`,
     "",
     "Reasons, as the app shows them:",
     "",
@@ -211,9 +215,9 @@ function newEmergenciesBlock(): string {
     "",
     "**Sentence for the slides:**",
     "",
-    `> A ${formatPct(DEMO_LOSS_FRACTION * 100)} oxygen loss at ${formatMet(INCIDENT_SEC)} drops ${droppedText}; ARES re-plans ${via} with ${formatMinutes(d.after.marginSec)} of margin.`,
+    `> A ${formatPct(DEMO_LOSS_FRACTION * 100)} oxygen loss at ${formatMet(INCIDENT_SEC)}: ARES cancels the remaining stops and sends her straight home with ${formatMinutes(d.after.marginSec)} of margin${alt ? `. Continuing to ${names(alt.stops)} would leave only ${formatMinutes(alt.marginSec)}` : ""}.`,
     "",
-    `The app's "Oxygen loss" button uses the default ${formatPct(DEFAULT_OXYGEN_LOSS_FRACTION * 100)}, which drops no stop on the demo mission. This demo case needs \`lossFraction\` passed to \`scenarioAt\`.`,
+    `The app's "Oxygen loss" button uses the default ${formatPct(DEFAULT_OXYGEN_LOSS_FRACTION * 100)}, which keeps every stop on the demo mission. This demo case needs \`lossFraction\` passed to \`scenarioAt\`.`,
   ].join("\n");
 }
 
@@ -399,20 +403,41 @@ describe("docs/demo-numbers.md", () => {
     expect(roundHalfUp(1 / (1 - stretchSim.pReturnAtAll))).toBe(50); // "about 1 in 50" run out of oxygen
   });
 
-  it("the demo oxygen loss drops at least one stop and still gets home with the reserve", () => {
+  it("the demo oxygen loss recommends going straight home, and still gets home with the reserve", () => {
     expect(demoLoss.kind).toBe("oxygen-loss");
-    expect(demoLoss.droppedStops.length).toBeGreaterThanOrEqual(1);
-    // The EVA goes on along a new plan that can be walked...
-    expect(demoLoss.aborted).toBe(false);
-    expect(demoLoss.route.ok).toBe(true);
-    expect(demoLoss.keptStops.length + demoLoss.droppedStops.length).toBe(2); // stops 2 and 3 were ahead
-    // ...and ends at home with the 45 min reserve intact.
-    expect(demoLoss.after.marginSec).toBeGreaterThanOrEqual(0);
-    expect(demoLoss.after.marginSec).toBeLessThan(demoLoss.before.marginSec);
+    expect(demoLoss.recommendation).toBe("return home");
+    expect(demoLoss.aborted).toBe(true);
+    expect(demoLoss.keptStops).toHaveLength(0);
+    expect(demoLoss.droppedStops).toHaveLength(2); // stops 2 and 3 were ahead
+    // Contract 3: the EVA is aborted (NO-GO); the walk home is CAUTION, never GO.
+    expect(demoLoss.evaStatus).toBe("NO-GO");
+    expect(demoLoss.abort.status).toBe("CAUTION");
+    // Home with the 45 min reserve intact, and with the straight-home margin.
+    expect(demoLoss.after.marginSec).toBe(demoLoss.abort.marginSec);
+    expect(demoLoss.after.marginSec).toBeGreaterThanOrEqual(SAFE_CONTINUE_MARGIN_MIN * 60);
     expect(Number.isFinite(demoLoss.after.endSec)).toBe(true);
-    expect(demoLoss.evaStatus).not.toBe("NO-GO");
-    // The default-size loss drops nothing, which is why the slides use this bigger one.
-    expect(scenario("oxygen-loss").droppedStops).toHaveLength(0);
+    // The riskier option is still reported, with its margin: carry on to one stop.
+    const alt = demoLoss.alternative!;
+    expect(alt.stops).toHaveLength(1);
+    expect(alt.marginSec).toBeGreaterThanOrEqual(0);
+    expect(alt.marginSec).toBeLessThan(SAFE_CONTINUE_MARGIN_MIN * 60);
+    expect(alt.marginSec).toBeLessThan(demoLoss.after.marginSec);
+    expect(formatMinutes(alt.marginSec)).toBe("31 min");
+    expect(formatMinutes(demoLoss.after.marginSec)).toBe("111 min");
+  });
+
+  it("the three default emergencies still carry on with every stop", () => {
+    for (const kind of ["oxygen-loss", "slow-walk", "blocked-path"] as const) {
+      const o = scenario(kind);
+      expect(o.recommendation).toBe("continue");
+      expect(o.alternative).toBeNull();
+      expect(o.aborted).toBe(false);
+      expect(o.keptStops).toHaveLength(2);
+      expect(o.droppedStops).toHaveLength(0);
+    }
+    expect(formatMinutes(scenario("oxygen-loss").after.marginSec)).toBe("96 min");
+    expect(formatMinutes(scenario("slow-walk").after.marginSec)).toBe("151 min");
+    expect(formatMinutes(scenario("blocked-path").after.marginSec)).toBe("193 min");
   });
 
   it("the demo mission is the one in CLAUDE.md", () => {
