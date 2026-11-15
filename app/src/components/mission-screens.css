@@ -203,3 +203,10 @@
     animation: none;
   }
 }
+.hud-return {
+  display: block;
+  border: 1px solid currentColor;
+  padding: 8px;
+  margin-top: 8px;
+  font-size: 14px;
+}

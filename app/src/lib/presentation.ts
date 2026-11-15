@@ -93,3 +93,8 @@ export function routeHeading(path: LatLng[], from: LatLng): number {
   }
   return distanceM(from, next) < 0.1 ? 0 : bearingDeg(from, next);
 }
+
+/** All UI minute readouts share nearest-minute rounding; input is Earth seconds. */
+export function minutes(sec: number): string {
+  return Number.isFinite(sec) ? String(Math.round(sec / 60)) : "—";
+}

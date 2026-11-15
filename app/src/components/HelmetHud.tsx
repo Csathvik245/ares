@@ -1,3 +1,4 @@
+import { minutes } from "../lib/presentation";
 import "../styles/tokens.css";
 import "./mission-screens.css";
 
@@ -15,6 +16,7 @@ export type HelmetHudProps = {
   localTime: string;
   temperatureC: number;
   abortWalkMin?: number;
+  returnStatus?: HudStatus;
   onExitHud?: () => void;
 };
 
@@ -31,7 +33,13 @@ export function HelmetHud(p: HelmetHudProps) {
       <header>
         <b>ARES-1 EVA</b>
         <span>
-          {p.status} · LMST {p.localTime}
+          EVA {p.status}
+          {p.returnStatus ? " · ABORTED" : ""} · LMST {p.localTime}
+          {p.returnStatus && (
+            <span className={`hud-return ink-${p.returnStatus}`}>
+              RETURN HOME {p.returnStatus}
+            </span>
+          )}
         </span>
         <button onClick={p.onExitHud}>Exit HUD · Esc</button>
       </header>
@@ -57,7 +65,7 @@ export function HelmetHud(p: HelmetHudProps) {
               : `${Math.round(p.distanceM)} m`}
           </strong>
           {p.abortWalkMin !== undefined && (
-            <p>Walk home {Math.ceil(p.abortWalkMin)} min</p>
+            <p>Walk home {minutes(p.abortWalkMin * 60)} min</p>
           )}
         </div>
       </section>
@@ -76,7 +84,7 @@ export function HelmetHud(p: HelmetHudProps) {
         <article>
           <label>RETURN MARGIN</label>
           <strong>
-            {Number.isFinite(p.marginMin) ? Math.round(p.marginMin) : "—"}
+            {minutes(p.marginMin * 60)}
             <small>min</small>
           </strong>
           <span>After reserve · calculated</span>

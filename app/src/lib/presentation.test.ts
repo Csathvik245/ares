@@ -10,7 +10,7 @@ import {
 } from "./planner";
 import { returnPlaybackPlan } from "./return-playback";
 import { demoStopsFromSite } from "./data";
-import { clock, lmst, routeParts, routeHeading } from "./presentation";
+import { clock, lmst, routeParts, routeHeading, minutes } from "./presentation";
 const site = loadSite(
   JSON.parse(
     readFileSync(
@@ -76,6 +76,8 @@ describe("route presentation", () => {
 
 it("uses the supplied storm scenario without fixed display values", () => {
   const incident = positionAt(plan, 4560);
+  expect(incident.legIndex).toBe(1);
+  expect(incident.phase).toBe("walk");
   const cost = buildCostGrid(site, { storm: true, spe: false, startLmst: 13 });
   const eva = planRoute(site, cost, site.habitat, demoStopsFromSite(site));
   const abort = abortRoute(site, cost, incident, incident.oxygenUsedSec);
@@ -84,4 +86,12 @@ it("uses the supplied storm scenario without fixed display values", () => {
   expect(abort.status).toBe("CAUTION");
   expect(Math.round(abort.sec / 60)).toBe(57);
   expect(Math.round(returning.oxygenAtReturnPct)).toBe(66);
+});
+
+it("uses identical nearest-minute rounding in panel and HUD values", () => {
+  for (const seconds of [0, 2279, 2280, 2310, Infinity, -90]) {
+    expect(minutes(seconds)).toBe(
+      Number.isFinite(seconds) ? String(Math.round(seconds / 60)) : "—",
+    );
+  }
 });

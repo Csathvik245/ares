@@ -6,7 +6,7 @@ import { type OverlayName } from "./lib/layers";
 import { cellIndexOf, CONSUMABLE_HOURS, SOL_HOURS } from "./lib/planner";
 import type { LatLng } from "./lib/planner";
 import { distanceM } from "./geo";
-import { routeHeading, clock, lmst } from "./lib/presentation";
+import { routeHeading, clock, lmst, minutes } from "./lib/presentation";
 import { FlightTimeline } from "./components/FlightTimeline";
 import { MissionPanel } from "./components/MissionPanel";
 import { LayerRail } from "./components/LayerRail";
@@ -103,6 +103,7 @@ function Console() {
     return (
       <Hud
         status={status}
+        returnStatus={emergency ? (abort?.status ?? "NO-GO") : undefined}
         nextStop={"label" in target ? target.label : target.name}
         distanceM={
           emergency
@@ -228,7 +229,7 @@ function Console() {
                       ? "Low visibility and visor dust slow walking."
                       : "Illustrative SPE dose rate ×30."}{" "}
                     {abort?.path.length
-                      ? `Walk home ${clock(abort.sec)} · margin ${Math.round(abort.marginSec / 60)} min`
+                      ? `Walk home ${minutes(Math.max(0, abort.sec - m.returnElapsed))} min · margin ${minutes(abort.marginSec)} min`
                       : "No terrain-safe return path."}
                   </small>
                 </div>

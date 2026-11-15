@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 import { useMission } from "../lib/MissionContext";
-import { clock, shortStop, stopKind } from "../lib/presentation";
+import { clock, shortStop, stopKind, minutes } from "../lib/presentation";
 import {
   oxygenBudget,
   sunElevationSeries,
@@ -58,7 +58,14 @@ export function MissionPanel({ onDetail }: { onDetail: (id: string) => void }) {
           <small>calculated</small>
         </div>
         <strong className={`large-status ink-${status}`}>{status}</strong>
-        <p title={reasons.join(" ")}>{reasons[0]}</p>
+        <p>{reasons[0]}</p>
+        {m.emergency && (
+          <p className="return-readout">
+            Walk home{" "}
+            {minutes(Math.max(0, (m.abort?.sec ?? Infinity) - m.returnElapsed))}{" "}
+            min · margin {minutes(margin)} min
+          </p>
+        )}
         <details>
           <summary>Planner reasons</summary>
           <ul>
@@ -105,8 +112,7 @@ export function MissionPanel({ onDetail }: { onDetail: (id: string) => void }) {
             Used <b>{Math.round(used / 60)} min</b>
           </span>
           <span className={margin < 0 ? "ink-NO-GO" : ""}>
-            Margin{" "}
-            <b>{Number.isFinite(margin) ? Math.round(margin / 60) : "—"} min</b>
+            Margin <b>{minutes(margin)} min</b>
           </span>
           <span>
             Reserve target <b>{Math.round(budget.reserveSec / 60)} min</b>
@@ -275,6 +281,13 @@ export function MissionPanel({ onDetail }: { onDetail: (id: string) => void }) {
         </button>
         <button disabled={!!m.emergency} onClick={() => m.trigger("spe")}>
           Solar particle event
+        </button>
+        <button
+          className="storm-preset"
+          disabled={!!m.emergency || !plan.ok || plan.totalSec < 4560}
+          onClick={() => m.trigger("storm", 4560)}
+        >
+          Storm at T+1:16
         </button>
       </footer>
     </aside>
