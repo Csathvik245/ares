@@ -62,7 +62,7 @@ export function placeCard(rect: TourRect | null, screen: Size): { left: number; 
   return { left: fitX(rect.left + GAP), top: fitY(rect.top + GAP) };
 }
 
-/** The card for one stop: its text, "n of 8", and Back / Next / Skip. No state of its own. */
+/** The card for one stop: its text, "n of 9", and Back / Next / Skip. No state of its own. */
 export function TourCard({
   index,
   style,

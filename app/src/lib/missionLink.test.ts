@@ -147,16 +147,16 @@ describe("mission link: in the app", () => {
     expect(tabFromHash("#nope?m=1", "story")).toBe("story");
   });
 
-  it("the address follows the plan with replaceState, a link is restored once the terrain has loaded, and Copy link says Copied for 2 s", () => {
+  it("the address follows the plan with replaceState, a link is restored once the terrain has loaded, and Share says Copied for 2 s", () => {
     const app = read("../App.tsx");
     expect(app).toContain("window.history.replaceState(null, \"\", `${window.location.pathname}${window.location.search}${planHash}`);"); // no history spam
     expect(app).not.toMatch(/history\.pushState/);
     expect(app).toMatch(/const mission = decodeMission\(param\);\s*if \(!mission\) return;/); // a bad link restores nothing
     expect(app).toMatch(/m\.edit\(stopsFromLink\(mission, m\.site\)\);\s*m\.setConditions\(\(c\) => \(\{ \.\.\.c, startLmst: mission\.startLmst \}\)\);/);
     expect(app).toMatch(/if \(!m\.site \|\| linkReady\) return;\s*restoreFromHash\(\);\s*setLinkReady\(true\);/);
-    expect(app).toContain('{linkCopied ? "Copied" : "Copy link"}');
+    expect(app).toMatch(/copied=\{linkCopied\}[\s\S]*onShare=\{copyMissionLink\}/);
+    expect(read("../components/MissionTools.tsx")).toContain('{copied ? "Copied" : "Share"}');
     expect(app).toMatch(/window\.setTimeout\(\(\) => setLinkCopied\(false\), 2000\)/);
-    const more = app.slice(app.indexOf('<div className="plan-share">'), app.indexOf("</div>", app.indexOf('<div className="plan-share">')));
-    expect(more.indexOf("Download briefing")).toBeLessThan(more.indexOf("Copy link")); // next to Download briefing
+    expect(app).not.toContain('className="plan-share"'); // the old buttons in More details are gone
   });
 });

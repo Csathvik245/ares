@@ -1,5 +1,5 @@
 import { ShelterGuidance } from "./ShelterGuidance";
-import { useMemo, useState } from "react";
+import { useMemo, useState, type ReactNode } from "react";
 import { useMission } from "../lib/MissionContext";
 import { clock, shortStop, stopKind, minutes } from "../lib/presentation";
 import {
@@ -62,9 +62,12 @@ export function parseElapsed(text: string): number {
 export function MissionPanel({
   onDetail,
   part = "all",
+  tools,
 }: {
   onDetail: (id: string) => void;
   part?: MissionPart;
+  /** The Mission tools row (What if?, Briefing, Share), shown under the oxygen budget when all parts are drawn together. */
+  tools?: ReactNode;
 }) {
   const m = useMission(),
     plan = m.plan!,
@@ -535,6 +538,7 @@ export function MissionPanel({
         {statusSection}
         {stopsSection}
         {budgetSection}
+        {tools}
         {reliability}
       </div>
       {emergencyFooter}

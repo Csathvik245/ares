@@ -93,6 +93,15 @@ const CARD_ICONS: Record<GuideAction, ReactNode> = {
       <circle cx="24" cy="34.5" r="1.4" fill="currentColor" stroke="none" />
     </Icon>
   ),
+  // Three sliders.
+  whatif: (
+    <Icon>
+      <path d="M6 12 H42 M6 24 H42 M6 36 H42" />
+      <circle cx="30" cy="12" r="4" fill="var(--console)" />
+      <circle cx="16" cy="24" r="4" fill="var(--console)" />
+      <circle cx="34" cy="36" r="4" fill="var(--console)" />
+    </Icon>
+  ),
 };
 /** A tiny icon for each stop of the tour, for the preview strip. */
 const STOP_ICONS: Record<string, ReactNode> = {
@@ -129,6 +138,13 @@ const STOP_ICONS: Record<string, ReactNode> = {
       <path d="M8 32 H40" />
       <path d="M12 12 L22 18 L12 24 Z" fill="currentColor" stroke="none" />
       <path d="M26 28 V36" />
+    </>
+  ),
+  tools: (
+    <>
+      <rect x="5" y="17" width="10" height="14" />
+      <rect x="19" y="17" width="10" height="14" />
+      <rect x="33" y="17" width="10" height="14" />
     </>
   ),
 };

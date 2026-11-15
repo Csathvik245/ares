@@ -154,10 +154,11 @@ describe("printable mission briefing", () => {
     expect(empty).not.toMatch(/NaN|undefined|Infinity/);
   });
 
-  it("opens from More details and the View menu, prints by itself, and prints on a light page", () => {
+  it("opens from the Mission tools row and the View menu, prints by itself, and prints on a light page", () => {
     const app = read("../App.tsx");
     const more = app.slice(app.indexOf('<details className="collapsible more-details">'), app.indexOf("</details>", app.indexOf('<details className="collapsible more-details">')));
-    expect(more).toMatch(/<button type="button" onClick=\{\(\) => setBriefingOpen\(true\)\} disabled=\{!canBrief\}[^>]*>\s*Download briefing\s*<\/button>/);
+    expect(more).not.toContain("setBriefingOpen"); // no duplicate in More details
+    expect(app.slice(app.indexOf("<MissionTools"), app.indexOf("</MissionTools>"))).toMatch(/canBrief=\{canBrief\}[\s\S]*onBriefing=\{\(\) => setBriefingOpen\(true\)\}/);
     expect(app).toContain('{ id: "briefing", label: "Download briefing", onSelect: () => setBriefingOpen(true) }');
     const component = read("./PrintBriefing.tsx");
     expect(component).toMatch(/window\.setTimeout\(\(\) => window\.print\(\), \d+\)/); // prints automatically

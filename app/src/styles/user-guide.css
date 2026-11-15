@@ -186,10 +186,10 @@ html[data-theme] .guide-overlay .guide__tabs button.is-current {
   color: var(--safe);
 }
 
-/* ---------- Tab 1: three large cards ---------- */
+/* ---------- Tab 1: four large cards ---------- */
 .guide-cards {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: var(--space-4);
 }
 html[data-theme] .guide-overlay .guide-card {

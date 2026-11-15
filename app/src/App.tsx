@@ -40,6 +40,7 @@ import { GuideButton, UserGuide } from "./components/UserGuide";
 import { PLAY_HINT_TEXT, hintNeeded, rememberHint, type GuideAction, type TourStop } from "./lib/guide";
 import { GuideTour } from "./components/GuideTour";
 import { WhatIfPanel, WhatIfTag } from "./components/WhatIfPanel";
+import { MissionTools } from "./components/MissionTools";
 import { PrintBriefing } from "./components/PrintBriefing";
 import { copyText, decodeMission, missionParamOf, planHashFor, stopsFromLink } from "./lib/missionLink";
 import { isWhatIf } from "./lib/planner";
@@ -85,6 +86,8 @@ function Console({ initialHash }: { initialHash?: string }) {
   const [tourIndex, setTourIndex] = useState(-1);
   // The printable mission briefing ("Download briefing").
   const [briefingOpen, setBriefingOpen] = useState(false);
+  // The What if? sliders, opened from the Mission tools row under the oxygen tiles.
+  const [whatIfOpen, setWhatIfOpen] = useState(false);
   const [playHint, setPlayHint] = useState(false);
   const [guideOpen, setGuideOpen] = useState(false);
   const [guideHint, setGuideHint] = useState(false);
@@ -244,6 +247,15 @@ function Console({ initialHash }: { initialHash?: string }) {
       setPlayHint(true);
       return;
     }
+    if (action === "whatif") {
+      // "Change the assumptions": a calm plan on screen, with the What if? sliders open.
+      if (m.emergency) m.reset();
+      if (m.stops.length === 0) m.loadDemo();
+      setWhatIfOpen(true);
+      setTab("Plan"); // tablet: the Mission sheet holds the Mission tools row
+      window.setTimeout(() => document.querySelector('[data-tour="tools"]')?.scrollIntoView({ block: "nearest" }), 350);
+      return;
+    }
     // "Throw an emergency at it": show the emergency controls and flash them.
     ensurePlan();
     setTab("Plan"); // tablet: the Mission sheet holds the controls
@@ -394,6 +406,30 @@ function Console({ initialHash }: { initialHash?: string }) {
       : m.evaReasons.join(" · ");
   // The less-used views live in one menu.
   const canBrief = !emergency && plan.legs.length > 0;
+  // Mission tools: What if?, Briefing and Share, in one row under the oxygen tiles. Only with a plan.
+  const missionTools =
+    plan.legs.length > 0 ? (
+      <MissionTools
+        whatIfOpen={whatIfOpen}
+        copied={linkCopied}
+        canWhatIf={!emergency}
+        canBrief={canBrief}
+        canShare={m.stops.length > 0}
+        onWhatIf={() => setWhatIfOpen((open) => !open)}
+        onBriefing={() => setBriefingOpen(true)}
+        onShare={copyMissionLink}
+      >
+        {whatIfOpen && (
+          <WhatIfPanel
+            values={m.whatIfDraft}
+            active={isWhatIf(m.whatIfDraft)}
+            disabled={!!emergency || plan.legs.length === 0}
+            onChange={m.setWhatIfDraft}
+            onReset={m.resetWhatIf}
+          />
+        )}
+      </MissionTools>
+    ) : null;
   const viewItems: ViewMenuItem[] = [
     { id: "3d", label: "3D terrain", checked: view3d, onSelect: () => setView3d((v) => !v) },
     { id: "hud", label: "Helmet HUD", hint: "H", onSelect: () => setScreen("hud") },
@@ -609,6 +645,7 @@ function Console({ initialHash }: { initialHash?: string }) {
                 <MissionPanel part="status" onDetail={setDetail} />
                 <MissionPanel part="stops" onDetail={setDetail} />
                 <MissionPanel part="budget" onDetail={setDetail} />
+                {missionTools}
                 {/* Everything a first-time visitor does not need yet, behind one expander. */}
                 <details className="collapsible more-details">
                   <summary>
@@ -626,21 +663,6 @@ function Console({ initialHash }: { initialHash?: string }) {
                       />
                       <span>Compare: terrain-blind route</span>
                     </label>
-                    <div className="plan-share">
-                      <button type="button" onClick={() => setBriefingOpen(true)} disabled={!canBrief} title={canBrief ? "Open a one-page briefing of this plan, ready to print or save as PDF." : "Add a route (and reset any emergency) to make a briefing."}>
-                        Download briefing
-                      </button>
-                      <button type="button" onClick={copyMissionLink} disabled={m.stops.length === 0} aria-live="polite" title="Copy a link that opens this plan: the stops, their science time and the start time.">
-                        {linkCopied ? "Copied" : "Copy link"}
-                      </button>
-                    </div>
-                    <WhatIfPanel
-                      values={m.whatIfDraft}
-                      active={isWhatIf(m.whatIfDraft)}
-                      disabled={!!emergency || plan.legs.length === 0}
-                      onChange={m.setWhatIfDraft}
-                      onReset={m.resetWhatIf}
-                    />
                     <MissionPanel part="reliability" onDetail={setDetail} />
                     <LayerRail
                       part="layers"
@@ -672,7 +694,7 @@ function Console({ initialHash }: { initialHash?: string }) {
               onSources={() => setSources(true)}
             />
             {mapColumn}
-            <MissionPanel onDetail={setDetail} />
+            <MissionPanel onDetail={setDetail} tools={missionTools} />
           </>
         )}
       </div>

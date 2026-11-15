@@ -30,7 +30,7 @@ Existing Mars maps show regions or the whole planet. A spacewalk happens over a 
 Open the [live app](https://ares-mars-alpha.vercel.app). It runs in the browser on a laptop or tablet, with nothing to install.
 
 1. **Story tab.** Press **Run the demo**. Four guided steps show the plan, the reliability check, a dust storm and the walk home.
-2. **Plan tab.** Press **Load demo**. Then pick an emergency (for example **Dust storm**) and press **Trigger**. Try **3D** on the map, and open **More details** for **Mission reliability**.
+2. **Plan tab.** Press **Load demo**. Then pick an emergency (for example **Dust storm**) and press **Trigger**. Try **3D** on the map, and open **More details** for **Mission reliability**. Under the oxygen tiles, the **Mission tools** row has **What if?** (change our assumptions), **Briefing** (a printable one-page plan) and **Share** (a link to this exact mission).
 3. **Science tab.** A short, plain explanation of the data, the method, the checks and the limits.
 
 ## What ARES does

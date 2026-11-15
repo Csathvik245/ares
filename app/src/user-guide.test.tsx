@@ -159,12 +159,12 @@ describe("the guide opens full-screen", () => {
 });
 
 describe("tab 1: Get started", () => {
-  it("renders three large cards, each with an icon, a bold title and one line, and the Science link", () => {
+  it("renders four large cards, each with an icon, a bold title and one line, and the Science link", () => {
     const html = view("start");
-    expect(GUIDE_CARDS.map((c) => c.title)).toEqual([`Watch the ${GUIDED_STEP_COUNT}-step demo`, "Load the demo mission", "Throw an emergency at it"]);
+    expect(GUIDE_CARDS.map((c) => c.title)).toEqual([`Watch the ${GUIDED_STEP_COUNT}-step demo`, "Load the demo mission", "Throw an emergency at it", "Change the assumptions"]);
     expect(GUIDE_CARDS[0].title).toBe("Watch the 4-step demo");
     const cards = [...html.matchAll(/<button type="button" class="guide-card" data-action="(\w+)">([\s\S]*?)<\/button>/g)];
-    expect(cards.map((c) => c[1])).toEqual(["demo", "load", "emergency"]);
+    expect(cards.map((c) => c[1])).toEqual(["demo", "load", "emergency", "whatif"]);
     cards.forEach((c, i) => {
       expect(c[2]).toContain("<svg"); // an inline icon
       expect(c[2]).toContain(`<strong>${GUIDE_CARDS[i].title}</strong>`);
@@ -179,9 +179,9 @@ describe("tab 1: Get started", () => {
     const onScience = vi.fn();
     const panel = GetStartedPanel({ onAction, onScience });
     const cards = buttonsOf(panel);
-    expect(cards).toHaveLength(3);
+    expect(cards).toHaveLength(4);
     cards.forEach((card) => (card.props.onClick as () => void)());
-    expect(onAction.mock.calls.map((c) => c[0])).toEqual(["demo", "load", "emergency"]);
+    expect(onAction.mock.calls.map((c) => c[0])).toEqual(["demo", "load", "emergency", "whatif"]);
     const link = elementsOf(panel).find((el) => el.type === "a")!;
     const event = { preventDefault: vi.fn() };
     (link.props.onClick as (e: unknown) => void)(event);
@@ -197,6 +197,8 @@ describe("tab 1: Get started", () => {
     expect(action).toMatch(/go\("plan"\);\s*if \(action === "load"\) \{[\s\S]*m\.loadDemo\(\);[\s\S]*setPlayHint\(true\);/);
     expect(action).toMatch(/ensurePlan\(\);[\s\S]*scrollIntoView\(\{ block: "nearest" \}\);[\s\S]*classList\.add\("is-flash"\)/);
     expect(app).toMatch(/const ensurePlan = \(\) => \{\s*if \(!m\.emergency && m\.stops\.length === 0\) m\.loadDemo\(\);/);
+    // "Change the assumptions": the demo is loaded if there is no plan, and the What if? sliders open.
+    expect(action).toMatch(/if \(action === "whatif"\) \{[\s\S]*if \(m\.stops\.length === 0\) m\.loadDemo\(\);\s*setWhatIfOpen\(true\);/);
     expect(PLAY_HINT_TEXT).toBe("Press Play to watch the walk");
     expect(app).toContain("{PLAY_HINT_TEXT}");
     expect(app).toMatch(/onScience=\{\(\) => \{\s*setGuideOpen\(false\);\s*go\("science"\);/);
@@ -204,7 +206,7 @@ describe("tab 1: Get started", () => {
 });
 
 describe("tab 2: Read the screen, and the spotlight tour", () => {
-  it("renders a Start the tour button and a preview strip of the eight stops", () => {
+  it("renders a Start the tour button and a preview strip of the nine stops", () => {
     const html = view("screen");
     expect(html).toContain('<button type="button" class="guide-primary">Start the tour</button>');
     const strip = [...html.matchAll(/<li><svg[\s\S]*?<\/svg><span><b>(\d)<\/b> ([^<]*)<\/span><\/li>/g)].map((m) => `${m[1]} ${m[2]}`);
@@ -214,28 +216,30 @@ describe("tab 2: Read the screen, and the spotlight tour", () => {
     expect(onStartTour).toHaveBeenCalledTimes(1);
   });
 
-  it("has eight stops, in the asked order, each pointing at a real element of the Plan view", () => {
-    expect(TOUR_STOPS.map((s) => s.id)).toEqual(["status", "stops", "oxygen", "route", "zone", "probe", "emergency", "timeline"]);
-    const sources = ["./components/MissionPanel.tsx", "./components/MissionMap.tsx", "./components/FlightTimeline.tsx"].map(read).join("\n");
-    for (const marker of ["status", "stops", "oxygen", "emergency", "timeline", "map"]) expect(sources).toContain(`data-tour="${marker}"`);
+  it("has nine stops, in the asked order, each pointing at a real element of the Plan view", () => {
+    expect(TOUR_STOPS.map((s) => s.id)).toEqual(["status", "stops", "oxygen", "route", "zone", "probe", "emergency", "timeline", "tools"]);
+    expect(TOUR_STOPS).toHaveLength(9);
+    expect(TOUR_STOPS[8].text).toBe("Try What if? to see how our assumptions change the answer. Briefing prints a one-page plan. Share copies a link to this exact mission.");
+    const sources = ["./components/MissionPanel.tsx", "./components/MissionMap.tsx", "./components/FlightTimeline.tsx", "./components/MissionTools.tsx"].map(read).join("\n");
+    for (const marker of ["status", "stops", "oxygen", "emergency", "timeline", "map", "tools"]) expect(sources).toContain(`data-tour="${marker}"`);
     for (const stop of TOUR_STOPS) {
       const markers = [...`${stop.selector} ${stop.clip ?? ""}`.matchAll(/data-tour="(\w+)"/g)].map((m) => m[1]);
       for (const marker of markers) expect(sources).toContain(`data-tour="${marker}"`);
-      expect(stop.text.split(/(?<=[.!?])\s+/).length).toBeLessThanOrEqual(3); // one or two sentences (three at most)
+      expect(stop.text.replace("What if?", "What if").split(/(?<=[.!?])\s+/).length).toBeLessThanOrEqual(3); // one or two sentences (three at most)
     }
     expect(TOUR_STOPS[3].selector).toContain("route-line"); // the drawn route
     expect(TOUR_STOPS[4].selector).toBe(".safe-zone"); // the blue safe-return edge
     expect(TOUR_STOPS[5].text).toMatch(/^Move your mouse over the map\./);
   });
 
-  it("the tour visits all eight stops with Next, goes back with Back, and ends on the last Next", () => {
+  it("the tour visits all nine stops with Next, goes back with Back, and ends on the last Next", () => {
     const visited: number[] = [];
     let index = 0;
     while (index >= 0 && visited.length < 20) {
       visited.push(index);
       index = tourAfter(index, "next");
     }
-    expect(visited).toEqual([0, 1, 2, 3, 4, 5, 6, 7]);
+    expect(visited).toEqual([0, 1, 2, 3, 4, 5, 6, 7, 8]);
     expect(index).toBe(-1); // finished
     expect(tourAfter(3, "back")).toBe(2);
     expect(tourAfter(0, "back")).toBe(0);
@@ -246,10 +250,10 @@ describe("tab 2: Read the screen, and the spotlight tour", () => {
     expect(renderToStaticMarkup(<GuideTour index={-1} onChange={nothing} />)).toBe(""); // off: nothing on screen
   });
 
-  it("each stop shows its text, 'n of 8', and Back / Next / Skip that call their handlers", () => {
+  it("each stop shows its text, 'n of 9', and Back / Next / Skip that call their handlers", () => {
     TOUR_STOPS.forEach((stop, i) => {
       const card = renderToStaticMarkup(<TourCard index={i} onBack={nothing} onNext={nothing} onSkip={nothing} />);
-      expect(text(card)).toContain(`${i + 1} of 8 · ${stop.label}`);
+      expect(text(card)).toContain(`${i + 1} of 9 · ${stop.label}`);
       expect(text(card)).toContain(stop.text);
     });
     const onBack = vi.fn(), onNext = vi.fn(), onSkip = vi.fn();
@@ -258,7 +262,7 @@ describe("tab 2: Read the screen, and the spotlight tour", () => {
     buttons.forEach((b) => (b.props.onClick as () => void)());
     expect([onBack, onNext, onSkip].map((f) => f.mock.calls.length)).toEqual([1, 1, 1]);
     expect(buttonsOf(TourCard({ index: 0, onBack, onNext, onSkip }))[0].props.disabled).toBe(true); // nowhere to go back to
-    expect(buttonsOf(TourCard({ index: 7, onBack, onNext, onSkip })).map((b) => b.props.children)).toEqual(["Back", "Finish"]);
+    expect(buttonsOf(TourCard({ index: TOUR_STOPS.length - 1, onBack, onNext, onSkip })).map((b) => b.props.children)).toEqual(["Back", "Finish"]);
   });
 
   it("the running tour dims the page around a spotlight and shows the card", () => {

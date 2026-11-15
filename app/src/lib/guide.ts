@@ -36,12 +36,13 @@ export function guideTabAfterKey(current: GuideTab, key: string): GuideTab {
   return current;
 }
 
-// ---- 1. Get started: three cards, each does what it says ----
-export type GuideAction = "demo" | "load" | "emergency";
+// ---- 1. Get started: four cards, each does what it says ----
+export type GuideAction = "demo" | "load" | "emergency" | "whatif";
 export const GUIDE_CARDS: { id: GuideAction; title: string; line: string }[] = [
   { id: "demo", title: `Watch the ${GUIDED_STEP_COUNT}-step demo`, line: "A guided tour of one Mars walk: the plan, the check, a storm, the way home." },
   { id: "load", title: "Load the demo mission", line: "Three science stops on real terrain. Then press Play to watch the walk." },
   { id: "emergency", title: "Throw an emergency at it", line: "Pick a dust storm or an oxygen loss, and watch ARES re-plan." },
+  { id: "whatif", title: "Change the assumptions", line: "Move the What if? sliders: less oxygen, a slower walk, a bigger reserve." },
 ];
 export const GUIDE_SCIENCE_LINE = "Then open the Science tab to see how we checked it";
 
@@ -67,10 +68,11 @@ export const TOUR_STOPS: TourStop[] = [
   { id: "probe", label: "Hover box", selector: '[data-tour="map"]', consoleTab: "Map", text: "Move your mouse over the map. A small box says whether the ground is walkable, and why not if it is off-limits." },
   { id: "emergency", label: "Emergencies", selector: '[data-tour="emergency"]', consoleTab: "Plan", text: "Pick an emergency and press Trigger. ARES re-plans from where she is standing." },
   { id: "timeline", label: "Timeline and Play", selector: '[data-tour="timeline"]', consoleTab: "Map", text: "Press Play to watch the walk. The track shows walking in white and science in grey." },
+  { id: "tools", label: "Mission tools", selector: '[data-tour="tools"]', consoleTab: "Plan", text: "Try What if? to see how our assumptions change the answer. Briefing prints a one-page plan. Share copies a link to this exact mission." },
 ];
 
 /**
- * Where the tour goes next. `index` is the stop on screen (0 to 7); the result is the new
+ * Where the tour goes next. `index` is the stop on screen (0 to 8); the result is the new
  * stop, or -1 when the tour is over (Skip, or Next on the last stop).
  */
 export function tourAfter(index: number, action: "next" | "back" | "skip", count: number = TOUR_STOPS.length): number {
