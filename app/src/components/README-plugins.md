@@ -124,35 +124,69 @@ const walkHomeSec = await planner.walkHome();                            // Floa
 
 ## 6. Radiation shelter (solar particle event)
 
-Planner function in `planner/shelter.ts`. In a solar particle event it checks whether waiting at a nearby spot with less open sky (the foot of a scarp, a crater wall) gives a lower dose than walking straight home. It is not exported from `planner/index.ts` yet, and `stormAt` does not call it yet (the planner lead adds both), so import from the file for now.
+In a solar particle event, `stormAt` now also checks whether waiting at a nearby spot with less open sky (the foot of a scarp, a crater wall) gives a lower dose than walking straight home. The result is on the outcome you already get from `stormAt`. Nothing changes for a dust storm.
+
+### One line to turn it on
+
+`loadSite` keeps only the five Contract 1 layers, so the sky-view layer has to be read from the same JSON and handed to `stormAt`. Where `site.json` is loaded (`MissionContext.tsx`), keep it next to the site:
 
 ```ts
-import { readSkyView, shelterRoute } from "../planner/shelter";
+import { readSkyView } from "./planner";
+const skyView = readSkyView(json); // Float32Array, or null if the file has no skyView layer
 ```
 
-Once, where `site.json` is loaded (the sky-view layer is not one of the five layers `loadSite` keeps):
+and pass it as the new last argument of the existing `stormAt` call:
 
 ```ts
-const skyView = readSkyView(json);
+const outcome = stormAt(site, plan, incidentAt, kind === "storm" ? "dust" : "spe", conditions.startLmst, { skyView });
 ```
 
-When an SPE is triggered, with the SPE cost grid and the astronaut's position from `positionAt`:
+Until that is done, an SPE gives `outcome.shelter = { checked: false }` and the app behaves exactly as before.
 
-```ts
-const shelter = skyView ? shelterRoute(site, speCost, position, position.oxygenUsedSec, { skyView }) : null;
-```
+### New fields on the `stormAt` outcome
 
-It returns `{ target, path, sec, skyView, doseToShelterMsv, doseIfHomeMsv, doseReductionPct, betterThanHome, reasons }`.
+| Field | What it is |
+|---|---|
+| `outcome.shelter.checked` | `true` for an SPE with a sky-view layer. `false` for a dust storm, or when no layer was passed. When `false` there are no other shelter fields. |
+| `outcome.shelter.betterThanHome` | `true` only if a shelter cuts the dose by at least 5% compared with walking home. |
+| `outcome.shelter.target` | `{ lat, lng }` of the shelter, or of the habitat when home is better. |
+| `outcome.shelter.path` | Line from the astronaut to `target`. |
+| `outcome.shelter.sec` | Walking time to `target`, seconds. |
+| `outcome.shelter.skyView` | Open fraction of the sky at the shelter, 0 to 1 (0 when the target is the habitat). |
+| `outcome.shelter.doseToShelterMsv` | SPE dose for the recommended option over the assumed 60 min event. Illustrative. |
+| `outcome.shelter.doseIfHomeMsv` | SPE dose for walking home over the same time. Illustrative. |
+| `outcome.shelter.doseReductionPct` | How much lower the shelter's dose is, percent. 0 when home is better. |
+| `outcome.shelter.reasons` | Sentences from the planner. `[0]` is the recommendation; the last two are the caveats. |
+| `outcome.shelter.simplified` | Always `true`: the dose model is simplified. |
+| `outcome.returnRoute` | `{ to: "home" \| "shelter", path, sec }`: the route to draw as "where to go now". |
+| `outcome.abort` | Unchanged: the route **home** from `abortRoute`, with its status. Its `reasons` now also carry the shelter check (see below). |
 
-- **When `betterThanHome` is false**, the target is the habitat and the result is the same advice as the abort route: walk home. Show nothing extra.
-- **When it is true**, a suggested way to show it:
-  - a cyan shelter marker at `target` (cyan = safety) and `path` drawn as a cyan dashed line, next to the red abort route home;
-  - one line in the SPE banner from `reasons[0]`, for example "Shelter 320 m away (sky view 0.71) cuts the SPE dose by 29% compared with walking home (46 min)." A shorter form: `Shelter: ${Math.round(sec / 60)} min away, −${Math.round(doseReductionPct)}% dose`;
-  - `reasons[1]` and `reasons[2]` (the walk and wait times, and the oxygen check) in the details.
-- **Always show the two caveats** that come at the end of `reasons`: the model is simplified (`SHELTER_MODEL_IS_SIMPLIFIED`) and the SPE dose rate is illustrative (`SPE_IS_ILLUSTRATIVE`). Label the dose numbers "illustrative".
-- **It is an option, not an order.** The EVA status stays NO-GO and the return-home status still comes from `abortRoute`. The astronaut chooses between the red route home and the cyan shelter.
-- The comparison is over an assumed 60 minute event (`waitMin` option), a shelter must cut the dose by at least 5% to be offered (`minReductionPct` option), and it is only offered if there is oxygen to walk home afterwards.
-- It throws if no sky-view layer is given, so keep the `skyView ? … : null` guard.
+### Exactly what the UI should show
+
+**When `outcome.shelter.checked` is false** (dust storm, or no layer): nothing new. Draw `outcome.abort.path` in red as now.
+
+**When checked and `betterThanHome` is false** (the demo mission: always):
+
+- Draw the red route home as now (`outcome.returnRoute.path` is the same as `outcome.abort.path`).
+- No shelter marker.
+- `outcome.abort.reasons` already ends with one extra line, so the Return home reasons list shows it with no extra work: "Shelter checked: walking home is better (best nearby shelter hides 17% of the sky)."
+
+**When checked and `betterThanHome` is true** (for example an SPE at Wildcat Ridge):
+
+- Draw `outcome.returnRoute.path` (the path to the shelter) as the main route, in cyan (cyan = safety), with a cyan shelter marker at `outcome.shelter.target`.
+- Keep the route home visible but secondary: `outcome.abort.path` as a thin or dashed red line. The astronaut can still choose it.
+- SPE banner, one line, from `outcome.shelter.reasons[0]`: "Shelter 160 m away (sky view 0.84) cuts the SPE dose by 12% compared with walking home (73 min)." Short form if space is tight: `Shelter: ${formatMinutes(outcome.shelter.sec)} away, −${Math.round(outcome.shelter.doseReductionPct)}% dose`.
+- Return home reasons: `outcome.abort.reasons` already starts with that same shelter sentence, followed by the usual walk-home reasons.
+- Details (optional): `outcome.shelter.reasons[1]` (walk and wait times, the two doses) and `[2]` (the oxygen check for walking home afterwards).
+- **Always show the two caveats** next to any shelter number: "Simplified shelter model…" and "The SPE dose rate is illustrative…". They are the last two entries of `outcome.shelter.reasons`. Label dose values "illustrative".
+
+**Statuses do not change.** EVA stays NO-GO. The Return home status (`outcome.abort.status`) is still about the walk home. The shelter is an option the planner offers, not an order.
+
+**Return playback:** `outcome.abort` still leads home, so the existing "Play return to habitat" keeps working as it is. Playing the walk to the shelter is not built.
+
+### Calling it directly
+
+`shelterRoute(site, speCost, position, position.oxygenUsedSec, { skyView })` is exported from `planner/index.ts` for use outside `stormAt`. It returns the same fields plus `bestShelterSkyView`. It throws if no sky-view layer is given. Options: `waitMin` (event length, default 60) and `minReductionPct` (default 5).
 
 ## Tests
 

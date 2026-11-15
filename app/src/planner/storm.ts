@@ -7,20 +7,82 @@ import { abortRoute } from "./abort";
 import type { AbortRoute } from "./abort";
 import { CONSUMABLE_HOURS, WALK_BURN } from "./constants";
 import { buildCostGrid } from "./cost";
+import { roundHalfUp } from "./format";
 import { planRoute } from "./plan";
+import { SHELTER_MODEL_IS_SIMPLIFIED, shelterRoute } from "./shelter";
 import { positionAt } from "./timeline";
 import type { Position } from "./timeline";
-import type { CostGrid, Plan, Site, Status, Stop } from "./types";
+import type { CostGrid, LatLng, Plan, Site, Status, Stop } from "./types";
 
 export type EmergencyKind = "dust" | "spe";
+
+/**
+ * The radiation shelter check (shelter.ts). Only a solar particle event is a
+ * radiation event, so only then is it run.
+ * - checked: false: a dust storm, or the site has no sky-view layer to check with.
+ * - checked: true: shelterRoute ran. betterThanHome says whether waiting at a
+ *   shielded spot gives a lower dose than walking home. The numbers are for the
+ *   recommended option: the shelter when betterThanHome, otherwise the habitat.
+ */
+export type ShelterCheck =
+  | { checked: false }
+  | {
+      checked: true;
+      betterThanHome: boolean;
+      /** Where to go: the shelter, or the habitat when home is better. */
+      target: LatLng;
+      /** Smoothed line from the astronaut to the target. */
+      path: LatLng[];
+      /** Walking time to the target, seconds. */
+      sec: number;
+      /** Sky view at the target, 0 to 1 (0 = inside the habitat). */
+      skyView: number;
+      /** SPE dose for the recommended option over the assumed event, mSv. Illustrative. */
+      doseToShelterMsv: number;
+      /** SPE dose for walking straight home over the same time, mSv. Illustrative. */
+      doseIfHomeMsv: number;
+      /** How much lower the shelter's dose is than walking home, percent (0 when home is better). */
+      doseReductionPct: number;
+      /** Plain sentences from shelterRoute. The first is the recommendation. */
+      reasons: string[];
+      /** True: the dose model is simplified. Say so next to any shelter number. */
+      simplified: boolean;
+    };
+
+/** The route to draw as "where to go now": home, or the shelter when it is the better choice. */
+export type ReturnRoute = {
+  to: "home" | "shelter";
+  path: LatLng[];
+  /** Walking time along it, seconds. Infinity if home is unreachable. */
+  sec: number;
+};
+
+export type StormOptions = {
+  /**
+   * Sky-view layer for the shelter check (see readSkyView in shelter.ts).
+   * Default: site.layers.skyView, if the site was loaded with it. Without either,
+   * a solar particle event gets shelter: { checked: false }.
+   */
+  skyView?: Float32Array | null;
+};
 
 export type StormOutcome = {
   /** Status of the EVA itself. In an emergency this is NO-GO: the EVA is aborted. */
   evaStatus: Status;
   /** Why. The first reason is "EVA aborted: active dust storm" (or "... solar particle event"). */
   evaReasons: string[];
-  /** The return-home route from abortRoute, with its own status (CAUTION or NO-GO) and reasons. */
+  /**
+   * The return-home route from abortRoute, with its own status (CAUTION or NO-GO) and reasons.
+   * Its path always leads HOME, also when a shelter is recommended. In a solar
+   * particle event its reasons also carry the shelter check: the shelter reason
+   * comes first when a shelter is better, and one "Shelter checked: ..." line is
+   * added at the end when walking home is better.
+   */
   abort: AbortRoute;
+  /** The radiation shelter check. checked: false for a dust storm. */
+  shelter: ShelterCheck;
+  /** The route to draw: the shelter path when shelter.betterThanHome, otherwise abort.path. */
+  returnRoute: ReturnRoute;
   /** Where the astronaut is when the emergency starts. */
   position: Position;
   /** Oxygen left when the emergency starts, % of the full 8 h supply. */
@@ -86,6 +148,11 @@ function stopsOf(plan: Plan): Stop[] | null {
  * - evaStatus / evaReasons: planRoute for the same stops under the emergency
  *   conditions, which Contract 3 makes NO-GO ("EVA aborted: ...").
  *
+ * - shelter (solar particle event only): shelterRoute from the same position on the
+ *   same grid. If a shelter beats walking home, returnRoute is the shelter path and the
+ *   return reasons start with the shelter reason; the home route stays in `abort`.
+ *   A dust storm is not a radiation event, so shelter is { checked: false }.
+ *
  * `startLmst` is the EVA start time; pass conditions.startLmst so low-sun reasons are right.
  */
 export function stormAt(
@@ -94,6 +161,7 @@ export function stormAt(
   tSec: number,
   kind: EmergencyKind,
   startLmst: number = DEFAULT_START_LMST,
+  options: StormOptions = {},
 ): StormOutcome {
   const grid = emergencyGrid(site, kind, startLmst);
   const position = positionAt(plan, tSec);
@@ -101,7 +169,39 @@ export function stormAt(
   // An empty plan has no position: the astronaut has not left the habitat.
   const from = hasPosition ? { lat: position.lat, lng: position.lng } : { lat: site.habitat.lat, lng: site.habitat.lng };
   const usedSec = hasPosition ? position.oxygenUsedSec : 0;
-  const abort = abortRoute(site, grid, from, usedSec);
+  const homeAbort = abortRoute(site, grid, from, usedSec);
+
+  // Radiation shelter check: solar particle events only, and only with a sky-view layer.
+  let shelter: ShelterCheck = { checked: false };
+  let abort: AbortRoute = homeAbort;
+  let returnRoute: ReturnRoute = { to: "home", path: homeAbort.path, sec: homeAbort.sec };
+  const skyView = options.skyView ?? (site.layers as Record<string, Float32Array | undefined>).skyView;
+  if (kind === "spe" && skyView && skyView.length === site.width * site.height) {
+    const found = shelterRoute(site, grid, from, usedSec, { skyView });
+    shelter = {
+      checked: true,
+      betterThanHome: found.betterThanHome,
+      target: found.target,
+      path: found.path,
+      sec: found.sec,
+      skyView: found.skyView,
+      doseToShelterMsv: found.doseToShelterMsv,
+      doseIfHomeMsv: found.doseIfHomeMsv,
+      doseReductionPct: found.doseReductionPct,
+      reasons: found.reasons,
+      simplified: SHELTER_MODEL_IS_SIMPLIFIED,
+    };
+    if (found.betterThanHome) {
+      returnRoute = { to: "shelter", path: found.path, sec: found.sec };
+      abort = { ...homeAbort, reasons: [found.reasons[0], ...homeAbort.reasons] };
+    } else {
+      const hidden =
+        found.bestShelterSkyView === null
+          ? "no shelter can be reached with the oxygen left"
+          : `best nearby shelter hides ${roundHalfUp((1 - found.bestShelterSkyView) * 100)}% of the sky`;
+      abort = { ...homeAbort, reasons: [...homeAbort.reasons, `Shelter checked: walking home is better (${hidden}).`] };
+    }
+  }
 
   const abortedReason = kind === "dust" ? "EVA aborted: active dust storm" : "EVA aborted: active solar particle event";
   const stops = stopsOf(plan);
@@ -120,6 +220,8 @@ export function stormAt(
     evaStatus,
     evaReasons,
     abort,
+    shelter,
+    returnRoute,
     position,
     oxygenNowPct: Math.max(0, ((budgetSec - usedSec) / budgetSec) * 100),
     oxygenOnArrivalPct: reachable ? Math.max(0, ((budgetSec - usedSec - abort.sec * WALK_BURN) / budgetSec) * 100) : NaN,

@@ -170,11 +170,28 @@ These are differences in emphasis, not claims of being first:
 - **Science per oxygen-minute.** Stops are scored, and suggested, by what they give for the oxygen they cost.
 - **A check against a real traverse.** The terrain model is compared with Perseverance's actual drive path, with the caveats written down.
 - **Zero setup.** It runs in a web browser from a link; the planner needs no server and no install.
-- **Radiation shelter routing** is being built and is not in this version (see below).
+- **Radiation shelter routing.** In a solar particle event the planner also checks whether waiting at a nearby spot with less open sky would give a lower dose than walking home (see below).
 
-## Shelter routing (in progress)
+## Shelter routing in a solar particle event
 
-*Placeholder: this feature is still being built. Its description will go here when it lands.*
+Cliffs and crater walls hide part of the sky, and with it part of the radiation arriving from that part of the sky. So when a solar particle event starts, `stormAt` asks one more question after planning the walk home: is there a spot nearby where waiting gives a **lower total dose** than walking straight to the habitat?
+
+**The sky-view layer.** For every 25 m cell, `site.json` holds the fraction of the sky an astronaut standing there can see (`skyView`, 1 = open sky all round). It is worked out from the same HiRISE elevation data as the slope layer: from each cell, 1.5 m above the ground, the horizon is found in 32 compass directions out to 500 m. Most of the site is open: the middle value is 0.98, and the least open ground an astronaut can walk on sees 0.83 of the sky.
+
+**The check** (`shelterRoute`), over an assumed 60 minute event:
+
+1. Dose on the way = SPE dose rate × sky view × time, added up along the walking path.
+2. A shelter's dose = the dose walking there + the dose waiting there for the rest of the 60 minutes.
+3. Walking home's dose = the dose on the way home, then nothing once inside the habitat.
+4. A shelter counts only if the ground is passable, there is oxygen to walk there, wait, and still walk home with the reserve intact, and it cuts the dose by at least 5%.
+
+**What the astronaut is told.** The EVA status stays NO-GO and the return-home status still comes from the walk home. If a shelter is better, the route to draw becomes the path to the shelter and the first reason says so, for example: "Shelter 160 m away (sky view 0.84) cuts the SPE dose by 12% compared with walking home (73 min)." The route home stays available. If home is better, one line is added: "Shelter checked: walking home is better (best nearby shelter hides 17% of the sky)." A dust storm is not a radiation event, so no shelter check is made.
+
+**What it gives at Jezero.** On the demo mission, walking home always wins: the habitat is at most about 48 minutes away. Natural shelter beats going home only when HAB-1 is more than about 55 minutes away, and then by about 11–14%. From the rover's delta-front sampling sites (73–79 minutes from home) the dose cut is 11–12%.
+
+**This model is simplified, and the numbers are illustrative.** It assumes the radiation arrives about equally from every direction of the sky, ignores that the atmosphere shields low directions more than high ones, ignores secondary particles from the ground and rock, and uses the demo's illustrative ×30 dose rate. The 60 minute event length is an assumption, and the result depends on it: for a longer event, walking home wins from further away. Every assumption is listed in [`assumptions.md`](assumptions.md) under "Shelter model".
+
+**Status.** The check is in the planner and is tested. The console shows it once the frontend passes the sky-view layer to `stormAt` and draws the new fields.
 
 ## Limits
 

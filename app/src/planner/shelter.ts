@@ -77,6 +77,11 @@ export type ShelterRoute = {
   doseReductionPct: number;
   /** True only when a shelter gives a total dose at least 5% lower than walking straight home. */
   betterThanHome: boolean;
+  /**
+   * Sky view of the best shelter that was considered, even when walking home won
+   * (then `skyView` above is 0, for the habitat). null if no shelter could be reached.
+   */
+  bestShelterSkyView: number | null;
   /** Plain sentences for the UI. The first one is the recommendation. */
   reasons: string[];
 };
@@ -163,6 +168,7 @@ export function shelterRoute(
       doseIfHomeMsv: Infinity,
       doseReductionPct: 0,
       betterThanHome: false,
+      bestShelterSkyView: null,
       reasons: [
         fromCell < 0
           ? "No shelter route: the astronaut is outside the mapped site."
@@ -253,6 +259,7 @@ export function shelterRoute(
     doseIfHomeMsv: doseIfHome,
     doseReductionPct: 0,
     betterThanHome: false,
+    bestShelterSkyView: best >= 0 ? sky[best] : null,
     reasons: [...why, ...notes],
   });
 
@@ -297,6 +304,7 @@ export function shelterRoute(
     doseIfHomeMsv: doseIfHome,
     doseReductionPct: Number.isFinite(doseIfHome) ? reduction : 0,
     betterThanHome: true,
+    bestShelterSkyView: sky[best],
     reasons,
   };
 }
