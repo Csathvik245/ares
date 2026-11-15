@@ -249,3 +249,44 @@ describe("LayerRail", () => {
     expect(t).not.toMatch(/DATA AND MODEL|ROUTING MODEL|Tobler/);
   });
 });
+
+describe("oxygen section: the simulated range under the estimate", () => {
+  it("shows the 5th to 95th percentile of oxygen at return from the same simulation as the reliability panel", async () => {
+    const { simulateMission, DEFAULT_SEED, DEFAULT_TRIALS } = await import("../planner/montecarlo");
+    const { formatPct } = await import("../planner");
+    const { reliabilityOf, simulatedRangeNote } = await import("../lib/reliability");
+    const plan = planRoute(site, cost, site.habitat, demoStops);
+    const r = simulateMission(site, plan, { startLmst: conditions.startLmst });
+    expect(r.seed).toBe(DEFAULT_SEED);
+    expect(DEFAULT_SEED).toBe(42);
+    const html = panel(demoStops, "budget");
+    const range = `${formatPct(r.oxygenAtReturnPct.p5).replace("%", "")}–${formatPct(r.oxygenAtReturnPct.p95)}`;
+    expect(text(html)).toContain(`90% simulated range ${range}`);
+    // It comes after the estimate and before the bar.
+    expect(html.indexOf("oxygen-headline")).toBeLessThan(html.indexOf("oxygen-range"));
+    expect(html.indexOf("oxygen-range")).toBeLessThan(html.indexOf("budget-bar"));
+    // The (?) says what the range is, with the real number of trials.
+    const note = simulatedRangeNote(r.trials);
+    expect(note).toBe(`${DEFAULT_TRIALS.toLocaleString("en-US")} simulated versions of this walk under our assumptions. Not a measured probability.`);
+    expect(html).toContain(`aria-label="${note}"`);
+    expect(html).toContain(`role="tooltip" id="oxygen-range-tip">${note}</span>`);
+    // One simulation per plan: asking twice hands back the very same result.
+    expect(reliabilityOf(site, plan, { startLmst: 13 })).toBe(reliabilityOf(site, plan, { startLmst: 13 }));
+    expect(reliabilityOf(site, plan, { startLmst: 13 }).oxygenAtReturnPct).toEqual(r.oxygenAtReturnPct);
+  });
+
+  it("the reliability panel and the oxygen section read the one shared result, not two simulations", () => {
+    const panelSource = readFileSync(new URL("./MissionPanel.tsx", import.meta.url), "utf8");
+    const reliabilitySource = readFileSync(new URL("./ReliabilityPanel.tsx", import.meta.url), "utf8");
+    expect(panelSource).toContain("reliabilityOf(m.site!, plan, { startLmst: m.conditions.startLmst })");
+    expect(reliabilitySource).toContain("reliabilityOf(site, plan, { trials, seed, startLmst })");
+    expect(panelSource).not.toContain("simulateMission(");
+    expect(reliabilitySource).not.toContain("simulateMission(");
+  });
+
+  it("is hidden with no plan, and during an emergency", () => {
+    expect(panel([], "all")).not.toContain("oxygen-range");
+    const source = readFileSync(new URL("./MissionPanel.tsx", import.meta.url), "utf8");
+    expect(source).toContain("const sim = hasRoute && !m.emergency ?");
+  });
+});

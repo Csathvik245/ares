@@ -21,6 +21,7 @@ import {
 import { scienceScore, suggestStops } from "../planner/science";
 import { EVIDENCE_LABELS } from "../lib/evidenceLabels";
 import { ReliabilityPanel } from "./ReliabilityPanel";
+import { reliabilityOf, simulatedRangeNote } from "../lib/reliability";
 import { Jargon } from "./PlanChrome";
 import { SCENARIO_BUTTONS, type UiEmergencyKind } from "../lib/emergency-run";
 
@@ -176,6 +177,11 @@ export function MissionPanel({
 
   // Oxygen bar and the four stat tiles. Shown only when there is a route.
   const speDose = SPE_IS_ILLUSTRATIVE && m.emergency?.kind === "spe";
+  // The simulated spread of the oxygen estimate: the same Monte Carlo result the Mission
+  // reliability panel shows (same plan, default seed and trials), not a second simulation.
+  // Only for a calm plan: in an emergency the number above it is the walk home's, not the plan's.
+  const sim = hasRoute && !m.emergency ? reliabilityOf(m.site!, plan, { startLmst: m.conditions.startLmst }) : null;
+  const simRange = sim && sim.trials > 0 && Number.isFinite(sim.oxygenAtReturnPct.p5) && Number.isFinite(sim.oxygenAtReturnPct.p95) ? sim : null;
   const budgetSection = !hasRoute ? null : (
       <section className="oxygen-panel budget-section">
         <div className="panel-heading">
@@ -188,6 +194,22 @@ export function MissionPanel({
           </strong>
           <p>{m.emergency ? "left on arrival at HAB-1" : "left at return"}</p>
         </div>
+        {simRange && (
+          <p className="oxygen-range">
+            90% simulated range{" "}
+            <b>
+              {formatPct(simRange.oxygenAtReturnPct.p5).replace("%", "")}–{formatPct(simRange.oxygenAtReturnPct.p95)}
+            </b>
+            <span className="jargon">
+              <button type="button" className="jargon__button" aria-label={simulatedRangeNote(simRange.trials)} aria-describedby="oxygen-range-tip">
+                ?
+              </button>
+              <span className="jargon__tip" role="tooltip" id="oxygen-range-tip">
+                {simulatedRangeNote(simRange.trials)}
+              </span>
+            </span>
+          </p>
+        )}
         <div
           className="budget-bar"
           role="img"

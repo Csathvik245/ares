@@ -8,7 +8,7 @@
 import { useMemo } from "react";
 import { formatDuration, formatMinutes, formatPct, roundHalfUp } from "../planner";
 import type { Plan, Site } from "../planner";
-import { simulateMission } from "../planner/montecarlo";
+import { reliabilityOf } from "../lib/reliability";
 import type { ReliabilityResult } from "../planner/montecarlo";
 import { EvidenceTag } from "./EvidenceTag";
 import "./reliability.css";
@@ -80,7 +80,8 @@ function Histogram({ histogram }: { histogram: ReliabilityResult["histogramMargi
 }
 
 export function ReliabilityPanel({ site, plan, trials, seed, startLmst, defaultOpen = false }: Props) {
-  const r = useMemo(() => simulateMission(site, plan, { trials, seed, startLmst }), [site, plan, trials, seed, startLmst]);
+  // Shared with the oxygen section's simulated range: the simulation runs once per plan.
+  const r = useMemo(() => reliabilityOf(site, plan, { trials, seed, startLmst }), [site, plan, trials, seed, startLmst]);
   const walkable = plan.ok && plan.legs.length > 0;
   const top = r.sensitivity.slice(0, 3);
   // With no failures a bare "100%" would overclaim: show the counts and the failure-rate bound instead.

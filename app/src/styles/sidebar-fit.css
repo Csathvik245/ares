@@ -186,3 +186,28 @@ html[data-theme] .console-app .empty-plan-card .empty-plan-card__actions {
   }
   /* Short labels would not help here: the tiles are wide. Keep two per row. */
 }
+
+/* ---------- The simulated range under the oxygen estimate: one small muted line ---------- */
+html[data-theme] .console-app .oxygen-range {
+  margin: 2px 0 0;
+  color: var(--muted);
+  font: 400 11px/16px var(--font-mono);
+}
+html[data-theme] .console-app .oxygen-range b {
+  color: var(--text);
+  font-weight: 500;
+}
+/* Short screens: the line sits beside the estimate (same row, right-aligned) instead of
+   under it, so the oxygen section keeps its height and still fits at 1366 x 680. */
+@media (max-height: 759px) and (min-width: 1025px) {
+  html[data-theme] .console-app .telemetry-col .oxygen-range {
+    margin-top: -20px;
+    margin-bottom: 4px;
+    text-align: right;
+  }
+}
+/* Its tooltip opens leftward, so it stays inside the column. */
+html[data-theme] .console-app .oxygen-range .jargon__tip {
+  left: auto;
+  right: 0;
+}
