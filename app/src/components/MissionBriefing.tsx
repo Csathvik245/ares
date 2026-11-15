@@ -1,6 +1,7 @@
 import { CONSUMABLE_HOURS } from "../lib/planner";
 import type { BriefingRow, Status } from "../planner";
 import { EvidenceTag } from "./EvidenceTag";
+import { StoryChapters } from "./StoryChapters";
 import "../styles/tokens.css";
 import "./mission-screens.css";
 
@@ -114,7 +115,7 @@ export function MissionBriefing({
         </section>
 
       </section>
-
+      <StoryChapters onRunDemo={onRunDemo} onOpenPlanner={onBeginPlanning} />
     </main>
   );
 }
