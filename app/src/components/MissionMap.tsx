@@ -19,6 +19,8 @@ import { distanceM } from "../geo";
 import { routeParts, shortStop } from "../lib/presentation";
 import type { Basemap } from "../lib/basemap";
 import { layerOpacity, raster, zoneBounds, zoneRaster, type OverlayName } from "../lib/layers";
+/** Dark outline on each side of the planned route, in pixels, so the white line reads over amber terrain. */
+export const PLAN_OUTLINE_PX = 2;
 export const TREK_LAYER = "Mars_Viking_MDIM21_ClrMosaic_global_232m";
 
 /**
@@ -31,6 +33,8 @@ type ViewExtras = {
   paths?: LatLng[][];
   zone?: Uint8Array;
   blocked?: { at: LatLng; radiusM: number };
+  /** Leave generous room left and right (the calm plan view). */
+  roomy?: boolean;
 };
 function fitMissionView(map: L.Map, site: Site, stops: Stop[], extras: ViewExtras = {}) {
   const points: LatLng[] = [site.habitat, ...stops];
@@ -46,9 +50,9 @@ function fitMissionView(map: L.Map, site: Site, stops: Stop[], extras: ViewExtra
   );
   const size = map.getSize();
   // The zone is an area, so it needs less air around it than a handful of points.
-  const pad = box ? 0.05 : 0.12;
-  const padX = Math.max(48, size.x * pad);
-  const padY = Math.max(48, size.y * pad);
+  // A planned route gets a quarter of the map free on each side, so it fills about half the width.
+  const padX = Math.max(48, size.x * (box ? 0.05 : extras.roomy ? 0.25 : 0.12));
+  const padY = Math.max(48, size.y * (box ? 0.05 : 0.12));
   // The legend and the emergency guidance lie over the top of the map. Keep everything
   // fitted below their real bottom edges, including when their text wraps on a tablet.
   const container = map.getContainer();
@@ -239,7 +243,10 @@ export function MissionMap({
       fitMissionView(m, site, stops, {
         shelterTarget: shelter?.target,
         paths: emergency ? [abort, ...legs] : legs,
-        zone: emergency ? undefined : drawnZone,
+        // With a route, frame the route and its stops; the zone's edge may run off the map.
+        // With no stops yet, show the whole zone: it is where a first stop can go.
+        zone: emergency || stops.length ? undefined : drawnZone,
+        roomy: !emergency && stops.length > 0,
         blocked,
       });
     };
@@ -344,7 +351,7 @@ export function MissionMap({
         url = raster(site, cost, kind);
         cache.current.set(kind, url);
       }
-      L.imageOverlay(url, bounds, { opacity: layerOpacity(kind), className: `terrain-layer terrain-layer--${kind}` }).addTo(group);
+      L.imageOverlay(url, bounds, { opacity: layerOpacity(kind, emergency), className: `terrain-layer terrain-layer--${kind}` }).addTo(group);
     });
     if (!emergency)
       L.imageOverlay(zoneRaster(site, drawnZone), bounds, {
@@ -461,13 +468,14 @@ export function MissionMap({
       weight: number,
       opacity = 1,
       dashArray?: string,
+      outline = 2,
     ) => {
       if (!path.length) return;
       const points = path.map((p) => [p.lat, p.lng] as [number, number]);
       L.polyline(points, {
         pane: "routes",
         color: "#08090b",
-        weight: weight + 2,
+        weight: weight + outline,
         opacity,
         interactive: false,
       }).addTo(g);
@@ -501,7 +509,7 @@ export function MissionMap({
           pane: "routes", color: nogo, weight: 2, dashArray: "4 4", fill: false, interactive: false,
         }).addTo(g);
       }
-    } else plan.legs.forEach((l) => draw(l.path, "#ff6b35", 3));
+    } else plan.legs.forEach((l) => draw(l.path, "#ff6b35", 3, 1, undefined, PLAN_OUTLINE_PX * 2));
     return () => {
       g.remove();
     };

@@ -21,7 +21,12 @@ const zone = safeZone(site, cost, plan);
 describe("terrain layer for the demo mission", () => {
   it("is Walking difficulty, drawn lighter than the other layers", () => {
     expect(layers.find((l) => l.id === DEMO_LAYER)?.name).toBe("Walking difficulty");
-    expect(layerOpacity(DEMO_LAYER)).toBeCloseTo(0.45, 2);
+    expect(layerOpacity(DEMO_LAYER)).toBeCloseTo(0.25, 2);
+    // In an emergency it fades so the route home dominates; Reset ends the emergency and restores it.
+    expect(layerOpacity(DEMO_LAYER, true)).toBeCloseTo(0.12, 2);
+    expect(layerOpacity(DEMO_LAYER, false)).toBe(LAYER_OPACITY[DEMO_LAYER]);
+    expect(layerOpacity("science", true)).toBe(LAYER_OPACITY.science);
+    expect(read("../components/MissionMap.tsx")).toContain("layerOpacity(kind, emergency)");
     for (const l of layers) if (l.id !== DEMO_LAYER) expect(LAYER_OPACITY[l.id]).toBeGreaterThan(layerOpacity(DEMO_LAYER));
   });
 
@@ -131,8 +136,8 @@ describe("the drawn safe-return zone", () => {
   it("is drawn with a faint fill as well as the edge", () => {
     const source = read("./layers.ts");
     const fill = /const ZONE_FILL = \[(\d+), (\d+), (\d+), (\d+)\]/.exec(source)!;
-    expect(Number(fill[4]) / 255).toBeGreaterThan(0.08);
-    expect(Number(fill[4]) / 255).toBeLessThan(0.13);
+    expect(Number(fill[4]) / 255).toBeGreaterThan(0.05);
+    expect(Number(fill[4]) / 255).toBeLessThan(0.07);
     expect(read("../components/MissionMap.tsx")).toContain("zoneRaster(site, drawnZone)");
   });
 });

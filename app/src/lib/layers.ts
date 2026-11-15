@@ -39,13 +39,16 @@ export const layers = [
 export type OverlayName = (typeof layers)[number]["id"];
 /** Opacity of each analysis layer on the map. Walking difficulty is lighter, so the route stays readable on top of it. */
 export const LAYER_OPACITY: Record<OverlayName, number> = {
-  difficulty: 0.45,
+  difficulty: 0.25,
   slope: 0.8,
   sand: 0.8,
   rock: 0.8,
   science: 0.8,
 };
-export const layerOpacity = (kind: OverlayName) => LAYER_OPACITY[kind];
+/** Walking difficulty during an emergency: faded, so the route home is the loudest thing on the map. */
+export const EMERGENCY_DIFFICULTY_OPACITY = 0.12;
+export const layerOpacity = (kind: OverlayName, emergency = false) =>
+  emergency && kind === "difficulty" ? EMERGENCY_DIFFICULTY_OPACITY : LAYER_OPACITY[kind];
 
 /**
  * How strongly a cell is tinted on the "Walking difficulty" layer, 0 to 255.
@@ -61,8 +64,8 @@ export function difficultyAlpha(secPerM: number, minSecPerM: number): number {
 
 // Safe-return zone colours (RGBA). The Mono theme turns the light blue into the electric-blue accent.
 const ZONE_EDGE = [79, 209, 255, 220];
-/** A faint fill, about 10% opacity, so the zone reads as an area and not only a line. */
-const ZONE_FILL = [79, 209, 255, 26];
+/** A faint fill, about 6% opacity, so the zone reads as an area and not only a line. */
+const ZONE_FILL = [79, 209, 255, 15];
 const ZONE_OUTSIDE = [8, 9, 11, 155];
 
 /** How many picture pixels per terrain cell the smooth zone is drawn with. */
