@@ -9,9 +9,13 @@ export const APP_TABS = [
 ] as const;
 export type AppTab = (typeof APP_TABS)[number]["id"];
 
-/** "#science" → "science". Anything else (no hash, an unknown hash) → `fallback`. */
+/**
+ * "#science" → "science". Anything else (no hash, an unknown hash) → `fallback`.
+ * Whatever follows a "?" is not part of the tab's name: "#plan?m=..." (a shared mission
+ * link, lib/missionLink.ts) is the Plan tab.
+ */
 export function tabFromHash(hash: string | undefined | null, fallback: AppTab = "story"): AppTab {
-  const name = (hash ?? "").replace(/^#/, "").toLowerCase();
+  const name = (hash ?? "").replace(/^#/, "").split("?")[0].toLowerCase();
   return APP_TABS.find((t) => t.id === name)?.id ?? fallback;
 }
 export const hashOfTab = (tab: AppTab) => `#${tab}`;

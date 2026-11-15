@@ -41,6 +41,7 @@ import { PLAY_HINT_TEXT, hintNeeded, rememberHint, type GuideAction, type TourSt
 import { GuideTour } from "./components/GuideTour";
 import { WhatIfPanel, WhatIfTag } from "./components/WhatIfPanel";
 import { PrintBriefing } from "./components/PrintBriefing";
+import { copyText, decodeMission, missionParamOf, planHashFor, stopsFromLink } from "./lib/missionLink";
 import { isWhatIf } from "./lib/planner";
 const EMPTY_PATH: LatLng[] = [];
 function Console({ initialHash }: { initialHash?: string }) {
@@ -125,15 +126,56 @@ function Console({ initialHash }: { initialHash?: string }) {
     return () => window.removeEventListener("keydown", onKey);
   }, []);
   // Open a tab and put it in the URL (#story, #plan, #science), so back and forward work.
+  // Shareable mission link: the Plan tab's address carries the stops and the start time
+  // (#plan?m=...), so the plan on screen can be sent to someone as a link.
+  const planHash = useMemo(() => planHashFor({ startLmst: m.conditions.startLmst, stops: m.stops }), [m.conditions.startLmst, m.stops]);
   const go = (tab: AppTab) => {
     setScreen(tab);
-    if (inBrowser && window.location.hash !== hashOfTab(tab)) window.location.hash = tab;
+    const target = tab === "plan" ? planHash : hashOfTab(tab);
+    if (inBrowser && window.location.hash !== target) window.location.hash = target.slice(1);
   };
+  // Opening a mission link restores its plan. A link that cannot be read restores nothing:
+  // the plan stays as it is (empty on a fresh page), and nothing is reported as an error.
+  const restoreFromHash = () => {
+    if (!m.site) return;
+    const param = missionParamOf(window.location.hash);
+    if (param === null || `#plan?m=${param}` === planHash) return;
+    const mission = decodeMission(param);
+    if (!mission) return;
+    m.edit(stopsFromLink(mission, m.site));
+    m.setConditions((c) => ({ ...c, startLmst: mission.startLmst }));
+  };
+  // Once, when the terrain has loaded (the points of interest are needed to restore a link).
+  const [linkReady, setLinkReady] = useState(false);
   useEffect(() => {
-    const onHash = () => setScreen(tabFromHash(window.location.hash, homeTab));
+    if (!m.site || linkReady) return;
+    restoreFromHash();
+    setLinkReady(true);
+  }, [m.site]);
+  // Keep the address in step with the plan, without adding to the browser history.
+  useEffect(() => {
+    if (!linkReady || screen !== "plan" || window.location.hash === planHash) return;
+    window.history.replaceState(null, "", `${window.location.pathname}${window.location.search}${planHash}`);
+  }, [linkReady, screen, planHash]);
+  useEffect(() => {
+    const onHash = () => {
+      setScreen(tabFromHash(window.location.hash, homeTab));
+      restoreFromHash(); // a mission link pasted into the same page
+    };
     window.addEventListener("hashchange", onHash);
     return () => window.removeEventListener("hashchange", onHash);
-  }, [homeTab]);
+  });
+  // "Copy link": the button says "Copied" for two seconds.
+  const [linkCopied, setLinkCopied] = useState(false);
+  useEffect(() => {
+    if (!linkCopied) return;
+    const timer = window.setTimeout(() => setLinkCopied(false), 2000);
+    return () => window.clearTimeout(timer);
+  }, [linkCopied]);
+  const copyMissionLink = () => {
+    const link = `${window.location.origin}${window.location.pathname}${window.location.search}${planHash}`;
+    copyText(link).then((ok) => ok && setLinkCopied(true));
+  };
   const remove = () => {
     if (!emergency && m.selected)
       m.edit(m.stops.filter((s) => s.id !== m.selected));
@@ -587,6 +629,9 @@ function Console({ initialHash }: { initialHash?: string }) {
                     <div className="plan-share">
                       <button type="button" onClick={() => setBriefingOpen(true)} disabled={!canBrief} title={canBrief ? "Open a one-page briefing of this plan, ready to print or save as PDF." : "Add a route (and reset any emergency) to make a briefing."}>
                         Download briefing
+                      </button>
+                      <button type="button" onClick={copyMissionLink} disabled={m.stops.length === 0} aria-live="polite" title="Copy a link that opens this plan: the stops, their science time and the start time.">
+                        {linkCopied ? "Copied" : "Copy link"}
                       </button>
                     </div>
                     <WhatIfPanel
