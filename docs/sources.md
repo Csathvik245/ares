@@ -65,21 +65,33 @@ Credit images "NASA/JPL-Caltech" (+ instrument team). Model assumptions are in [
 
 ## Rover photos
 
-One real Perseverance raw image per rover sampling stop, in `app/public/photos/`. All are credited **NASA/JPL-Caltech** by NASA's raw image gallery. The only change we made is saving the PNG as a JPEG.
+One real Perseverance raw image per rover sampling stop, in `app/public/photos/`. All are credited **NASA/JPL-Caltech** by NASA's raw image gallery. The only change we made is saving the PNG as a JPEG. The app reads the camera and sol from `app/src/lib/photoCredits.ts`, which holds the same facts as this table.
 
-**How each photo was matched to its stop.** Raw images carry a site/drive tag, not coordinates. NASA's waypoints file gives the lat/lng of each site/drive. For every stop, the waypoint with the photo's site/drive tag is within about 3 m of the stop's coordinates (0.2 m to 2.5 m), and the photo was taken on a sol when the rover was sampling there. Six photos show the rover's arm on the sampled rock.
+**How each photo was checked.** Raw images carry a site/drive tag, not coordinates. Three things were checked for every photo:
 
-| File | Stop | Camera | Sol (Earth date) | Site / drive | NASA image ID (link) |
-|---|---|---|---|---|---|
-| `seitah-brac.jpg` | Séítah outcrop (Brac) | Front Left Hazcam | 262 (15 Nov 2021) | 8 / 0 | [FLF_0262_0690210688_738ECM_N0080000FHAZ00206_01_295J](https://mars.nasa.gov/mars2020/multimedia/raw-images/FLF_0262_0690210688_738ECM_N0080000FHAZ00206_01_295J) |
-| `maaz-sid.jpg` | Máaz lava rock (Sid) | Front Left Hazcam | 371 (7 Mar 2022) | 11 / 108 | [FLF_0371_0699884867_862ECM_N0110108FHAZ00206_01_295J](https://mars.nasa.gov/mars2020/multimedia/raw-images/FLF_0371_0699884867_862ECM_N0110108FHAZ00206_01_295J) |
-| `maaz-rochette.jpg` | Rochette (Artuby ridge) | Left Navcam | 190 (1 Sep 2021) | 7 / 0 | [NLF_0190_0683808901_487ECM_N0070000NCAM00209_01_295J](https://mars.nasa.gov/mars2020/multimedia/raw-images/NLF_0190_0683808901_487ECM_N0070000NCAM00209_01_295J) |
-| `seitah-issole.jpg` | Séítah outcrop (Issole) | Front Left Hazcam | 337 (31 Jan 2022) | 9 / 276 | [FLF_0337_0696864692_347ECM_N0090276FHAZ00206_01_295J](https://mars.nasa.gov/mars2020/multimedia/raw-images/FLF_0337_0696864692_347ECM_N0090276FHAZ00206_01_295J) |
-| `delta-wildcat-ridge.jpg` | Wildcat Ridge (Hawksbill Gap) | Front Left Hazcam | 509 (26 Jul 2022) | 26 / 1222 | [FLF_0509_0712138514_736ECM_N0261222FHAZ00206_01_295J](https://mars.nasa.gov/mars2020/multimedia/raw-images/FLF_0509_0712138514_736ECM_N0261222FHAZ00206_01_295J) |
-| `delta-amalik.jpg` | Amalik (Cape Nukshak) | Front Left Hazcam | 575 (2 Oct 2022) | 29 / 0 | [FLF_0575_0717995745_942ECM_N0290000FHAZ00206_01_295J](https://mars.nasa.gov/mars2020/multimedia/raw-images/FLF_0575_0717995745_942ECM_N0290000FHAZ00206_01_295J) |
-| `delta-hidden-harbor.jpg` | Hidden Harbor (Yori Pass) | Front Left Hazcam | 623 (20 Nov 2022) | 30 / 1172 | [FLF_0623_0722254512_006ECM_N0301172FHAZ00216_01_295J](https://mars.nasa.gov/mars2020/multimedia/raw-images/FLF_0623_0722254512_006ECM_N0301172FHAZ00216_01_295J) |
+1. **Place.** NASA's waypoints file gives the lat/lng of each site/drive. The waypoint with the photo's site/drive tag is 0.2 to 2.6 m from the stop's coordinates ("Waypoint to stop" below).
+2. **Date.** The photo's sol is inside the sampling sols listed for that stop in `pipeline/data/site_meta.json` (from the Mars 2020 Initial Reports).
+3. **Content.** We looked at each image. "What the image shows" is our own description, not NASA's.
 
-The delta front toe has no photo: Perseverance never went there.
+| File | Stop | Camera | Photo sol (Earth date) | Sampling sols | Site / drive | Waypoint to stop | What the image shows | NASA image ID (source URL) |
+|---|---|---|---|---|---|---|---|---|
+| `seitah-brac.jpg` | Séítah outcrop (Brac) | Front Left Hazcam | 262 (15 Nov 2021) | 262–271 | 8 / 0 | 0.6 m | Arm and turret on a rock outcrop | [FLF_0262_0690210688_738ECM_N0080000FHAZ00206_01_295J](https://mars.nasa.gov/mars2020/multimedia/raw-images/FLF_0262_0690210688_738ECM_N0080000FHAZ00206_01_295J) |
+| `maaz-sid.jpg` | Máaz lava rock (Sid) | Front Left Hazcam | 371 (7 Mar 2022) | 371–377 | 11 / 108 | 2.6 m | Arm and turret on a single boulder | [FLF_0371_0699884867_862ECM_N0110108FHAZ00206_01_295J](https://mars.nasa.gov/mars2020/multimedia/raw-images/FLF_0371_0699884867_862ECM_N0110108FHAZ00206_01_295J) |
+| `maaz-rochette.jpg` | Rochette (Artuby ridge) | Left Navcam | 190 (1 Sep 2021) | 190–196 | 7 / 0 | 0.2 m | Arm raised over a field of flat rocks; **the cored rock is not picked out in the frame** | [NLF_0190_0683808901_487ECM_N0070000NCAM00209_01_295J](https://mars.nasa.gov/mars2020/multimedia/raw-images/NLF_0190_0683808901_487ECM_N0070000NCAM00209_01_295J) |
+| `seitah-issole.jpg` | Séítah outcrop (Issole) | Front Left Hazcam | 337 (31 Jan 2022) | 295–337 | 9 / 276 | 2.0 m | Arm and turret on a flat outcrop | [FLF_0337_0696864692_347ECM_N0090276FHAZ00206_01_295J](https://mars.nasa.gov/mars2020/multimedia/raw-images/FLF_0337_0696864692_347ECM_N0090276FHAZ00206_01_295J) |
+| `delta-wildcat-ridge.jpg` | Wildcat Ridge (Hawksbill Gap) | Front Left Hazcam | 509 (26 Jul 2022) | 509–516 | 26 / 1222 | 2.0 m | Arm and turret on layered rock | [FLF_0509_0712138514_736ECM_N0261222FHAZ00206_01_295J](https://mars.nasa.gov/mars2020/multimedia/raw-images/FLF_0509_0712138514_736ECM_N0261222FHAZ00206_01_295J) |
+| `delta-amalik.jpg` | Amalik (Cape Nukshak) | Front Left Hazcam | 575 (2 Oct 2022) | 575–579 | 29 / 0 | 2.2 m | Arm and turret on a fractured outcrop | [FLF_0575_0717995745_942ECM_N0290000FHAZ00206_01_295J](https://mars.nasa.gov/mars2020/multimedia/raw-images/FLF_0575_0717995745_942ECM_N0290000FHAZ00206_01_295J) |
+| `delta-hidden-harbor.jpg` | Hidden Harbor (Yori Pass) | Front Left Hazcam | 623 (20 Nov 2022) | 623 | 30 / 1172 | 2.5 m | Arm and turret on a flat outcrop | [FLF_0623_0722254512_006ECM_N0301172FHAZ00216_01_295J](https://mars.nasa.gov/mars2020/multimedia/raw-images/FLF_0623_0722254512_006ECM_N0301172FHAZ00216_01_295J) |
+
+**Confirmed for all seven:** the rover was parked at the stop (place) during its sampling work there (date).
+
+**Not confirmed (flagged):**
+
+- **Which rock is in the frame.** NASA's raw-image captions are generic ("acquired this image using its onboard Front Left Hazard Avoidance Camera") and do not name the rock. We have not matched any frame to a named, captioned NASA image of Brac, Sid, Rochette, Issole, Wildcat Ridge, Amalik or Hidden Harbor. So say "Perseverance at this sampling site", not "this is the Brac rock".
+- **`maaz-rochette.jpg`** is the weakest: it is a wide Navcam view with the arm raised, and we cannot tell which rock was cored.
+- **`seitah-issole.jpg`** was taken on sol 337, the last sampling sol at Issole, after the rover had left and come back (site 9 / drive 276; the first visit was site 9 / drive 0, 2.7 m from the stop).
+
+The delta front toe has no photo: Perseverance never went there. The app shows a HiRISE crop of the spot instead, labelled "No rover visit · orbital view".
 
 ## To do
 
