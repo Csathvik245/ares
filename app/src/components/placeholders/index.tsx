@@ -6,6 +6,7 @@ import { publicAssetUrl } from "../../lib/assets";
 import { Dialog } from "../Dialog";
 import { WORK_BURN } from "../../lib/planner";
 import { useMission } from "../../lib/MissionContext";
+import { photoDetails } from "../../lib/photos";
 import { clock } from "../../lib/presentation";
 import type { DemoStop } from "../../lib/MissionContext";
 export function StopCard({
@@ -20,6 +21,7 @@ export function StopCard({
     b = m.site?.bounds;
   const arrival =
     m.plan?.legs[m.stops.findIndex((s) => s.id === stop.id)]?.arriveSec;
+  const metadata = photoDetails(stop.photo);
   const photoUrl = publicAssetUrl(stop.photo);
   return (
     <Dialog title={stop.label} onClose={onClose}>
@@ -31,7 +33,24 @@ export function StopCard({
             alt={`Rover view associated with ${stop.label}`}
             onError={() => setFailed(true)}
           />
-          <figcaption>{stop.photoCredit ?? "Credit pending"}</figcaption>
+          <figcaption>
+            {metadata?.credit ?? stop.photoCredit ?? "Credit pending"}
+            {metadata && (
+              <>
+                {" "}
+                · {metadata.camera} · Sol {metadata.sol}
+                <br />
+                <a
+                  href={metadata.sourceUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  NASA original image
+                </a>{" "}
+                · {metadata.date}
+              </>
+            )}
+          </figcaption>
         </figure>
       ) : (
         <figure>

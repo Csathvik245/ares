@@ -59,3 +59,12 @@ Validation: TypeScript, production build, and 145 tests pass. New tests check ro
 Chrome local checks: responsive viewport set to 1440 × 900 for GO/storm/playback/HUD and 1024 × 768 for the tablet map and mission sheet. GO showed 4.97 km, 3:35, 49%, and 192 min margin. Orbital stop detail and opening briefing were inspected. Console showed React development advice and extension-generated Redirect Blocker messages, with no app runtime errors observed. The storm screenshot was scrubbed to 4531 seconds (rounded display T+1:16); exact 4560 seconds is verified by the regression test. Browser emulation used Fit to window, so final recording still needs a fresh production window at 100% zoom.
 
 Remaining: team target Figma canvas link for comparison, actual rover photos and credits.json, approved ARES branding, MEDA temperature data, owner-authorized GitHub/Vercel auto-deploy, and final production/video/source consistency review after the user's commit and push. No deployment or GitHub push was performed for this presentation update.
+
+
+## Rover-photo credit integration
+
+The seven supplied JPEGs now have credits.json metadata transcribed from the science team's docs/sources.md: NASA/JPL-Caltech credit, original NASA image link/ID, camera, sol, Earth date and stop context. Stop dialogs render this attribution alongside the actual photo; optional design integration receives the same credit. No science coordinates, descriptions or planner calculations changed.
+
+At 1440 × 900 in local Chrome, the demo remained GO at 4.97 km / 3:35 / 49%; Brac's rover image and attribution loaded correctly. Chrome became unavailable before the remaining photo dialogs could be visually checked. Automated checks verify all seven photo paths are real JPEGs with corresponding source metadata; 146 tests, TypeScript and build pass. Credits are sourced from the team's document, not independently re-researched. These additions require commit/push.
+
+Production CLI deployment of this photo-credit update succeeded. The public app shell, seven-entry credits.json and Brac/Sid JPEGs returned HTTP 200; downloaded JPEG signatures were verified. GitHub push was not performed. Fresh production-browser visual review remains pending.
