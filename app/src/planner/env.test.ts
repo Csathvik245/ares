@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { DOSE_MSV_PER_SOL, SOL_HOURS, SPE_MULTIPLIER } from "./constants";
+import { DOSE_MSV_PER_SOL, SOL_HOURS, SPE_IS_ILLUSTRATIVE, SPE_MEASURED_2017_PEAK_MULTIPLIER, SPE_MULTIPLIER } from "./constants";
 import {
   DEMO_LS_DEG,
   SITE_LAT_DEG,
@@ -160,6 +160,22 @@ describe("temperature (Perseverance MEDA: Munguira et al. 2023, Table 1)", () =>
 });
 
 describe("radiation dose rate", () => {
+  it("uses the published RAD surface value: 0.64 mSv (Hassler et al. 2014, Table 1)", () => {
+    expect(DOSE_MSV_PER_SOL).toBe(0.64);
+    // 0.64 mSv over a 24.66 h sol is about 0.026 mSv per hour.
+    expect(envAt(12, false).doseRateMsvPerHr).toBeCloseTo(0.02595, 5);
+  });
+
+  it("flags the SPE multiplier as illustrative and keeps the measured value beside it", () => {
+    expect(SPE_IS_ILLUSTRATIVE).toBe(true);
+    expect(SPE_MULTIPLIER).toBe(30);
+    // September 2017, the largest event RAD has measured on the surface (Zeitlin et al. 2018, Table I):
+    // peak dose equivalent 841 vs 543 µSv/day before the event, "about 50% greater".
+    expect(SPE_MEASURED_2017_PEAK_MULTIPLIER).toBe(1.5);
+    expect(841 / 543).toBeCloseTo(SPE_MEASURED_2017_PEAK_MULTIPLIER, 1);
+    expect(SPE_MULTIPLIER).toBeGreaterThan(SPE_MEASURED_2017_PEAK_MULTIPLIER);
+  });
+
   it("is exactly SPE_MULTIPLIER times higher during a solar particle event", () => {
     const quiet = envAt(10, false).doseRateMsvPerHr;
     expect(envAt(10, true).doseRateMsvPerHr).toBe(quiet * SPE_MULTIPLIER);

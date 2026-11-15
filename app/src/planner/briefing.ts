@@ -2,7 +2,7 @@
 // with a short value and a tag saying how far the number can be trusted.
 // Pure functions, no UI code. All numbers are formatted with format.ts.
 
-import { SOL_HOURS, STORM_EXTRA_RESERVE_MIN, STORM_SPEED_FACTOR } from "./constants";
+import { SOL_HOURS, SPE_MULTIPLIER, STORM_EXTRA_RESERVE_MIN, STORM_SPEED_FACTOR } from "./constants";
 import { SUN_CAUTION_DEG, doseRateMsvPerHr, envAt } from "./env";
 import { explainSegment } from "./explain";
 import { formatDose, formatLmst, formatMinutes, formatPct, roundHalfUp } from "./format";
@@ -101,9 +101,10 @@ export function computeBriefing(site: Site, plan: Plan, conditions: Conditions):
     key: "RADIATION",
     status: conditions.spe ? "NO-GO" : "GO",
     value: conditions.spe
-      ? `Solar particle event: EVA aborted · ${formatDose(doseMsv)} if the full EVA were walked`
+      ? `Solar particle event: EVA aborted · ${formatDose(doseMsv)} if the full EVA were walked (illustrative ×${SPE_MULTIPLIER} dose rate)`
       : `Projected EVA dose ${formatDose(doseMsv)}`,
-    // The quiet-time rate is measured (Curiosity RAD) and applied to Jezero; the event rate is illustrative.
+    // The quiet-time rate is measured (Curiosity RAD, Hassler et al. 2014) and applied to Jezero.
+    // The event rate uses SPE_MULTIPLIER, which is illustrative (SPE_IS_ILLUSTRATIVE).
     evidence: conditions.spe ? "ASSUMED" : "CALC",
   });
 

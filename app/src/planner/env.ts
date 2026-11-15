@@ -178,9 +178,11 @@ export function temperatureC(lmstHours: number): number {
 }
 
 /**
- * Radiation dose rate in mSv per (Earth) hour: the average surface dose measured
- * by Curiosity RAD, spread evenly over the sol, times SPE_MULTIPLIER (illustrative)
- * during a solar particle event.
+ * Radiation dose rate in mSv per (Earth) hour: the average surface dose equivalent
+ * measured by Curiosity RAD (0.64 mSv, Hassler et al. 2014), spread evenly over the
+ * sol. During a solar particle event it is multiplied by SPE_MULTIPLIER, which is
+ * ILLUSTRATIVE (SPE_IS_ILLUSTRATIVE): the largest event RAD has measured raised the
+ * dose equivalent rate by about 1.5 times, not 30.
  */
 export function doseRateMsvPerHr(spe: boolean): number {
   return (DOSE_MSV_PER_SOL / SOL_HOURS) * (spe ? SPE_MULTIPLIER : 1);

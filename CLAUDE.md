@@ -76,7 +76,7 @@ We don't just toggle layers; we combine them into: **where it's safe to walk, wh
 | Thermal | THEMIS thermal inertia, 100 m (Mars Odyssey), Edwards & Buz 2021 | Low = soft sand, high = firm ground | Walking difficulty |
 | Spectral | CRISM observation HRL000040FF, 36 m (MRO) | Clay and carbonate signatures | Science value |
 | Atmospheric | MEDA (Perseverance), Munguira et al. 2023 | Daily low and high air temperature and when they happen | Conditions over the day |
-| Radiation | RAD (Curiosity, at Gale Crater) | Surface dose ~0.64 mSv/sol | Conditions over the day |
+| Radiation | RAD (Curiosity, at Gale Crater), Hassler et al. 2014 | Surface dose 0.64 ± 0.12 mSv per day | Conditions over the day |
 
 All six are real data in the app today. Exact products, DOIs and links: `docs/sources.md`. How each layer is made: `pipeline/README.md`.
 
@@ -227,8 +227,10 @@ Produced by the data pipeline; read by the planner and the frontend.
 | `ROCK_NO_GO` | 0.75 | Rock (roughness) value above = no-go |
 | `STORM_SPEED_FACTOR` | 0.55 | Speed multiplier in dust storm |
 | `STORM_EXTRA_RESERVE_MIN` | 30 | Extra reserve during storm |
-| `DOSE_MSV_PER_SOL` | 0.64 | Avg surface dose (Curiosity RAD) |
-| `SPE_MULTIPLIER` | 30 | **Illustrative** dose-rate increase in a solar particle event |
+| `DOSE_MSV_PER_SOL` | 0.64 | Avg surface dose equivalent, mSv. **Sourced:** Curiosity RAD, 0.64 ± 0.12 mSv/day (Hassler et al. 2014, Table 1) |
+| `SPE_MULTIPLIER` | 30 | **Illustrative** dose-rate increase in a solar particle event. Not a measured value |
+| `SPE_IS_ILLUSTRATIVE` | `true` | Tells the UI to label every SPE dose number "illustrative" |
+| `SPE_MEASURED_2017_PEAK_MULTIPLIER` | 1.5 | What RAD really measured in its largest surface event (Zeitlin et al. 2018). For display only; the planner does not use it |
 | `SOL_HOURS` | 24.66 | Sol length in Earth hours |
 | `MARS_RADIUS_M` | **3396190** | See decisions above |
 
@@ -372,7 +374,7 @@ Do **not** use the NASA logo in our branding. Credit images "NASA/JPL-Caltech" (
 
 - Sun elevation from Mars24 at latitude 18.45 N, fixed demo date.
 - Temperature: measured by Perseverance MEDA at 1.45 m (Munguira et al. 2023, Table 1, Ls 25°): low 191 K (−82 °C) around 05:15 true solar time, high 243 K (−30 °C) around 15:15. The curve between them is our smooth interpolation. `TEMP_IS_SOURCED = true`.
-- Dose rate: `DOSE_MSV_PER_SOL / SOL_HOURS` per hour, × `SPE_MULTIPLIER` during SPE.
+- Dose rate: `DOSE_MSV_PER_SOL / SOL_HOURS` per hour, × `SPE_MULTIPLIER` during SPE. The ×30 is illustrative (`SPE_IS_ILLUSTRATIVE`); show it labelled as such, with the measured ×1.5 beside it if there is room.
 
 ---
 
@@ -410,7 +412,7 @@ Temperature in `env.ts` now uses measured MEDA values (see section 6, `envAt`).
 ## 9. Science, sources and story
 
 - Every layer and every number shown names its source. `/docs/sources.md` (datasets + papers with links) and `/docs/assumptions.md` (every model assumption).
-- Useful sources: NASA Human Integration Design Handbook, Apollo EVA records, Curiosity RAD papers (Hassler et al. 2014 for 0.64 mSv/sol), Perseverance MEDA data (PDS Atmospheres Node), NASA DONKI space weather database, Mars Climate Database, Perseverance traverse map, AI4Mars dataset, Apollo traverse maps (Lunar and Planetary Institute), Tobler's hiking function, Mars24 (NASA GISS).
+- Useful sources: NASA Human Integration Design Handbook, Apollo EVA records, Curiosity RAD papers (Hassler et al. 2014 for 0.64 ± 0.12 mSv/day; Zeitlin et al. 2018 for the September 2017 event), Perseverance MEDA data (PDS Atmospheres Node), NASA DONKI space weather database, Mars Climate Database, Perseverance traverse map, AI4Mars dataset, Apollo traverse maps (Lunar and Planetary Institute), Tobler's hiking function, Mars24 (NASA GISS).
 - Rover photos: Mars Perseverance Raw Images gallery. Raw images are tagged by site/drive, not coordinates — match against the traverse data, or hand-pick 5–8 photos and place them manually.
 
 ### Demo video (30 s or less)
