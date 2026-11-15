@@ -23,10 +23,13 @@ export function Nav() {
             window.scrollTo({ top: 0 });
           }}
         >
-          {/* The mission patch is an AI-generated image, so it always carries this visible label. */}
+          {/* The mission patch is an AI-generated image. Space Apps asks for a visible mark on AI-generated
+              images, so it always carries a small "AI" badge inside its bottom-right corner. */}
           <span className="nav__patch">
             <img className="nav__mark" src="/brand/ares-patch.png" alt="" width="48" height="40" />
-            <span className="nav__patch-label">AI-generated</span>
+            <span className="nav__patch-badge" title="AI-generated image">
+              AI
+            </span>
           </span>
           The Ares Initiative
         </a>

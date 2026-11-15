@@ -4,7 +4,7 @@ The exact words for the 7-slide demo deck. Rules, image credits and the 7-slide 
 
 **Numbers.** Every number is a placeholder like `8`: *Numbers: see demo-numbers.md*. Fill each one from `docs/demo-numbers.md` (measured on the live app), not from memory. The [table at the end](#placeholders) gives each placeholder's current value in this repo and where it comes from, to check against.
 
-**Before export:** no team names, faces or photos (under-18 rule); every NASA image credited; no NASA logo. **Mission patch:** it is AI-generated (see [`ai-disclosure.md`](ai-disclosure.md)), so it needs a visible "AI-generated" label on every slide it appears on.
+**Before export:** no team names, faces or photos (under-18 rule); every NASA image credited; no NASA logo. **Mission patch:** it is AI-generated (see [`ai-disclosure.md`](ai-disclosure.md)), so it needs a visible AI mark on every slide it appears on (in the app it is a small "AI" in the corner of the patch).
 
 ---
 

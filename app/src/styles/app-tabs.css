@@ -209,36 +209,29 @@
   }
 }
 
-/* ---------- The mission patch and its "AI-generated" label ---------- */
-/* The patch is an AI-generated image. The label is real, always-visible text right under
-   it (not a tooltip), in the theme's muted text colour. */
+/* ---------- The mission patch and its "AI" badge ---------- */
+/* The patch is an AI-generated image, so a small "AI" badge sits inside its bottom-right
+   corner: real, always-visible text (not a tooltip), about a quarter of the patch wide.
+   The wrapper is exactly the size of the image, so nothing in the header moves. */
 .patch-mark {
+  position: relative;
   display: inline-flex;
-  flex-direction: column;
-  align-items: center;
   flex: none;
-  gap: 1px;
+  line-height: 0;
 }
-.console-home .patch-mark .console-patch,
-.app-bar .console-home .patch-mark .console-patch {
-  width: 36px;
-  height: 30px;
-  object-fit: contain;
-}
-.patch-mark__label {
-  color: var(--muted);
-  font: 500 9px/10px var(--font-body);
+.patch-mark__badge {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  box-sizing: border-box;
+  width: 27%;
+  padding: 0 1px;
+  border-radius: 2px;
+  background: rgba(0, 0, 0, 0.62);
+  color: rgba(255, 255, 255, 0.7);
+  font: 700 8px/10px var(--font-body);
   letter-spacing: 0;
+  text-align: center;
   text-transform: none;
-  white-space: nowrap;
-}
-/* Phones: the label makes the logo a little wider, so the bar closes up to keep everything on one line. */
-@media (max-width: 600px) {
-  .app-bar {
-    gap: var(--space-1);
-    padding: 0 var(--space-2);
-  }
-  .app-bar .app-run-demo {
-    padding: var(--space-1) var(--space-2);
-  }
+  pointer-events: none;
 }

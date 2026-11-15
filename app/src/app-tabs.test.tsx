@@ -267,31 +267,41 @@ describe("page title, link preview and the phone note", () => {
   });
 });
 
-describe("the AI-generated mission patch is always labelled", () => {
-  it("every page shows the words 'AI-generated' as visible text right next to the patch", () => {
+describe("the AI-generated mission patch always carries its AI mark", () => {
+  it("the badge renders inside the patch wherever the patch does", () => {
     for (const hash of ["#story", "#plan", "#science"]) {
       const html = page(hash);
       const patches = html.match(/<img[^>]*ares-patch\.png/g) ?? []; // image tags only (React also adds a preload hint)
       expect(patches.length).toBeGreaterThan(0);
-      const labelled = html.match(/<span class="patch-mark"><img class="console-patch"[^>]*ares-patch\.png[^>]*\/><span class="patch-mark__label">AI-generated<\/span><\/span>/g) ?? [];
-      expect(labelled).toHaveLength(patches.length); // no patch without its label
+      const marked = html.match(/<span class="patch-mark"><img class="console-patch"[^>]*ares-patch\.png[^>]*\/><span class="patch-mark__badge" title="AI-generated image">AI<\/span><\/span>/g) ?? [];
+      expect(marked).toHaveLength(patches.length); // no patch without its mark
+      expect(html).not.toContain("patch-mark__label"); // the old text label is gone
     }
-  });
-
-  it("the label is real text in a readable theme colour, not a tooltip or hidden", () => {
-    const css = read("./styles/app-tabs.css");
-    const rule = /\.patch-mark__label \{([^}]*)\}/.exec(css)![1];
-    expect(rule).toContain("color: var(--muted)");
-    expect(rule).not.toMatch(/display: none|visibility: hidden|opacity: 0[;.]?\s/);
-    expect(css).not.toMatch(/\.patch-mark__label[^{]*\{[^}]*display: none/);
-    // The patch is used in one component only, so one label covers every page.
+    // The patch is used in one component only, so one badge covers every page.
     const sources = ["./App.tsx", "./components/AppTabs.tsx", "./components/MissionBriefing.tsx", "./components/StoryChapters.tsx"].map((f) => read(f));
     expect(sources.filter((s) => s.includes("ares-patch")).length).toBe(1);
   });
 
-  it("the disclosure says so, and no open question is left", () => {
+  it("the patch keeps its original size, and the badge sits in its bottom-right corner without moving the header", () => {
+    expect(read("./components/AppTabs.tsx")).toMatch(/ares-patch\.png`\} alt="" width="48" height="40"/);
+    const css = read("./styles/app-tabs.css");
+    expect(css).not.toContain("patch-mark__label");
+    const wrap = /\.patch-mark \{([^}]*)\}/.exec(css)![1];
+    expect(wrap).toContain("position: relative");
+    const badge = /\.patch-mark__badge \{([^}]*)\}/.exec(css)![1];
+    expect(badge).toContain("position: absolute"); // drawn over the image: it takes no room of its own
+    expect(badge).toMatch(/right: 0;\s*bottom: 0;/);
+    expect(badge).toMatch(/width: 2[0-9]%/); // about a quarter of the patch
+    expect(badge).toContain("border-radius: 2px");
+    expect(badge).toMatch(/background: rgba\(0, 0, 0, 0\.\d+\)/); // dark and translucent
+    expect(badge).toContain("color: rgba(255, 255, 255, 0.7)"); // white at 70%
+    expect(badge).not.toMatch(/display: none|visibility: hidden/);
+  });
+
+  it("the disclosure says the patch is AI-generated and describes the mark, with no open question left", () => {
     const doc = read("../../docs/ai-disclosure.md");
-    expect(doc).toContain('Our mission patch is AI-generated. It carries a visible "AI-generated" label wherever it appears as an image, and it uses no NASA branding.');
+    expect(doc).toContain("Our mission patch is AI-generated");
+    expect(doc).toContain('In the app it carries a small "AI" mark in its corner.');
     expect(doc).not.toContain("TEAM: confirm");
     expect(read("../../docs/project-page.md")).not.toContain("TEAM: confirm");
   });

@@ -182,7 +182,7 @@ Optional: `pipeline/` holds the Python scripts that rebuild the terrain grid, th
 
 We used AI coding assistants (Claude Code and ChatGPT) to help write and review code and documentation. Early on, we used an AI assistant to brainstorm options. The team chose and developed the ARES concept from a teammate's design document, and decided its scope, data, methods and validation. Team members gave the instructions, reviewed the output and ran the tests. Every route and safety decision in the app comes from deterministic algorithms, not from AI.
 
-Our mission patch is AI-generated. It carries a visible "AI-generated" label wherever it appears as an image, and it uses no NASA branding. The repository also contains code for an optional chat assistant. It is not enabled in the app and is not part of the submission. The full disclosure is in [docs/ai-disclosure.md](docs/ai-disclosure.md).
+Our mission patch is AI-generated, and it uses no NASA branding. In the app it carries a small "AI" mark in its corner. The repository also contains code for an optional chat assistant. It is not enabled in the app and is not part of the submission. The full disclosure is in [docs/ai-disclosure.md](docs/ai-disclosure.md).
 
 ## Credits and licence
 

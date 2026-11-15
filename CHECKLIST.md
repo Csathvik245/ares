@@ -177,7 +177,7 @@ Needs nothing from anyone. Figma is separate. Code components take **props with 
 - [ ] 🟧 `app/src/design/StopCard.tsx`: props `{ stop, photoUrl, photoCredit, why, dwellMin, tools, oxygenCostMin }`
 - [ ] 🟧 `app/src/design/preview.html` (or a `?design` route) renders all three with mock data, so you can see them without the main app
 - [ ] 🟧 Motion: route draw-in 600 ms, zone pulse 3 s, status 250 ms, gauge 500 ms; respects reduced motion
-- [x] 🟧 ARES logo + mission patch (original, **no NASA logo**) in `app/public/brand/` (`ares-patch.png`; it is AI-generated and shown with a visible "AI-generated" label, see `docs/ai-disclosure.md` item 6)
+- [x] 🟧 ARES logo + mission patch (original, **no NASA logo**) in `app/public/brand/` (`ares-patch.png`; it is AI-generated and shown with a small "AI" mark in its corner, see `docs/ai-disclosure.md` item 6)
 - [ ] 🟧 Slide template
 - [ ] 🟧 Visual QA before the video: spacing, contrast ≥ 4.5:1, fonts, labels
 - [ ] 🟦 Tablet frame 1024 × 768; chat bubble style
@@ -200,7 +200,7 @@ Needs nothing from anyone. Research and docs stand alone. Use Mars Trek screensh
 - [x] 🟧 Demo video script + shot list (by hour 12) → `docs/video-script.md` (30 s caption-only script is the main one; 60 s in appendix, not for submission)
 - [ ] 🟧 Slides: problem, story, how it works, 6 data layers, safe zone, emergencies, HUD, novelty, assumptions, sources, team, next steps (outline: `docs/slides-outline.md`; exact text for 7 slides: `docs/slides-content.md`, numbers filled from `docs/demo-numbers.md`; deck not built)
 - [x] 🟧 README + Space Apps project page text → `README.md`, `docs/project-page.md` (draft; fill its TODO links, then paste into the Project tab)
-- [x] 🟥 AI use disclosure → `docs/ai-disclosure.md`. No open questions: the mission patch is disclosed as AI-generated and labelled
+- [x] 🟥 AI use disclosure → `docs/ai-disclosure.md`. No open questions: the mission patch is disclosed as AI-generated and marked
 - [x] 🟥 No team member names in README, docs or slides (under-18 rule); "The Ares Initiative" only
 - [ ] 🟧 Record + edit the **30 s caption-only** video (once the live link works; no voice, no faces)
 - [ ] 🟧 Judge test: live app in a fresh browser; report issues in the group chat

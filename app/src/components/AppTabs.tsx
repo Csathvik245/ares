@@ -41,10 +41,13 @@ export function AppLogo({ onSelect }: { onSelect: (tab: AppTab) => void }) {
         window.scrollTo(0, 0);
       }}
     >
-      {/* The mission patch is an AI-generated image, so it always carries this visible label (docs/ai-disclosure.md). */}
+      {/* The mission patch is an AI-generated image. Space Apps asks for a visible mark on AI-generated
+          images, so it always carries a small "AI" badge inside its bottom-right corner (docs/ai-disclosure.md). */}
       <span className="patch-mark">
-        <img className="console-patch" src={`${import.meta.env.BASE_URL}brand/ares-patch.png`} alt="" width="36" height="30" />
-        <span className="patch-mark__label">AI-generated</span>
+        <img className="console-patch" src={`${import.meta.env.BASE_URL}brand/ares-patch.png`} alt="" width="48" height="40" />
+        <span className="patch-mark__badge" title="AI-generated image">
+          AI
+        </span>
       </span>
       <b>ARES</b>
     </a>
