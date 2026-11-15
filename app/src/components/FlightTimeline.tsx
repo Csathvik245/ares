@@ -23,7 +23,7 @@ export function FlightTimeline({ profileOn, onToggleProfile }: { profileOn?: boo
     : plan.totalSec;
   const labels = [0, ...plan.legs.map((l) => l.arriveSec)];
   return (
-    <section className="flight-timeline" aria-label="EVA timeline">
+    <section className="flight-timeline" aria-label="EVA timeline" data-tour="timeline">
       <div className="timeline-controls">
         <button
           onClick={m.emergency ? m.toggleReturnPlayback : m.togglePlayback}

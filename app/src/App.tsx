@@ -37,7 +37,8 @@ import { SciencePage } from "./components/SciencePage";
 import { CONSOLE_TABS, hashOfTab, runDemo, tabFromHash, type AppTab } from "./lib/appTabs";
 import { demoBriefing } from "./lib/story";
 import { GuideButton, UserGuide } from "./components/UserGuide";
-import { hintNeeded, rememberHint } from "./lib/guide";
+import { PLAY_HINT_TEXT, hintNeeded, rememberHint, type GuideAction, type TourStop } from "./lib/guide";
+import { GuideTour } from "./components/GuideTour";
 const EMPTY_PATH: LatLng[] = [];
 function Console({ initialHash }: { initialHash?: string }) {
   const m = useMission();
@@ -75,7 +76,10 @@ function Console({ initialHash }: { initialHash?: string }) {
   const consolidated =
     desktop && document.documentElement.dataset.theme !== "classic";
   const { site, plan, cost, position, emergency, abort } = m;
-  // The user guide (a panel on the right, on every tab) and its first-visit hint on the Plan tab.
+  // The user guide (full screen, on every tab), its first-visit hint on the Plan tab, the spotlight
+  // tour of the Plan view (-1 = off), and the "Press Play" pointer shown after the guide loads the demo.
+  const [tourIndex, setTourIndex] = useState(-1);
+  const [playHint, setPlayHint] = useState(false);
   const [guideOpen, setGuideOpen] = useState(false);
   const [guideHint, setGuideHint] = useState(false);
   const dismissGuideHint = () => {
@@ -90,6 +94,13 @@ function Console({ initialHash }: { initialHash?: string }) {
   useEffect(() => {
     if (screen === "plan" && hintNeeded()) setGuideHint(true);
   }, [screen]);
+  // The tour is of the Plan view: leaving the tab ends it. The Play pointer goes once the walk is playing.
+  useEffect(() => {
+    if (screen !== "plan") setTourIndex(-1);
+  }, [screen]);
+  useEffect(() => {
+    if (m.playing) setPlayHint(false);
+  }, [m.playing]);
   // "?" opens the guide from any tab; Esc closes it.
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -163,20 +174,62 @@ function Console({ initialHash }: { initialHash?: string }) {
     window.addEventListener("keydown", handler);
     return () => window.removeEventListener("keydown", handler);
   });
-  // One Guide button and one panel, used by all three tabs. The hint is for the Plan tab only.
+  // One Guide button and one guide, used by all three tabs. The hint is for the Plan tab only.
   const guideButton = (
     <GuideButton open={guideOpen} onToggle={toggleGuide} hint={guideHint && screen === "plan"} onDismissHint={dismissGuideHint} />
   );
+  /** Make sure there is a plan to look at: load the demo mission if no stops are on the map (and no emergency is running). */
+  const ensurePlan = () => {
+    if (!m.emergency && m.stops.length === 0) m.loadDemo();
+  };
+  /** A Get started card: each one does what it says, on the Plan tab, with the guide out of the way. */
+  const onGuideAction = (action: GuideAction) => {
+    setGuideOpen(false);
+    if (action === "demo") {
+      runDemo(go);
+      return;
+    }
+    go("plan");
+    if (action === "load") {
+      if (m.emergency) m.reset();
+      m.loadDemo();
+      setTab("Map");
+      setPlayHint(true);
+      return;
+    }
+    // "Throw an emergency at it": show the emergency controls and flash them.
+    ensurePlan();
+    setTab("Plan"); // tablet: the Mission sheet holds the controls
+    window.setTimeout(() => {
+      const controls = document.querySelector('[data-tour="emergency"]');
+      if (!controls) return;
+      controls.scrollIntoView({ block: "nearest" });
+      controls.classList.add("is-flash");
+      window.setTimeout(() => controls.classList.remove("is-flash"), 2400);
+    }, 350);
+  };
   const guidePanel = (
     <UserGuide
       open={guideOpen}
+      site={m.site}
+      demoStops={m.demo}
       onClose={() => setGuideOpen(false)}
-      onRunDemo={() => {
-        setGuideOpen(false); // out of the way of the demo's card
-        runDemo(go);
+      onAction={onGuideAction}
+      onScience={() => {
+        setGuideOpen(false);
+        go("science");
+      }}
+      onStartTour={() => {
+        setGuideOpen(false);
+        go("plan");
+        ensurePlan(); // so every stop of the tour has something to show
+        setPlayHint(false);
+        setTourIndex(0);
       }}
     />
   );
+  // Tablet: bring the stop's part of the console on screen (the map, or the Mission sheet).
+  const onTourStop = (stop: TourStop) => setTab(stop.consoleTab);
   if (screen === "story")
     return (
       <div className="app-page app-page--story">
@@ -427,6 +480,12 @@ function Console({ initialHash }: { initialHash?: string }) {
               currentTSec={emergency ? m.returnElapsed : m.elapsed}
             />
           )}
+          {playHint && !m.playing && !emergency && plan.legs.length > 0 && (
+            // Shown after the guide's "Load the demo mission" card. It goes when clicked or when Play is pressed.
+            <button type="button" className="play-hint" onClick={() => setPlayHint(false)}>
+              {PLAY_HINT_TEXT}
+            </button>
+          )}
           <FlightTimeline profileOn={profileOn} onToggleProfile={() => setProfileChoice(!profileOn)} />
         </section>
   );
@@ -460,6 +519,7 @@ function Console({ initialHash }: { initialHash?: string }) {
         </div>
       </header>
       {guidePanel}
+      <GuideTour index={guideOpen ? -1 : tourIndex} onChange={setTourIndex} onStop={onTourStop} />
       <nav className="tablet-tabs" aria-label="Console panels">
         {CONSOLE_TABS.map((t) => (
           <button key={t.id} aria-pressed={tab === t.id} onClick={() => setTab(t.id)}>

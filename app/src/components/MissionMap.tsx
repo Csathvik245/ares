@@ -556,7 +556,7 @@ export function MissionMap({
     blocked: !!blocked,
   });
   return (
-    <div className={`map-shell ${emergency ? "is-emergency" : ""}`}>
+    <div className={`map-shell ${emergency ? "is-emergency" : ""}`} data-tour="map">
       <div
         ref={root}
         className="mission-map"

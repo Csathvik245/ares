@@ -21,6 +21,7 @@ import {
 import { scienceScore, suggestStops } from "../planner/science";
 import { EVIDENCE_LABELS } from "../lib/evidenceLabels";
 import { ReliabilityPanel } from "./ReliabilityPanel";
+import { OxygenBar } from "./OxygenBar";
 import { reliabilityOf, simulatedRangeNote } from "../lib/reliability";
 import { Jargon } from "./PlanChrome";
 import { SCENARIO_BUTTONS, type UiEmergencyKind } from "../lib/emergency-run";
@@ -127,7 +128,7 @@ export function MissionPanel({
   const sunLine = `Lowest sun during the EVA: ${roundHalfUp(lowest)}° above the horizon (${EVIDENCE_LABELS.sun}).`;
 
   const statusSection = (
-      <section className="rail-status">
+      <section className="rail-status" data-tour="status">
         <div className="panel-heading">
           <span>
             {m.replanned ? "EVA" : m.emergency ? "Return home" : "Mission status"}
@@ -183,7 +184,7 @@ export function MissionPanel({
   const sim = hasRoute && !m.emergency ? reliabilityOf(m.site!, plan, { startLmst: m.conditions.startLmst }) : null;
   const simRange = sim && sim.trials > 0 && Number.isFinite(sim.oxygenAtReturnPct.p5) && Number.isFinite(sim.oxygenAtReturnPct.p95) ? sim : null;
   const budgetSection = !hasRoute ? null : (
-      <section className="oxygen-panel budget-section">
+      <section className="oxygen-panel budget-section" data-tour="oxygen">
         <div className="panel-heading">
           <span>Oxygen budget</span>
           <small>{EVIDENCE_LABELS.oxygen}</small>
@@ -210,26 +211,7 @@ export function MissionPanel({
             </span>
           </p>
         )}
-        <div
-          className="budget-bar"
-          role="img"
-          aria-label={`Oxygen: ${formatMinutes(used)} used, ${formatMinutes(margin)} margin, ${formatMinutes(budget.reserveSec)} reserve required`}
-        >
-          <span
-            className="budget-used"
-            style={{ width: `${100 * Math.min(1, used / budget.budgetSec)}%` }}
-          />
-          <span
-            className="budget-margin"
-            style={{
-              width: `${(100 * Math.max(0, margin)) / budget.budgetSec}%`,
-            }}
-          />
-          <span
-            className="budget-reserve"
-            style={{ width: `${(100 * reserve) / budget.budgetSec}%` }}
-          />
-        </div>
+        <OxygenBar usedSec={used} marginSec={margin} reserveSec={reserve} budgetSec={budget.budgetSec} reserveRequiredSec={budget.reserveSec} />
         <p className="budget-key">
           <span>Used <b>{formatMinutes(used)}</b></span>
           <span>Reserve target <b>{formatMinutes(budget.reserveSec)}</b><Jargon term="reserve" /></span>
@@ -285,7 +267,7 @@ export function MissionPanel({
   );
 
   const stopsSection = (
-      <section className="stop-section">
+      <section className="stop-section" data-tour="stops">
         <div className="panel-heading">
           <span>
             {m.emergency ? "Original science stops" : "Science stops"}
@@ -445,7 +427,7 @@ export function MissionPanel({
         ? "Type the time as hours:minutes, for example 1:16."
         : "Starts at the playback time unless you type another.";
   const emergencyFooter = (
-      <footer className="emergency-controls">
+      <footer className="emergency-controls" data-tour="emergency">
         <div className="panel-heading">
           <span>
             Emergency simulation

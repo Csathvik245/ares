@@ -181,7 +181,7 @@ describe("tablet touch targets", () => {
 describe("sidebar fit: nothing hidden behind the pinned emergency block", () => {
   const css = read("../styles/sidebar-fit.css");
   const panel = read("../components/MissionPanel.tsx");
-  const block = panel.slice(panel.indexOf('<footer className="emergency-controls">'), panel.indexOf("</footer>"));
+  const block = panel.slice(panel.indexOf('<footer className="emergency-controls"'), panel.indexOf("</footer>"));
 
   it("the emergency block is one row and one small line; the hint lives in tooltips", () => {
     expect(block).not.toContain('className="emergency-hint"');
