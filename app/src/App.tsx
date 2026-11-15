@@ -28,8 +28,12 @@ import {
   assistantAvailable,
 } from "./components/AssistantIntegration";
 import { Dialog } from "./components/Dialog";
+import { AppBar, AppLogo, AppTabs } from "./components/AppTabs";
+import { GuidedDemo } from "./components/GuidedDemo";
+import { SciencePage } from "./components/SciencePage";
+import { CONSOLE_TABS, hashOfTab, runDemo, tabFromHash, type AppTab } from "./lib/appTabs";
 const EMPTY_PATH: LatLng[] = [];
-function Console() {
+function Console({ initialHash }: { initialHash?: string }) {
   const m = useMission();
   const briefing = useMemo(
     () => (m.site && m.plan ? computeBriefing(m.site, m.plan, m.conditions) : null),
@@ -39,11 +43,13 @@ function Console() {
     () => (m.site && m.plan ? scienceScore(m.site, m.plan, { stops: m.stops }) : []),
     [m.site, m.plan, m.stops],
   );
-  const frontendOnly = new URLSearchParams(window.location.search).has(
-    "frontend",
-  );
-  const [screen, setScreen] = useState<"briefing" | "plan" | "hud">(
-      frontendOnly ? "plan" : "briefing",
+  const inBrowser = typeof window !== "undefined";
+  const frontendOnly = inBrowser && new URLSearchParams(window.location.search).has("frontend");
+  // The page on screen: one of the three tabs, or the helmet HUD (a full-screen view of the Plan tab).
+  // Story is the default; a link such as #science opens that tab directly.
+  const homeTab: AppTab = frontendOnly ? "plan" : "story";
+  const [screen, setScreen] = useState<AppTab | "hud">(() =>
+      tabFromHash(initialHash ?? (inBrowser ? window.location.hash : ""), homeTab),
     ),
     [active, setActive] = useState<OverlayName[]>([]),
     [probe, setProbe] = useState(-1),
@@ -59,6 +65,16 @@ function Console() {
   const consolidated =
     desktop && document.documentElement.dataset.theme !== "classic";
   const { site, plan, cost, position, emergency, abort } = m;
+  // Open a tab and put it in the URL (#story, #plan, #science), so back and forward work.
+  const go = (tab: AppTab) => {
+    setScreen(tab);
+    if (inBrowser && window.location.hash !== hashOfTab(tab)) window.location.hash = tab;
+  };
+  useEffect(() => {
+    const onHash = () => setScreen(tabFromHash(window.location.hash, homeTab));
+    window.addEventListener("hashchange", onHash);
+    return () => window.removeEventListener("hashchange", onHash);
+  }, [homeTab]);
   const remove = () => {
     if (!emergency && m.selected)
       m.edit(m.stops.filter((s) => s.id !== m.selected));
@@ -76,7 +92,8 @@ function Console() {
       }
       if (
         el.closest('input,textarea,select,[contenteditable="true"]') ||
-        screen === "briefing" ||
+        screen === "story" ||
+        screen === "science" ||
         sources ||
         assistant ||
         !!detail
@@ -102,29 +119,50 @@ function Console() {
     window.addEventListener("keydown", handler);
     return () => window.removeEventListener("keydown", handler);
   });
-  if (screen === "briefing")
+  if (screen === "story")
     return (
-      <OpeningScreen
-        onBeginPlanning={() => setScreen("plan")}
-        terrainImageUrl={m.basemap?.url}
-        imageCredit={m.basemap?.credit}
-        rows={briefing?.rows ?? []}
-        status={briefing?.status ?? "GO"}
-        reasons={briefing?.reasons ?? []}
-      />
+      <div className="app-page app-page--story">
+        <AppBar current="story" onSelect={go} />
+        <OpeningScreen
+          onBeginPlanning={() => go("plan")}
+          onRunDemo={() => runDemo(go)}
+          terrainImageUrl={m.basemap?.url}
+          imageCredit={m.basemap?.credit}
+          rows={briefing?.rows ?? []}
+          status={briefing?.status ?? "GO"}
+          reasons={briefing?.reasons ?? []}
+        />
+      </div>
+    );
+  if (screen === "science")
+    return (
+      <div className="app-page app-page--science">
+        <AppBar current="science" onSelect={go}>
+          <button type="button" className="app-run-demo" onClick={() => runDemo(go)}>
+            Run the demo
+          </button>
+        </AppBar>
+        <SciencePage />
+      </div>
     );
   if (m.error)
     return (
-      <main className="load-state" role="alert">
-        Terrain could not load: {m.error}{" "}
-        <button onClick={() => location.reload()}>Retry</button>
-      </main>
+      <div className="app-page app-page--plan-wait">
+        <AppBar current="plan" onSelect={go} />
+        <main className="load-state" role="alert">
+          Terrain could not load: {m.error}{" "}
+          <button onClick={() => location.reload()}>Retry</button>
+        </main>
+      </div>
     );
   if (!site || !plan || !cost)
     return (
-      <main className="load-state" role="status">
-        Loading Jezero terrain…
-      </main>
+      <div className="app-page app-page--plan-wait">
+        <AppBar current="plan" onSelect={go} />
+        <main className="load-state" role="status">
+          Loading Jezero terrain…
+        </main>
+      </div>
     );
   const next = m.stops[position.legIndex] ?? site.habitat;
   const shelter = m.emergencyOutcome?.shelter;
@@ -214,6 +252,8 @@ function Console() {
             onProbe={setProbe}
             walkHome={m.home?.cost}
           >
+            {/* The guided demo's caption card. It stays closed until "Run the demo" starts it. */}
+            <GuidedDemo />
             {view3d && (
               <Suspense
                 fallback={
@@ -282,20 +322,9 @@ function Console() {
     <main className={`console-app ${emergency ? "has-emergency" : ""}`}>
       <header className="console-header">
         <div className="console-brand">
-          <a
-            className="console-home"
-            href="/"
-            aria-label="ARES home"
-            onClick={(event) => {
-              event.preventDefault();
-              setScreen("briefing");
-              window.scrollTo(0, 0);
-            }}
-          >
-            <img className="console-patch" src="/brand/ares-patch.png" alt="" width="48" height="40" />
-            <b>ARES</b>
-          </a>
-          <span>
+          <AppLogo onSelect={go} />
+          <AppTabs current="plan" onSelect={go} />
+          <span className="brand-mission">
             ARES-1 EVA <small>Jezero delta front</small>
           </span>
           {consolidated && (
@@ -338,6 +367,9 @@ function Console() {
           {assistantAvailable && (
             <button onClick={() => setAssistant(true)}>Assistant</button>
           )}
+          <button type="button" className="app-run-demo" onClick={() => runDemo(go)}>
+            Run the demo
+          </button>
           <Map3DToggle active={view3d} onToggle={() => setView3d((v) => !v)} />
           <button onClick={() => setScreen("hud")}>Helmet HUD · H</button>
           {consolidated && (
@@ -346,9 +378,9 @@ function Console() {
         </div>
       </header>
       <nav className="tablet-tabs" aria-label="Console panels">
-        {["Map", "Plan", "Layers"].map((t) => (
-          <button key={t} aria-pressed={tab === t} onClick={() => setTab(t)}>
-            {t}
+        {CONSOLE_TABS.map((t) => (
+          <button key={t.id} aria-pressed={tab === t.id} onClick={() => setTab(t.id)}>
+            {t.label}
           </button>
         ))}
       </nav>
@@ -485,10 +517,11 @@ function Console() {
     </main>
   );
 }
-export default function App() {
+/** `initialHash` is for tests; in the browser the tab comes from the page's own URL. */
+export default function App({ initialHash }: { initialHash?: string } = {}) {
   return (
     <MissionProvider>
-      <Console />
+      <Console initialHash={initialHash} />
     </MissionProvider>
   );
 }

@@ -1,0 +1,187 @@
+/* Main navigation (Story | Plan | Science) and the top bar of the Story and Science pages.
+   Theme variables only. The tabs are plain text with an electric-blue underline on the
+   current page, so they do not look like the boxed status pills or toolbar buttons. */
+.app-tabs {
+  display: flex;
+  align-self: stretch;
+  align-items: stretch;
+  flex: none;
+  gap: var(--space-1);
+}
+.app-tabs a {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  min-width: var(--touch-target);
+  justify-content: center;
+  padding: 0 var(--space-3);
+  color: var(--muted);
+  font: 600 13px/1 var(--font-body);
+  letter-spacing: 0.04em;
+  text-decoration: none;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+.app-tabs a:hover {
+  color: var(--text);
+}
+.app-tabs a.is-current {
+  color: var(--text);
+}
+.app-tabs a.is-current::after {
+  content: "";
+  position: absolute;
+  left: var(--space-3);
+  right: var(--space-3);
+  bottom: 0;
+  height: 2px;
+  background: var(--safe);
+}
+.app-tabs a:focus-visible,
+.app-bar .app-logo:focus-visible {
+  outline: 2px solid var(--safe);
+  outline-offset: -2px;
+}
+
+/* ---------- Top bar of the Story and Science pages ---------- */
+.app-bar {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  flex: none;
+  height: var(--app-bar-height);
+  padding: 0 var(--space-5);
+  background: var(--void-deep);
+  border-bottom: 1px solid var(--hairline);
+}
+.app-bar .app-logo {
+  display: inline-flex;
+  align-items: center;
+  flex: none;
+  gap: var(--space-3);
+  min-height: var(--touch-target);
+  color: var(--mars);
+  font: 700 16px/24px var(--font-mono);
+  letter-spacing: 0.8px;
+  text-decoration: none;
+}
+.app-bar .app-logo:hover {
+  color: var(--safe);
+}
+.app-bar .console-patch {
+  width: 48px;
+  height: 40px;
+  object-fit: contain;
+}
+.app-bar__actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  margin-left: auto;
+}
+.app-run-demo,
+.console-app .header-actions > button.app-run-demo {
+  min-height: 32px;
+  padding: var(--space-1) var(--space-3);
+  background: var(--ds-blue-fill);
+  border: 1px solid var(--ds-blue-fill);
+  border-radius: 0;
+  color: #ffffff;
+  font: 600 12px/16px var(--font-mono);
+  letter-spacing: 0.3px;
+  white-space: nowrap;
+  cursor: pointer;
+}
+.app-run-demo:hover,
+.console-app .header-actions > button.app-run-demo:hover {
+  border-color: #ffffff;
+}
+.app-run-demo:focus-visible {
+  outline: 2px solid var(--safe);
+  outline-offset: 2px;
+}
+
+.app-page {
+  --app-bar-height: 48px;
+}
+/* Story: the page scrolls as before; the bar stays on top. The title screen fills what is left of the first screen. */
+.app-page--story .mission-briefing,
+.app-page--story .mission-briefing .briefing-hero {
+  min-height: calc(100svh - var(--app-bar-height));
+}
+/* Science: the page is its own scroll area under the bar. */
+.app-page--science,
+.app-page--plan-wait {
+  display: flex;
+  flex-direction: column;
+  height: 100svh;
+}
+.app-page--science .science-page {
+  flex: 1;
+  min-height: 0;
+  height: auto;
+}
+.app-page--plan-wait .load-state {
+  flex: 1;
+  min-height: 0;
+}
+
+/* ---------- Inside the Plan console's header ---------- */
+.console-header .app-tabs {
+  margin-left: var(--space-2);
+}
+/* Under 1600 px the mission name gives its room to the tabs and the status pills. */
+@media (max-width: 1599px) {
+  .console-header .console-brand > .brand-mission {
+    display: none;
+  }
+}
+@media (max-width: 1024px) {
+  .app-page {
+    --app-bar-height: 56px;
+  }
+  .app-bar {
+    padding: 0 var(--space-3);
+    gap: var(--space-2);
+  }
+  .app-tabs a {
+    min-height: var(--touch-target);
+  }
+  .console-header .app-tabs {
+    margin-left: 0;
+  }
+}
+@media (max-width: 600px) {
+  .app-bar .app-logo b,
+  .console-header .console-home b {
+    display: none;
+  }
+  .app-tabs a {
+    padding: 0 var(--space-2);
+  }
+}
+
+/* ---------- Keeping the Plan header on one line ---------- */
+/* Under 1600 px the site name also steps aside (it is on the map and in the Story),
+   so the tabs, both status pills and every button fit, even in an emergency. */
+@media (max-width: 1599px) {
+  :is([data-theme="deep-space"], [data-theme="mono"]) .console-header .brand-context {
+    display: none;
+  }
+}
+/* Tablet: the patch alone is the logo, and the tabs sit a little closer together. */
+@media (max-width: 1024px) {
+  .console-header .console-home b {
+    display: none;
+  }
+  .console-header .app-tabs a {
+    padding: 0 var(--space-2);
+  }
+  .console-header .app-tabs a.is-current::after {
+    left: var(--space-2);
+    right: var(--space-2);
+  }
+}
