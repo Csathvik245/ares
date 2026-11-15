@@ -15,6 +15,9 @@ What ARES does **not** do, or does only approximately. Values are from `app/src/
   - Oxygen: `CONSUMABLE_HOURS` = 8 h of life support (the Shuttle/ISS EMU rating), burned × `WALK_BURN` = 1.3 while walking and × `WORK_BURN` = 0.9 during science, with a `RESERVE_MIN` = 45 min reserve (+ `STORM_EXTRA_RESERVE_MIN` = 30 min in a dust storm). The burn rates, reserve and sand factor are our assumptions, not measured suit data.
   - Dust storm: walking × `STORM_SPEED_FACTOR` = 0.55 (low visibility and dust on the visor, not wind). The factor is our assumption.
 
+- **The re-planning emergencies use made-up sizes** (`app/src/planner/emergencies.ts`). The 25% oxygen loss, the 75 m blocked area and the 0.7 walking-speed factor are illustrative demo values, not measured suit-failure or rockfall data. An oxygen leak is modelled as one sudden loss, not a steady leak. Stops are only dropped from the end of the plan, never re-ordered. A blocked area is a simple circle.
+- **No rover model, so no rover-breakdown scenario.** ARES plans for an astronaut on foot. There is no support rover, so there is nothing to break down and no rover rescue to plan.
+
 ## Radiation
 
 - **The solar particle event is illustrative.** During an SPE the dose rate is multiplied by `SPE_MULTIPLIER` = 30 (`SPE_IS_ILLUSTRATIVE` = true). This is a demo value, not a measurement. In the largest event Curiosity's RAD measured on the surface (September 2017), the peak dose-equivalent rate was only about 1.5 times normal (`SPE_MEASURED_2017_PEAK_MULTIPLIER` = 1.5, Zeitlin et al. 2018). Real events also build up over hours; ours starts at once.

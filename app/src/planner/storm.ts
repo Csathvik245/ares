@@ -101,14 +101,19 @@ export type StormOutcome = {
  * Default start time (LMST hours) when the caller does not pass one. It only
  * affects the low-sun reasons in evaReasons, never the route or the oxygen numbers.
  */
-const DEFAULT_START_LMST = 13;
+export const DEFAULT_START_LMST = 13;
 
 // One emergency grid per site, kind and start time. Reusing the same grid object is
 // what lets abortRoute reuse its cached walk-home field (see fields.ts), so dragging
 // the storm time along the timeline costs one field, not one per frame.
 const gridCache = new WeakMap<Site, Map<string, CostGrid>>();
 
-function emergencyGrid(site: Site, kind: EmergencyKind, startLmst: number): CostGrid {
+/**
+ * The cost grid for an emergency kind, built once per site, kind and start time
+ * and then reused (so its cached fields are reused too). "calm" is the normal
+ * grid with no storm or SPE, used by the scenarios in emergencies.ts.
+ */
+export function emergencyGrid(site: Site, kind: EmergencyKind | "calm", startLmst: number): CostGrid {
   let perSite = gridCache.get(site);
   if (!perSite) gridCache.set(site, (perSite = new Map()));
   const key = `${kind}@${startLmst}`;
@@ -125,7 +130,7 @@ function emergencyGrid(site: Site, kind: EmergencyKind, startLmst: number): Cost
  * exact end point of its leg, and its science time is the gap before the next leg
  * starts walking. Returns null if a leg has no path (a stop was unreachable).
  */
-function stopsOf(plan: Plan): Stop[] | null {
+export function stopsOf(plan: Plan): Stop[] | null {
   const stops: Stop[] = [];
   for (let i = 0; i + 1 < plan.legs.length; i++) {
     const leg = plan.legs[i];

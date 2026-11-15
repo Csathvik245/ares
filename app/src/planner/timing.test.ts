@@ -140,6 +140,14 @@ const CASES: Record<string, [string, () => unknown]> = {
   doseRateMsvPerHr: ["1,000 calls", x1000((i) => doseRateMsvPerHr(i % 2 === 0))],
   // A fresh copy of the site each time, so the emergency grid and its field are really rebuilt.
   stormAt: ["new site copy: emergency grid + field + abort + re-plan (cache miss)", () => planner.stormAt({ ...site }, plan, 4560, "dust", 13)],
+  emergencyGrid: ["new site copy: calm grid (cache miss)", () => planner.emergencyGrid({ ...site }, "calm", 13)],
+  // Fresh site copies, so the calm grid, the derived grid and the walk-home field are really rebuilt.
+  scenarioAt: ["new site copy: slow-walk re-plan at T+1:16 (cache miss)", () => planner.scenarioAt({ ...site }, plan, 4560, "slow-walk")],
+  oxygenLossAt: ["new site copy: oxygen-loss re-plan at T+1:16 (cache miss)", () => planner.oxygenLossAt({ ...site }, plan, 4560)],
+  blockedPathAt: ["new site copy: blocked-path re-plan at T+1:16 (cache miss)", () => planner.blockedPathAt({ ...site }, plan, 4560)],
+  slowWalkAt: ["new site copy: slow-walk re-plan at T+1:16 (cache miss)", () => planner.slowWalkAt({ ...site }, plan, 4560)],
+  slowedGrid: ["new calm grid slowed to 70%", () => planner.slowedGrid(buildCostGrid(site, CALM), 0.7)],
+  blockedGrid: ["new calm grid, 75 m blocked", () => planner.blockedGrid(site, buildCostGrid(site, CALM), far, 75)],
   computeBriefing: ["the demo mission", () => planner.computeBriefing(site, plan, CALM)],
   readSkyView: ["read the skyView layer from site.json", () => planner.readSkyView(raw)],
   // A new SPE grid each time, so both Dijkstra fields (from the astronaut and from home) are really computed.

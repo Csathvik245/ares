@@ -105,6 +105,20 @@ Example from the demo mission: a storm at T+1:16, halfway along leg 2, gives EVA
 
 Mars air is about 1% as dense as Earth's, so storm wind cannot push a person over. The slowdown stands for low visibility and dust on the visor.
 
+### Three more emergencies that re-plan
+
+`scenarioAt(site, plan, tSec, kind, options)` (or `oxygenLossAt`, `blockedPathAt`, `slowWalkAt`) handles three problems that change the plan instead of only raising an alarm:
+
+| Kind | What changes at `tSec` | Option (default) |
+|---|---|---|
+| `oxygen-loss` | A share of the oxygen left is lost (a leak) | `lossFraction` (0.25) |
+| `blocked-path` | Ground within a radius of a point becomes no-go | `blockAt` (middle of the walk in progress), `blockRadiusM` (75 m) |
+| `slow-walk` | Walking speed is multiplied by a factor for the rest of the EVA | `speedFactor` (0.7) |
+
+Each one starts from where the astronaut is at `tSec` (`positionAt`), re-plans the stops still ahead and then home with `planRoute`, and drops stops from the end until the rest fits with the reserve. If none fit, the EVA is aborted (**EVA: NO-GO**) and she walks straight home. The "go home now" route is always `abortRoute` on the new cost grid, with the same **Return home** rule: CAUTION with the reserve intact, NO-GO if not. The result has the same fields as `stormAt`, plus `route`, `keptStops`, `droppedStops`, and `before` / `after` (margin, stop count, end time, status). `before` is the same stops re-planned from the same spot with no emergency, so the comparison is like for like.
+
+The defaults are illustrative demo values, not measured failure rates. On the demo mission at T+1:16 each default keeps both remaining stops: oxygen loss cuts the margin from 194 to 96 min (CAUTION), slow walking to 151 min (GO), and a 75 m block costs a 1 min detour (GO). Harsher settings drop stops; the tests in `emergencies.test.ts` check both.
+
 ## 8. Sun, temperature and radiation
 
 - **Sun:** NASA's Mars24 algorithm (Allison & McEwen 2000) gives the sun's height at 18.45 N through the day, for one fixed season (Ls 0°, the northern spring equinox). At that season sunrise is 06:41 and sunset 18:41 on the local clock, and the sun peaks at 71.5°.
