@@ -81,7 +81,7 @@ Record each shot as its own clip in a **1440 × 900** browser window, with 2 s o
 - [ ] No personal details visible: browser profile picture, account names, bookmarks, file paths, notifications
 - [ ] Captions in English, **8 words or fewer** each, and each on screen long enough to read
 - [ ] Any music is our own or licensed for reuse; licence listed in the References field. If music is AI-generated, acknowledge it in the video description and metadata
-- [ ] No AI-generated images or video. If any are added, they carry a visible watermark. **The mission patch is in the app's top bar**: settle the open question in [`ai-disclosure.md`](ai-disclosure.md) before recording
+- [ ] No AI-generated images or video. If any are added, they carry a visible watermark. **The mission patch in the app's top bar is AI-generated**: its "AI-generated" label must stay visible in every shot that shows it (see [`ai-disclosure.md`](ai-disclosure.md))
 - [ ] No NASA logo, flags or mission insignia in the end card or captions
 
 **App state**

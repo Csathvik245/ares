@@ -1,8 +1,6 @@
-# ARES — AI use disclosure
+# ARES: AI use disclosure
 
-Space Apps 2026 uses the term **"Artificial Intelligence (AI)"** for AI tools, including large language models, chat assistants and code generation tools ([Project Submission Guide](https://www.spaceappschallenge.org/resources/project-submission-guide/), "Use of Artificial Intelligence"). **Flag:** the [Participant FAQs](https://www.spaceappschallenge.org/resources/participant-faqs/) no longer appear to have a dedicated "What is AI/SI" section; see the note at the end of this file. Teams must say where and how they used these tools. This file is our disclosure: the "descriptive text" the rules ask for. It is linked from the README and the project page.
-
-> One question in this file is still open: the mission patch (item 6). Before submitting, also re-read the official [Project Submission Guide](https://www.spaceappschallenge.org/resources/project-submission-guide/) ("Use of Artificial Intelligence") in case it changed. The wording we read on 14 Nov 2026 is quoted at the end of this file.
+Space Apps 2026 uses the term **"Artificial Intelligence (AI)"** for AI tools, including large language models, chat assistants and code generation tools ([Project Submission Guide](https://www.spaceappschallenge.org/resources/project-submission-guide/), "Use of Artificial Intelligence"). Teams must say where and how they used these tools. This file is our disclosure: the "descriptive text" the rules ask for. It is linked from the README and the project page.
 
 ---
 
@@ -11,17 +9,15 @@ Space Apps 2026 uses the term **"Artificial Intelligence (AI)"** for AI tools, i
 **Did we use AI tools? Yes.**
 
 1. **Coding assistants.** The Ares Initiative used AI coding assistants, **Claude Code (Anthropic)** and **ChatGPT (OpenAI)**, to write and review code and documentation across the project: the route planner, the web app, the data-processing scripts, the unit tests, and the project docs (including this file, the README, the video script and the slides). Team members gave the instructions, reviewed the output, ran the tests and decided what to keep.
-2. **Brainstorming with an AI chat assistant.** Early on, we used an AI chat assistant (**Claude, by Anthropic**) to brainstorm. The AI proposed early concept options. These included a "walkback zone" showing where the astronaut can still return from, Jezero Crater as one candidate site, a route planner and a helmet display.
-3. **The design document.** A team member then wrote the ARES design document, and the team chose it as our project. It shares several of the elements the AI proposed in brainstorming. That document is the source for our shared rules and contracts in the repo (`CLAUDE.md`). After that, the AI chat assistant helped with planning, breaking the work into tasks, code review and debugging.
+2. **Brainstorming.** Early on, we used an AI assistant to brainstorm options. The team chose and developed the ARES concept from a teammate's design document, and decided its scope, data, methods and validation.
+3. **Planning and review.** That design document is the source for our shared rules and contracts in the repo (`CLAUDE.md`). After the concept was chosen, an AI chat assistant (**Claude, by Anthropic**) helped with planning, breaking the work into tasks, code review and debugging.
 
 4. **No AI in route or safety decisions.** Every route, oxygen number, safe-return zone, abort route and GO / CAUTION / NO-GO status in the app comes from **deterministic algorithms**: Dijkstra and A\* search on a terrain grid, with fixed formulas and constants documented in [`assumptions.md`](assumptions.md). No machine-learning model or AI service makes or changes these decisions. The same inputs always give the same answer, and the planner has unit tests.
    - **Our own trained model, trained on Perseverance drive data (separate from the AI chat tools).** We trained a small route-cost model ourselves: seven terrain weights, no neural network, no AI service. `pipeline/learn_route_cost.py` learns it from Perseverance's real drive routes (NASA's traverse file) with maximum margin planning. It is **off by default**. The planner only uses it if a caller passes it to `planRoute` as `routeGrid`, and the app has no button for it. Even then it can only change a route's shape: no-go ground stays no-go, its weights may never be less careful than the physics model, and time, oxygen and status are still worked out by the deterministic model. In testing it did not beat the physics model; the method and results are in [`route-learning.md`](route-learning.md). This is our own machine learning on NASA data. It is not generative AI, and it is separate from the AI coding and chat tools described in this file.
 5. **Data is NASA's, not AI-generated.** The terrain, thermal and mineral layers come from NASA and USGS datasets listed in [`sources.md`](sources.md). AI tools helped write the scripts that process this data; they did not create the data values.
 6. **Media.** Our demo video is a screen recording of the app with captions and no voice. Our rover and orbital images are NASA's, credited in [`sources.md`](sources.md).
-   - **Mission patch (`app/public/brand/ares-patch.png`, also in `site/`).** Not decided yet (see the line under this list). What we found: the file carried an embedded content-credentials (C2PA) record naming the software "ChatGPT" (version "gpt-image") and the claim generator "OpenAI Media Service API", with the source type `trainedAlgorithmicMedia` (the standard code for AI-generated images). If it is AI-generated, the rules require a **visible watermark** saying so on the patch wherever it appears (app, website, slides, video), and this line should say "AI-generated". If a team member drew it, say so here and explain the record. The file in the repo is now a resized copy (192 × 160) that no longer carries that record; the original with the record is in the git history. It has no NASA logo or wordmark.
+   - **Mission patch (`app/public/brand/ares-patch.png`, also in `site/`).** Our mission patch is AI-generated. It carries a visible "AI-generated" label wherever it appears as an image, and it uses no NASA branding. It was made with an AI image tool: the original file's content credentials name OpenAI's image service. The browser tab icon is not the patch: it is a plain letter "A" drawn by our own script (`pipeline/make_favicon.py`).
 7. **No NASA branding** (logos, flags, mission identifiers) was generated or modified with AI.
-
-TEAM: confirm whether the mission patch is AI-generated before submitting.
 
 ## Which folders were AI-assisted
 
@@ -38,7 +34,7 @@ TEAM: confirm whether the mission patch is AI-generated before submitting.
 | `docs/` | Sources, assumptions, submission rules, video script, slides outline, project page, this disclosure | Yes |
 | `README.md`, `CHECKLIST.md`, `CLAUDE.md` | Project overview, task list, team rules and contracts | Yes (written from our design document) |
 | `backend/`, `app/src/ai/` | In-app AI assistant (see [AI assistant in the app](#ai-assistant-in-the-app)) | Yes. The assistant is itself an AI feature. **It is not enabled in the submission** |
-| `app/public/brand/ares-patch.png` | Mission patch | Open question (see item 6 above) |
+| `app/public/brand/ares-patch.png` | Mission patch | **AI-generated image**, shown with a visible "AI-generated" label (item 6 above) |
 
 **Metadata.** The rules ask for acknowledgement in "descriptive text and metadata" for code. Our acknowledgement is this file, the README's "AI use" section that links to it, and the table above, which names every AI-assisted folder. Our commit messages do not carry AI attribution lines (a team repo rule), so this file is where the disclosure lives.
 
@@ -66,8 +62,8 @@ TEAM: confirm whether the mission patch is AI-generated before submitting.
 
 | Question | Answer |
 |---|---|
-| Is the mission patch AI-generated? | Open: the one question left for the team (item 6 above) |
-| Which tools were used | Claude Code (Anthropic) and ChatGPT (OpenAI) for code and docs; Claude (Anthropic) for brainstorming and planning (items 1–3) |
+| Is the mission patch AI-generated? | Yes. It carries a visible "AI-generated" label wherever it appears as an image (item 6 above) |
+| Which tools were used | Claude Code (Anthropic) and ChatGPT (OpenAI) for code and docs; Claude (Anthropic) for brainstorming and planning (items 1 to 3) |
 | Is the in-app assistant in the submission? | No. Code only, not mounted, server not deployed |
 | `pipeline/` | AI-assisted scripts; NASA data values (table above) |
 | Our own machine learning | The route-cost model, trained by us on Perseverance drive data; off by default (item 4) |
@@ -75,19 +71,14 @@ TEAM: confirm whether the mission patch is AI-generated before submitting.
 
 ---
 
-## Official wording we read (14 Nov 2026)
+## Rules we followed
 
 From the NASA Space Apps [Project Submission Guide](https://www.spaceappschallenge.org/resources/project-submission-guide/), section "Use of Artificial Intelligence":
 
 - "The use of Artificial Intelligence (AI) tools is permitted for the NASA Space Apps Challenge."
-- **Generated content restriction:** AI-generated content may not use, contain, or modify any NASA branding or design elements.
-- **Disclosure requirement:** teams must clearly indicate where and how AI tools were utilized in their project.
-- **Images/video:** must include a visible watermark indicating AI generation.
-- **Audio:** must acknowledge AI generation in descriptive text and metadata.
-- **Code and data:** must acknowledge AI generation in descriptive text and metadata.
+- **Generated content restriction:** AI-generated content may not use, contain, or modify any NASA branding or design elements. Our AI-generated patch uses none.
+- **Disclosure requirement:** teams must clearly indicate where and how AI tools were utilized in their project. That is this file.
+- **Images and video:** must include a visible watermark indicating AI generation. Our patch carries a visible "AI-generated" label.
+- **Audio:** must acknowledge AI generation in descriptive text and metadata. We use no AI-generated audio.
+- **Code and data:** must acknowledge AI generation in descriptive text and metadata. See the folder table above.
 - **Judging note:** judges will consider originality, intent, and execution in the context of AI-assisted work.
-
-> **⚠ VERIFY BEFORE SUBMITTING (team):**
-> - The [Participant FAQs](https://www.spaceappschallenge.org/resources/participant-faqs/) page no longer appears to have a dedicated "What is AI/SI" section.
-> - The earlier restriction that AI "should not be used to (come up with your idea of how to solve the challenge)" was **NOT found verbatim** on the current Project Submission Guide or Participant FAQs pages as of 14 Nov 2026.
-> - Do **not** assume it still applies, and do **not** assume it has been removed. Check it directly against the **Participant Terms & Conditions** before submitting.

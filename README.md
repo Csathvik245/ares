@@ -97,7 +97,7 @@ We ran two checks against data the planner never used.
 
 A caveat we keep next to the first number: 98.6% of the whole site is passable, so that figure alone does not prove much. The tilt agreement is the stronger evidence. A rover is also not a person on foot, so this checks the map, not the walking speeds. Details: [docs/validation.md](docs/validation.md).
 
-**A machine-learning check.** We asked whether a model trained on the rover drivers' real choices could plan routes more like theirs than our physics model does. We trained a small route-cost model on 31 real drive routes (15.38 km) and tested it on routes it had not seen.
+**Machine learning check.** We trained a machine-learning model (maximum margin planning) on 31 of Perseverance's real drives to learn how NASA's drivers choose routes. Tested on routes it had not seen, it could not beat our physics planner (24.8 m vs 35.3 m for a straight line), so the planner stays deterministic and the ML serves as independent validation.
 
 | Planner | Mean distance from the rover's real route |
 |---|---|
@@ -105,7 +105,7 @@ A caveat we keep next to the first number: 98.6% of the whole site is passable, 
 | ARES physics model | 24.8 m |
 | Learned model (with the safety rule) | 24.8 m |
 
-The physics model is 10.4 m closer to the drivers' routes than a straight line, about one grid cell away from them. The learned model did not beat it: it chose the same route on 31 of 31 test routes. So the physics planner stays the planner, and the learned model is off by default. Details: [docs/route-learning.md](docs/route-learning.md).
+The model trained on 15.38 km of drives. The physics model is 10.4 m closer to the drivers' routes than a straight line, about one grid cell away from them. The learned model chose the same route as physics on 31 of 31 test routes, so it is off by default: no machine-learning model picks a route in ARES. Details: [docs/route-learning.md](docs/route-learning.md).
 
 ## How sure we are
 
@@ -176,9 +176,9 @@ Optional: `pipeline/` holds the Python scripts that rebuild the terrain grid, th
 
 ## AI use
 
-We used AI coding assistants (Claude Code and ChatGPT) to help write and review code and documentation, and an AI chat assistant for early brainstorming and planning. Team members gave the instructions, reviewed the output and ran the tests. Every route and safety decision in the app comes from deterministic algorithms, not from AI.
+We used AI coding assistants (Claude Code and ChatGPT) to help write and review code and documentation. Early on, we used an AI assistant to brainstorm options. The team chose and developed the ARES concept from a teammate's design document, and decided its scope, data, methods and validation. Team members gave the instructions, reviewed the output and ran the tests. Every route and safety decision in the app comes from deterministic algorithms, not from AI.
 
-The repository also contains code for an optional chat assistant. It is not enabled in the app and is not part of the submission. The full disclosure is in [docs/ai-disclosure.md](docs/ai-disclosure.md).
+Our mission patch is AI-generated. It carries a visible "AI-generated" label wherever it appears as an image, and it uses no NASA branding. The repository also contains code for an optional chat assistant. It is not enabled in the app and is not part of the submission. The full disclosure is in [docs/ai-disclosure.md](docs/ai-disclosure.md).
 
 ## Credits and licence
 

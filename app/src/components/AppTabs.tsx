@@ -41,7 +41,11 @@ export function AppLogo({ onSelect }: { onSelect: (tab: AppTab) => void }) {
         window.scrollTo(0, 0);
       }}
     >
-      <img className="console-patch" src={`${import.meta.env.BASE_URL}brand/ares-patch.png`} alt="" width="48" height="40" />
+      {/* The mission patch is an AI-generated image, so it always carries this visible label (docs/ai-disclosure.md). */}
+      <span className="patch-mark">
+        <img className="console-patch" src={`${import.meta.env.BASE_URL}brand/ares-patch.png`} alt="" width="36" height="30" />
+        <span className="patch-mark__label">AI-generated</span>
+      </span>
       <b>ARES</b>
     </a>
   );

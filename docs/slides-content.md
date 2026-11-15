@@ -4,7 +4,7 @@ The exact words for the 7-slide demo deck. Rules, image credits and the 7-slide 
 
 **Numbers.** Every number is a placeholder like `8`: *Numbers: see demo-numbers.md*. Fill each one from `docs/demo-numbers.md` (measured on the live app), not from memory. The [table at the end](#placeholders) gives each placeholder's current value in this repo and where it comes from, to check against.
 
-**Before export:** no team names, faces or photos (under-18 rule); every NASA image credited; no NASA logo. **Mission patch:** do not put it on a slide until the team has confirmed whether it is AI-generated (see [`ai-disclosure.md`](ai-disclosure.md)). If it is, it needs a visible "AI-generated" watermark on every slide it appears on.
+**Before export:** no team names, faces or photos (under-18 rule); every NASA image credited; no NASA logo. **Mission patch:** it is AI-generated (see [`ai-disclosure.md`](ai-disclosure.md)), so it needs a visible "AI-generated" label on every slide it appears on.
 
 ---
 
@@ -58,7 +58,7 @@ The Ares Initiative · NASA Space Apps 2026 · *Interplanetary Survival Guide: M
 **Against the rover:**
 - We compared ARES with 20.57 km of Perseverance's real drives (NASA traverse file). None of it was used to build the map.
 - ARES rates 99.8% of the rover's path as walkable, and our slope agrees with the rover's own tilt sensor (correlation 0.82).
-- ARES routes are 24.8 m from the drivers' real routes, against 35.3 m for a straight line. A model trained on 31 of their routes could not do better, so the planner stays deterministic.
+- **Machine learning check.** We trained a machine-learning model (maximum margin planning) on 31 of Perseverance's real drives to learn how NASA's drivers choose routes. Tested on routes it had not seen, it could not beat our physics planner (24.8 m vs 35.3 m for a straight line), so the planner stays deterministic and the ML serves as independent validation.
 
 **Reliability (Monte Carlo): each plan re-run 1000 times with our assumptions varied:**
 - Demo plan: 1000 of 1000 trials home with the reserve (0 failures: failure rate likely below 0.3%).

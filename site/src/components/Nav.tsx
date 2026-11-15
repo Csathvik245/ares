@@ -23,7 +23,11 @@ export function Nav() {
             window.scrollTo({ top: 0 });
           }}
         >
-          <img className="nav__mark" src="/brand/ares-patch.png" alt="" width="48" height="40" />
+          {/* The mission patch is an AI-generated image, so it always carries this visible label. */}
+          <span className="nav__patch">
+            <img className="nav__mark" src="/brand/ares-patch.png" alt="" width="48" height="40" />
+            <span className="nav__patch-label">AI-generated</span>
+          </span>
           The Ares Initiative
         </a>
         <nav className="nav__links" aria-label="Sections">

@@ -216,7 +216,7 @@ describe("page title, link preview and the phone note", () => {
   const meta = (key: string) => new RegExp(`<meta (?:name|property)="${key}" content="([^"]*)"`).exec(html)?.[1];
   const file = (relative: string) => readFileSync(new URL(relative, import.meta.url));
 
-  it("has the title, a one-sentence description and a favicon made from the mission patch", () => {
+  it("has the title, a one-sentence description and a plain letter-A tab icon (not the AI-generated patch)", () => {
     expect(html).toContain("<title>ARES · Mars EVA safety planner</title>");
     const description = meta("description")!;
     expect(description).toMatch(/Mars spacewalk on real NASA terrain/);
@@ -226,6 +226,13 @@ describe("page title, link preview and the phone note", () => {
     expect(html).toContain('href="/favicon.png"');
     expect(file("../public/favicon.png").subarray(1, 4).toString()).toBe("PNG");
     expect(file("../public/favicon.ico").length).toBeGreaterThan(500);
+    // Drawn in code: a white A on the theme's dark background, and never the patch file.
+    const svg = read("../public/favicon.svg");
+    expect(svg).toContain('fill="#0a0a0a"');
+    expect(svg).toContain('fill="#ffffff"');
+    expect(html).toContain('href="/favicon.svg"');
+    expect(html).not.toContain("ares-patch");
+    expect(read("../../pipeline/make_favicon.py")).toContain("favicon.svg");
   });
 
   it("has Open Graph and Twitter card tags that agree with the title and description", () => {
@@ -257,5 +264,35 @@ describe("page title, link preview and the phone note", () => {
     expect(phone).toMatch(/\.phone-note \{\s*display: grid;/);
     expect(phone).toMatch(/\.console-body,[\s\S]*\.header-actions \{\s*display: none !important;/);
     expect(phone).not.toMatch(/\.app-tabs[^{]*\{[^}]*display: none/);
+  });
+});
+
+describe("the AI-generated mission patch is always labelled", () => {
+  it("every page shows the words 'AI-generated' as visible text right next to the patch", () => {
+    for (const hash of ["#story", "#plan", "#science"]) {
+      const html = page(hash);
+      const patches = html.match(/<img[^>]*ares-patch\.png/g) ?? []; // image tags only (React also adds a preload hint)
+      expect(patches.length).toBeGreaterThan(0);
+      const labelled = html.match(/<span class="patch-mark"><img class="console-patch"[^>]*ares-patch\.png[^>]*\/><span class="patch-mark__label">AI-generated<\/span><\/span>/g) ?? [];
+      expect(labelled).toHaveLength(patches.length); // no patch without its label
+    }
+  });
+
+  it("the label is real text in a readable theme colour, not a tooltip or hidden", () => {
+    const css = read("./styles/app-tabs.css");
+    const rule = /\.patch-mark__label \{([^}]*)\}/.exec(css)![1];
+    expect(rule).toContain("color: var(--muted)");
+    expect(rule).not.toMatch(/display: none|visibility: hidden|opacity: 0[;.]?\s/);
+    expect(css).not.toMatch(/\.patch-mark__label[^{]*\{[^}]*display: none/);
+    // The patch is used in one component only, so one label covers every page.
+    const sources = ["./App.tsx", "./components/AppTabs.tsx", "./components/MissionBriefing.tsx", "./components/StoryChapters.tsx"].map((f) => read(f));
+    expect(sources.filter((s) => s.includes("ares-patch")).length).toBe(1);
+  });
+
+  it("the disclosure says so, and no open question is left", () => {
+    const doc = read("../../docs/ai-disclosure.md");
+    expect(doc).toContain('Our mission patch is AI-generated. It carries a visible "AI-generated" label wherever it appears as an image, and it uses no NASA branding.');
+    expect(doc).not.toContain("TEAM: confirm");
+    expect(read("../../docs/project-page.md")).not.toContain("TEAM: confirm");
   });
 });

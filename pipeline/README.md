@@ -53,6 +53,7 @@ Delete a file in `data/raw/` to fetch it again.
 | `preview_site.py` | Draws each layer as a PNG with HAB-1 and the POIs marked, plus a no-go map | `pipeline/previews/*.png` or a folder you name |
 | `data/site_meta.json` | Habitat and POIs, each with the source of its coordinates (hand-edited) | read by `build_site.py` |
 | `fixtures/make_fake_site.py` | Regenerates the fake **test fixture** (seed 42) | `app/src/planner/__fixtures__/fake-site.json` |
+| `make_favicon.py` | Draws the browser tab icon: a white letter A on the dark background, from plain shapes (not AI-generated, not the mission patch) | `app/public/favicon.svg`, `.png`, `.ico` (and the same in `site/public/`) |
 
 ## The grid (Contract 1)
 
