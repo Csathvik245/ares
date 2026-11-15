@@ -199,3 +199,63 @@
     margin: 0;
   }
 }
+
+/* ---------- Dataset metadata: a wide table that scrolls sideways on narrow screens ---------- */
+.science-page__scroll {
+  overflow-x: auto;
+  margin: 0 0 var(--space-4);
+  border: 1px solid var(--hairline);
+}
+.science-page__scroll:focus-visible {
+  outline: 2px solid var(--safe);
+  outline-offset: 2px;
+}
+.science-page .science-page__meta {
+  min-width: 1040px;
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.5;
+}
+.science-page .science-page__meta th,
+.science-page .science-page__meta td {
+  padding: var(--space-3);
+  vertical-align: top;
+}
+.science-page .science-page__meta thead th {
+  color: var(--muted);
+  font: 500 11px/1.4 var(--font-mono);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+.science-page .science-page__meta tbody th {
+  width: 220px;
+}
+.science-page .science-page__meta tbody th small {
+  display: block;
+  margin-top: var(--space-1);
+  color: var(--muted);
+  font: 400 12px/1.45 var(--font-body);
+}
+.science-page .science-page__meta td:nth-child(5) {
+  min-width: 260px;
+}
+.science-page .science-page__meta a {
+  color: var(--text);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  overflow-wrap: anywhere;
+}
+/* Phones: long mono values may wrap, so no other table pushes the page sideways. */
+@media (max-width: 700px) {
+  .science-page .science-page__num {
+    white-space: normal;
+    overflow-wrap: anywhere;
+  }
+  .science-page table:not(.science-page__meta) {
+    table-layout: fixed;
+  }
+  .science-page table:not(.science-page__meta) :is(th, td) {
+    overflow-wrap: anywhere;
+  }
+}

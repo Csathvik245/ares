@@ -192,3 +192,98 @@ describe("numbers copied onto the Science page", () => {
     expect(outside.map(([name]) => name)).toEqual(["learnRouteLength"]);
   });
 });
+
+describe("dataset metadata table (section 2, mirrored in README.md)", async () => {
+  const { DATASETS, DATASET_COLUMNS, COARSE_LAYER_NOTE, NOT_RECORDED } = await import("../lib/datasetMetadata");
+  const file = (path: string) => readFileSync(repoFile(path), "utf8").replace(/\r\n/g, "\n");
+  const sources = file("docs/sources.md");
+  const buildSite = file("pipeline/build_site.py");
+  const buildBasemap = file("pipeline/build_basemap.py");
+  const validation = file("docs/validation.md");
+  const row = (id: string) => DATASETS.find((d) => d.id === id)!;
+
+  it("has the six columns and the eight datasets, and every cell is on the page", () => {
+    expect([...DATASET_COLUMNS]).toEqual(["Dataset", "Native resolution", "On our grid (25 m)", "Acquisition date / sols", "Resampling method", "DOI / source link"]);
+    expect(DATASETS.map((d) => d.id)).toEqual(["hirise-dtm", "hirise-image", "themis", "crism", "meda", "rad", "traverse", "photos"]);
+    for (const c of DATASET_COLUMNS) expect(html).toContain(`<th scope="col">${c}</th>`);
+    for (const d of DATASETS) for (const cell of [d.name, d.native, d.grid, d.date, d.resample, d.source]) expect(text).toContain(cell);
+    for (const d of DATASETS) expect(html).toContain(`href="${d.link}"`);
+    expect(text).toContain(COARSE_LAYER_NOTE);
+    expect(COARSE_LAYER_NOTE).toBe("Layers coarser than 25 m are resampled, so neighbouring cells can share one measurement; they don't add detail the instrument didn't see.");
+  });
+
+  it("scrolls sideways on narrow screens instead of squeezing", () => {
+    expect(html).toContain('<div class="science-page__scroll" role="region" aria-label="Dataset metadata" tabindex="0">');
+    const css = file("app/src/components/science-page.css");
+    expect(css).toMatch(/\.science-page__scroll \{\s*overflow-x: auto;/);
+    expect(css).toMatch(/\.science-page__meta \{\s*min-width: \d+px;/);
+  });
+
+  it("native resolutions are the ones in docs/sources.md", () => {
+    for (const [id, inSources] of [["hirise-dtm", "DTM Mosaic, 1 m/pixel"], ["hirise-image", "Image Mosaic, 25 cm/pixel"], ["themis", "100 m/pixel"], ["crism", "(36 m/pixel)"]] as const) {
+      expect(sources).toContain(inSources);
+      expect(row(id).native).toBe(inSources.match(/\d+ c?m/)![0] + " per pixel");
+    }
+    for (const id of ["meda", "rad"]) {
+      expect(row(id).native).toBe("Point measurement, not a map; applied over time");
+      expect(row(id).grid).toBe(row(id).native);
+    }
+  });
+
+  it("resampling methods are what the pipeline code does", () => {
+    expect(buildSite).toContain("z5 = resample_dtm(SUB_5M, Resampling.average)"); // 1 m pixels averaged to 5 m
+    expect(buildSite).toContain("elevation = np.nanmean(z_blocks, axis=2)");
+    expect(buildSite).toContain("SLOPE_PERCENTILE = 90");
+    expect(buildSite).toContain("slope = np.nanpercentile(blocks(slope5, SUB_5M), SLOPE_PERCENTILE, axis=2)");
+    expect(buildSite).toMatch(/SUB_5M = 5 /);
+    expect(buildSite).toMatch(/SUB_1M = 25 /);
+    expect(row("hirise-dtm").resample).toMatch(/averaged to 5 m.*mean of the cell's 25 five-metre values.*90th percentile.*625 one-metre heights/);
+    expect(buildSite).toContain("return to_site_grid(TI_CACHE, 1, Resampling.bilinear, 0.0)");
+    expect(row("themis").resample).toMatch(/^Bilinear interpolation/);
+    expect(buildSite).toContain("gridded = to_site_grid(CRISM_CACHE, names.index(name) + 1, Resampling.bilinear, CRISM_NODATA)");
+    expect(buildSite).toContain("SCIENCE_FULL_SCALE_PERCENTILE = 99.5");
+    expect(buildSite).toContain("science = np.nanmax(stack, axis=0)");
+    expect(row("crism").resample).toMatch(/Bilinear interpolation.*99\.5th percentile.*highest of the three/);
+    expect(buildBasemap).toContain("read two full-resolution image rows for every output row");
+    expect(row("hirise-image").resample).toMatch(/two full-resolution rows are read and averaged/);
+    expect(file("app/public/data/basemap.json")).toContain("averaged down from 25 cm to about 3.5 m per pixel");
+    expect(row("hirise-image").grid).toContain("about 3.5 m per pixel");
+    expect(file("pipeline/validate_traverse.py")).toContain("STEP_M = 10.0");
+    expect(row("traverse").resample).toContain("every 10 m or closer");
+  });
+
+  it("dates and sols are the ones in the docs, and anything else says 'not recorded'", () => {
+    expect(sources).toContain("mtrdr/2007/2007_029/hrl000040ff");
+    expect(row("crism").date).toContain("2007, day 029");
+    expect(sources).toContain("Ls 25° (sols 34–40): Tmin 191 K at 05:00, Tmax 243 K at 15:00");
+    expect(row("meda").date).toBe("Sols 34 to 40 (Ls 25°)");
+    expect(row("meda").resample).toContain("191 K at 05:00");
+    expect(row("meda").resample).toContain("243 K at 15:00");
+    expect(sources).toContain("0.64 ± 0.12 mSv/day");
+    expect(sources).toContain("~300 sols, 7 Aug 2012 – 1 Jun 2013");
+    expect(row("rad").date).toBe("7 Aug 2012 to 1 Jun 2013 (about 300 sols)");
+    expect(row("rad").resample).toContain("0.64 ± 0.12 mSv per day");
+    expect(validation).toContain("(sols 14–896)");
+    expect(validation).toContain("Downloaded 14 November 2026");
+    expect(row("traverse").date).toBe("Sols 14 to 896 inside our site (file downloaded 14 November 2026)");
+    // Photo sols: the first and last in the rover photo table of docs/sources.md.
+    const photoSols = [...sources.matchAll(/\| `[a-z-]+\.jpg` \|[^|]*\|[^|]*\| (\d+) \(/g)].map((m) => Number(m[1]));
+    expect(photoSols).toHaveLength(7);
+    expect(row("photos").date).toBe(`Sols ${Math.min(...photoSols)} to ${Math.max(...photoSols)}`);
+    // What our sources do not hold is said plainly, never guessed.
+    const unknown = DATASETS.flatMap((d) => (["native", "date"] as const).filter((k) => d[k].startsWith(NOT_RECORDED)).map((k) => `${d.id}.${k}`));
+    expect(unknown).toEqual(["hirise-dtm.date", "hirise-image.date", "themis.date", "photos.native"]);
+  });
+
+  it("README.md has the same table, cell for cell", () => {
+    const readme = file("README.md");
+    expect(readme).toContain(`| ${DATASET_COLUMNS.join(" | ")} |`);
+    for (const d of DATASETS) {
+      const line = readme.split("\n").find((l) => l.startsWith(`| **${d.name}**`));
+      expect(line, d.id).toBeDefined();
+      for (const cell of [d.mission, d.product, d.native, d.grid, d.date, d.resample, `[${d.source}](${d.link})`]) expect(line, `${d.id}: ${cell}`).toContain(cell);
+    }
+    expect(readme).toContain(COARSE_LAYER_NOTE);
+    expect(readme).not.toMatch(/[\u2014\u2013]/);
+  });
+});

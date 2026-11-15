@@ -30,6 +30,7 @@ import {
 } from "../planner";
 import { DEFAULT_TRIALS, MONTE_CARLO_DISCLAIMER, PARAMS } from "../planner/montecarlo";
 import { SCIENCE_NUMBERS as N } from "../lib/scienceNumbers";
+import { COARSE_LAYER_NOTE, DATASETS, DATASET_COLUMNS, NOT_RECORDED } from "../lib/datasetMetadata";
 import { EvidenceTag } from "./EvidenceTag";
 import "./science-page.css";
 
@@ -228,53 +229,47 @@ export function SciencePage() {
             ARES combines six kinds of NASA data, plus rover photos, on one grid of 25 m cells. Each layer answers one
             practical question for a person on foot.
           </p>
-          <table className="science-page__wide">
-            <thead>
-              <tr>
-                <th scope="col">Data</th>
-                <th scope="col">What it gives ARES</th>
-                <th scope="col">Credit and source</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <th scope="row">HiRISE terrain (Mars Reconnaissance Orbiter)</th>
-                <td>Elevation at 1 m detail, and from it slope and ground roughness. Also the image under the map.</td>
-                <td>
-                  NASA/JPL-Caltech/University of Arizona/USGS. Fergason et al. 2020, doi:10.5066/P9REJ9JN (terrain) and
-                  doi:10.5066/P9QJDP48 (image)
-                </td>
-              </tr>
-              <tr>
-                <th scope="row">THEMIS thermal inertia (Mars Odyssey)</th>
-                <td>How fast the ground heats and cools. Low values mean loose, soft sand.</td>
-                <td>NASA/JPL-Caltech/ASU. Edwards &amp; Buz 2021, doi:10.5281/zenodo.4931348</td>
-              </tr>
-              <tr>
-                <th scope="row">CRISM minerals (Mars Reconnaissance Orbiter)</th>
-                <td>Spectral signs of clay and carbonate: where the best science is.</td>
-                <td>
-                  NASA/JPL-Caltech/JHUAPL. Observation HRL000040FF, PDS Geosciences Node; Viviano-Beck et al. 2014,
-                  doi:10.1002/2014JE004627
-                </td>
-              </tr>
-              <tr>
-                <th scope="row">MEDA weather (Perseverance)</th>
-                <td>The coldest and warmest air temperature of the day at Jezero, and when they happen.</td>
-                <td>NASA/JPL-Caltech. Munguira et al. 2023, doi:10.1029/2022JE007559</td>
-              </tr>
-              <tr>
-                <th scope="row">RAD radiation (Curiosity, at Gale Crater)</th>
-                <td>The everyday radiation dose on the surface of Mars, used at Jezero as an estimate.</td>
-                <td>NASA/JPL-Caltech. Hassler et al. 2014, doi:10.1126/science.1244797</td>
-              </tr>
-              <tr>
-                <th scope="row">Perseverance photos</th>
-                <td>A real ground-level view at each stop the rover has visited.</td>
-                <td>NASA/JPL-Caltech. Mars 2020 raw image gallery</td>
-              </tr>
-            </tbody>
-          </table>
+          {/* Wide table: it scrolls sideways inside this box on narrow screens. */}
+          <div className="science-page__scroll" role="region" aria-label="Dataset metadata" tabIndex={0}>
+            <table className="science-page__wide science-page__meta">
+              <thead>
+                <tr>
+                  {DATASET_COLUMNS.map((c) => (
+                    <th scope="col" key={c}>
+                      {c}
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {DATASETS.map((d) => (
+                  <tr key={d.id}>
+                    <th scope="row">
+                      {d.name}
+                      <small>
+                        {d.mission}. {d.product}. Used for: {d.use.charAt(0).toLowerCase() + d.use.slice(1)}
+                      </small>
+                    </th>
+                    <td>{d.native}</td>
+                    <td>{d.grid}</td>
+                    <td>{d.date}</td>
+                    <td>{d.resample}</td>
+                    <td>
+                      <a href={d.link} target="_blank" rel="noopener noreferrer">
+                        {d.source}
+                      </a>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          <p>{COARSE_LAYER_NOTE}</p>
+          <p className="science-page__small">
+            "{NOT_RECORDED}" means the value is not in our sources, so we do not state one. Image and data credits:
+            NASA/JPL-Caltech/University of Arizona/USGS (HiRISE), NASA/JPL-Caltech/ASU (THEMIS), NASA/JPL-Caltech/JHUAPL
+            (CRISM), NASA/JPL-Caltech (Perseverance and Curiosity).
+          </p>
         </section>
 
         <section id={route.id}>
