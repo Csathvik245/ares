@@ -354,7 +354,7 @@ Values in effect in the Mono theme:
 | `--muted` | `#a3a3a3` | Labels | `theme-mono.css` |
 | `--mars` | `#ffffff` | The plan: route, stops, primary marks (the name is kept from the old palette) | `theme-mono.css` |
 | `--safe` | `#3d7bff` | Electric blue: safety, interaction and focus (safe zone, astronaut, habitat marker, HUD arrow, oxygen margin, playhead) | `theme-mono.css` |
-| `--ds-blue-fill` | `#2f6bff` | Filled main buttons (Play, Begin planning), so white text on them keeps 4.5:1 | `theme-mono.css` |
+| `--ds-blue-fill` | `#2d68fc` | Filled main buttons (Play, Run the demo), so white text on them keeps 4.5:1 (it measures 4.67:1) | `theme-mono.css` |
 | `--go` | `#3ddc97` | GO | `tokens.css` (not overridden) |
 | `--caution` | `#ffb020` | CAUTION, soft sand | `tokens.css` (not overridden) |
 | `--nogo` | `#ff4d5a` | NO-GO / real danger only | `tokens.css` (not overridden) |

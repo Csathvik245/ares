@@ -3,7 +3,7 @@ import { lazy, Suspense, useEffect, useMemo, useState } from "react";
 import { Hud, OpeningScreen } from "./components/DesignIntegration";
 import { ElevationProfile } from "./components/ElevationProfile";
 import { StopCard as StopDetailCard } from "./components/StopCard";
-import { WORK_BURN, computeBriefing, formatMinutes, roundHalfUp, SPE_IS_ILLUSTRATIVE, SPE_MEASURED_2017_PEAK_MULTIPLIER } from "./lib/planner";
+import { WORK_BURN, formatMinutes, roundHalfUp, SPE_IS_ILLUSTRATIVE, SPE_MEASURED_2017_PEAK_MULTIPLIER } from "./lib/planner";
 import { photoCreditFor } from "./lib/photoCredits";
 import { scienceScore } from "./planner/science";
 import { MissionMap } from "./components/MissionMap";
@@ -35,12 +35,14 @@ import { AppBar, AppLogo, AppTabs } from "./components/AppTabs";
 import { GuidedDemo } from "./components/GuidedDemo";
 import { SciencePage } from "./components/SciencePage";
 import { CONSOLE_TABS, hashOfTab, runDemo, tabFromHash, type AppTab } from "./lib/appTabs";
+import { demoBriefing } from "./lib/story";
 const EMPTY_PATH: LatLng[] = [];
 function Console({ initialHash }: { initialHash?: string }) {
   const m = useMission();
+  // The Story page's poll: the demo mission's briefing, not whatever is (or is not) planned on the Plan tab.
   const briefing = useMemo(
-    () => (m.site && m.plan ? computeBriefing(m.site, m.plan, m.conditions) : null),
-    [m.site, m.plan, m.conditions],
+    () => (m.site ? demoBriefing(m.site, m.demo) : null),
+    [m.site, m.demo],
   );
   const stopScores = useMemo(
     () => (m.site && m.plan ? scienceScore(m.site, m.plan, { stops: m.stops }) : []),

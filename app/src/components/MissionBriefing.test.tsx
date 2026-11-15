@@ -33,7 +33,7 @@ describe("MissionBriefing Story", () => {
 
   it("renders every supplied poll value, status, evidence tag and overall reason", () => {
     const html = renderToStaticMarkup(<MissionBriefing onBeginPlanning={() => {}} rows={rows} status="NO-GO" reasons={["RADIATION: EVA aborted"]} />);
-    expect(html).toContain("Pre-EVA · GO / NO-GO poll");
+    expect(html).toContain('id="briefing-poll-title">Demo mission briefing</h2>');
     expect(html).toContain('Overall <span class="briefing-status status--NO-GO">NO-GO</span>');
     expect(html).toContain("RADIATION: EVA aborted");
     for (const row of rows) {

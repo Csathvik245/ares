@@ -55,7 +55,7 @@ describe("story chapters: headlines", () => {
   it("is rendered once, at the end of the existing story", () => {
     const page = renderToStaticMarkup(<MissionBriefing onBeginPlanning={() => {}} onRunDemo={() => {}} />);
     expect(page.match(/class="story-chapters"/g)).toHaveLength(1);
-    expect(page.indexOf('class="story-chapters"')).toBeGreaterThan(page.indexOf("Pre-EVA · GO / NO-GO poll"));
+    expect(page.indexOf('class="story-chapters"')).toBeGreaterThan(page.indexOf("Demo mission briefing"));
     const source = read("./MissionBriefing.tsx");
     expect(source.match(/StoryChapters/g)).toHaveLength(3); // one import line (the name twice) and one line of JSX
   });
@@ -258,5 +258,53 @@ describe("story chapters: pictures and buttons", () => {
 
   it("'Run the demo' is left out when no handler is given", () => {
     expect(buttonsOf(StoryClosing({ onOpenPlanner: () => {} })).map((b) => b.props.children)).toEqual(["Open the planner"]);
+  });
+});
+
+describe("Story poll: the demo mission's briefing", () => {
+  it("is computed from the demo mission and never gives a status to 'no route'", async () => {
+    const { demoBriefing, STORY_START_LMST } = await import("../lib/story");
+    const { computeBriefing, buildCostGrid, planRoute } = await import("../planner");
+    expect(demoBriefing(data.site, [])).toBeNull(); // no stops yet: no briefing, so no GO
+    const briefing = demoBriefing(data.site, data.stops)!;
+    // The same thing computeBriefing gives for the plan "Load demo" makes.
+    const calm = { storm: false, spe: false, startLmst: STORY_START_LMST };
+    const plan = planRoute(data.site, buildCostGrid(data.site, calm), data.site.habitat, data.stops);
+    expect(briefing).toEqual(computeBriefing(data.site, plan, calm));
+    expect(plan.distM).toBeCloseTo(data.plan.distM, 6);
+    const row = (key: string) => briefing.rows.find((r) => r.key === key)!;
+    expect(row("TERRAIN").value).not.toMatch(/no route/i);
+    expect(row("CONSUMABLES").value).toContain(formatMinutes(data.plan.marginSec));
+    expect(row("CONSUMABLES").value).not.toContain("100%");
+    expect(briefing.status).toBe(data.plan.status);
+    // App hands the Story page this briefing, not the Plan tab's plan.
+    const app = read("../App.tsx");
+    expect(app).toContain("demoBriefing(m.site, m.demo)");
+    expect(app).not.toContain("computeBriefing(m.site, m.plan");
+  });
+
+  it("is labelled 'Demo mission briefing' and shows the planner's own row text", async () => {
+    const { demoBriefing } = await import("../lib/story");
+    const briefing = demoBriefing(data.site, data.stops)!;
+    const page = renderToStaticMarkup(<MissionBriefing onBeginPlanning={() => {}} rows={briefing.rows} status={briefing.status} reasons={briefing.reasons} />);
+    expect(page).toContain('id="briefing-poll-title">Demo mission briefing</h2>');
+    for (const r of briefing.rows) expect(clean(page)).toContain(r.value);
+    expect(clean(page)).not.toMatch(/No route yet/i);
+  });
+
+  it("the hero has no second ARES wordmark (the top bar has the one)", () => {
+    const page = renderToStaticMarkup(<MissionBriefing onBeginPlanning={() => {}} />);
+    expect(page).toContain("<header><span>MISSION CONTROL · STORY</span></header>");
+  });
+});
+
+describe("contrast: white text on the filled-button blue", () => {
+  it("is at least 4.5:1, and CLAUDE.md lists the same colour", () => {
+    const hex = /--ds-blue-fill:\s*(#[0-9a-f]{6})/i.exec(read("../styles/theme-mono.css"))![1];
+    const lin = (v: number) => (v / 255 <= 0.03928 ? v / 255 / 12.92 : ((v / 255 + 0.055) / 1.055) ** 2.4);
+    const [r, g, b] = [1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16));
+    const luminance = 0.2126 * lin(r) + 0.7152 * lin(g) + 0.0722 * lin(b);
+    expect(1.05 / (luminance + 0.05)).toBeGreaterThanOrEqual(4.5);
+    expect(read("../../../CLAUDE.md")).toContain(`| \`--ds-blue-fill\` | \`${hex}\` |`);
   });
 });

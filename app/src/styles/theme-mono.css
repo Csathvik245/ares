@@ -11,7 +11,7 @@
  *
  * Select it with ?theme=mono (the default), ?theme=deep-space or ?theme=classic.
  *
- * Accent: electric blue (#3d7bff, 5.2:1 on black) marks safety and interaction. Fills use #2f6bff so white
+ * Accent: electric blue (#3d7bff, 5.2:1 on black) marks safety and interaction. Fills use #2d68fc so white
  * text on them stays at 4.5:1.
  * Fonts: IBM Plex Sans + IBM Plex Mono, one family so the text and the numbers match.
  */
@@ -26,7 +26,7 @@
   --muted: #a3a3a3;
   --mars: #ffffff; /* the plan: route, stops, primary marks */
   --safe: #3d7bff; /* electric blue: safety, interaction, focus */
-  --ds-blue-fill: #2f6bff;
+  --ds-blue-fill: #2d68fc;
   --font-body: "IBM Plex Sans", Inter, -apple-system, "Segoe UI", sans-serif;
   --font-heading: "IBM Plex Sans", Inter, -apple-system, "Segoe UI", sans-serif;
   --font-mono: "IBM Plex Mono", "JetBrains Mono", ui-monospace, monospace;

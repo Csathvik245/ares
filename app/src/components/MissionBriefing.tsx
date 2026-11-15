@@ -43,7 +43,7 @@ export function MissionBriefing({
       />
       <section className="briefing-hero" aria-labelledby="briefing-title">
       <header>
-        ARES <span>MISSION CONTROL · STORY</span>
+        <span>MISSION CONTROL · STORY</span>
       </header>
       <div className="briefing-title-content">
         <p className="briefing-eyebrow">{missionTitle} · {siteName}</p>
@@ -83,7 +83,7 @@ export function MissionBriefing({
         </ol>
         <section className="briefing-poll" aria-labelledby="briefing-poll-title">
           <div className="briefing-poll-heading">
-            <h2 id="briefing-poll-title">Pre-EVA · GO / NO-GO poll</h2>
+            <h2 id="briefing-poll-title">Demo mission briefing</h2>
             {rows.length > 0 && (
               <p className="briefing-overall">Overall <span className={`briefing-status status--${status}`}>{status}</span></p>
             )}

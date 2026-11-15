@@ -77,7 +77,8 @@
 .mission-briefing header {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  /* The ARES wordmark is in the top bar; this line keeps its place on the right. */
+  justify-content: flex-end;
   gap: var(--space-4);
   font: 600 24px/1.2 var(--font-heading);
   letter-spacing: 0.12em;

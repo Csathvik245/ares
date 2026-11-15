@@ -5,12 +5,14 @@
 // Monte Carlo run all come from the functions the app itself uses.
 import {
   buildCostGrid,
+  computeBriefing,
   loadSite,
   planRoute,
   stormAt,
   type LatLng,
   type Plan,
   type Site,
+  type Briefing,
   type Status,
   type Stop,
 } from "../planner";
@@ -31,6 +33,19 @@ export const STRETCH_EXTRA_STOP_ID = "delta-wildcat-ridge";
 export const STRETCH_DWELL_MIN = 120;
 export const STRETCH_START_LMST = 10;
 export const STORY_SEED = 42;
+
+/**
+ * The briefing the Story page shows: always the DEMO mission (the stops "Load demo"
+ * loads, calm weather, the default 13:00 start), whatever is on the Plan tab. With no
+ * demo stops (data still loading) there is no briefing, so the page never shows a
+ * status for "no route".
+ */
+export function demoBriefing(site: Site, demoStops: Stop[]): Briefing | null {
+  if (demoStops.length === 0) return null;
+  const calm = { storm: false, spe: false, startLmst: STORY_START_LMST };
+  const plan = planRoute(site, buildCostGrid(site, calm), site.habitat, demoStops);
+  return computeBriefing(site, plan, calm);
+}
 
 /** Size of the basemap picture the route is drawn on (any size with the right shape works). */
 export type ImageSize = { width: number; height: number };
