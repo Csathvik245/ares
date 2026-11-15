@@ -162,6 +162,21 @@ What the layer looks like (numbers from `pipeline/data/skyview_stats.json`):
 - **Limits:** terrain beyond 500 m is ignored, and the DTM cache stops about 60 m
   outside the site, so cells within 500 m of the site edge may read too open.
 
+What the layer means for shelter routing (`app/src/planner/shelter.ts`, run with its defaults, 14 November 2026):
+
+| SPE starts when the astronaut is at | Walk home | Shelter chosen | Dose with shelter | Dose walking home | Dose cut | `betterThanHome` |
+|---|---|---|---|---|---|---|
+| Farthest point of the demo route (T+1:42; this is the arrival at the delta front toe) | 48 min | none: walk home. Best shelter is 13 min away, sky view 0.83, and would give 0.653 mSv | 0.608 mSv | 0.608 mSv | 0% | false |
+| Arrival at the delta front toe (T+1:42) | 48 min | none: walk home (same point as the row above) | 0.608 mSv | 0.608 mSv | 0% | false |
+| Wildcat Ridge (Hawksbill Gap) | 73 min | 160 m away, 9 min walk, sky view 0.84 | 0.659 mSv | 0.750 mSv | 12% | true |
+| Amalik (Cape Nukshak) | 76 min | 330 m away, 14 min walk, sky view 0.86 | 0.677 mSv | 0.758 mSv | 11% | true |
+| Hidden Harbor (Yori Pass) | 79 min | 120 m away, 7 min walk, sky view 0.86 | 0.669 mSv | 0.751 mSv | 11% | true |
+
+- Oxygen used so far: the demo mission's own value for the two demo-route rows (120 min of the 480). The three rover sites are not on the demo mission, so they use the same 120 min, as if the astronaut had walked on from the delta front toe.
+- Doses are **illustrative** (the SPE rate is the ×30 demo multiplier) and cover an **assumed 60 minute event**. "Dose walking home" counts only the part of the walk inside those 60 minutes; the rest of the walk home is not counted for either option.
+- **On this site, natural shelter beats going home only when HAB-1 is more than about 55 minutes away; the best walkable shelter hides about 17% of the sky.** Even then it is not always offered: in a scan of 958 start points with full oxygen, the nearest one where a shelter won was 55 min from home, and 547 of the 958 got an offer.
+- The 55 minutes follows from the 60 minute assumption: inside it, the habitat (full shelter) is reached before the event ends. For a longer event, walking home wins from further away too.
+
 ## `build_basemap.py`
 
 - **Source:** Mars 2020 Terrain Relative Navigation HiRISE Orthorectified Image

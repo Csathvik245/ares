@@ -118,6 +118,24 @@ If such a map is published later, compare it with the roughness layer first (`do
 | SPE timing | instant switch to ×30 | Emergency starts at once in the demo | Real events build up over hours (Zeitlin et al. 2018). | Assumption (illustrative) |
 | Shelter model (`shelter.ts`) | SPE dose at a spot = SPE dose rate × sky view × time; habitat = full shelter (0); event lasts 60 min; shelter offered only for a dose cut of 5% or more | In a solar particle event, whether waiting at a shielded spot beats walking home | **Simplified** (`SHELTER_MODEL_IS_SIMPLIFIED`). Assumes the SPE flux is roughly the same from every direction of the sky, so dose scales with visible sky. Ignores that the atmosphere shields low directions more than high ones (so hiding the low sky helps less than the model says), and ignores secondary particles from the ground and rock walls. The SPE size is illustrative (`SPE_IS_ILLUSTRATIVE`). **The 60 min event length is assumed** (real events last hours); the astronaut walks to the shelter and waits there for the rest of it. The 5% minimum and the oxygen rate while waiting (the planner's 0.9 work rate) are our choices. A shelter is offered only if there is oxygen to walk home afterwards with the reserve intact. Sky view is per 25 m cell from a 5 m DTM. **What it gives at Jezero:** on the demo mission it never beats walking home (home is at most about 50 min away). Across the site a shelter is offered only from places about an hour or more from the habitat, and the largest dose cut is about 14%. That depends directly on the 60 min assumption: for a longer event, walking home wins. | Assumption |
 
+
+### Shelter model: what it gives at five places
+
+`shelterRoute` run with its defaults on the real terrain, 14 November 2026 (see the "Shelter model" row above for the assumptions).
+
+| SPE starts when the astronaut is at | Walk home | Shelter chosen | Dose with shelter | Dose walking home | Dose cut | `betterThanHome` |
+|---|---|---|---|---|---|---|
+| Farthest point of the demo route (T+1:42; this is the arrival at the delta front toe) | 48 min | none: walk home. Best shelter is 13 min away, sky view 0.83, and would give 0.653 mSv | 0.608 mSv | 0.608 mSv | 0% | false |
+| Arrival at the delta front toe (T+1:42) | 48 min | none: walk home (same point as the row above) | 0.608 mSv | 0.608 mSv | 0% | false |
+| Wildcat Ridge (Hawksbill Gap) | 73 min | 160 m away, 9 min walk, sky view 0.84 | 0.659 mSv | 0.750 mSv | 12% | true |
+| Amalik (Cape Nukshak) | 76 min | 330 m away, 14 min walk, sky view 0.86 | 0.677 mSv | 0.758 mSv | 11% | true |
+| Hidden Harbor (Yori Pass) | 79 min | 120 m away, 7 min walk, sky view 0.86 | 0.669 mSv | 0.751 mSv | 11% | true |
+
+- Oxygen used so far: the demo mission's own value for the two demo-route rows (120 min of the 480). The three rover sites are not on the demo mission, so they use the same 120 min, as if the astronaut had walked on from the delta front toe.
+- Doses are **illustrative** (the SPE rate is the ×30 demo multiplier) and cover an **assumed 60 minute event**. "Dose walking home" counts only the part of the walk inside those 60 minutes; the rest of the walk home is not counted for either option.
+- **On this site, natural shelter beats going home only when HAB-1 is more than about 55 minutes away; the best walkable shelter hides about 17% of the sky.** Even then it is not always offered: in a scan of 958 start points with full oxygen, the nearest one where a shelter won was 55 min from home, and 547 of the 958 got an offer.
+- The 55 minutes follows from the 60 minute assumption: inside it, the habitat (full shelter) is reached before the event ends. For a longer event, walking home wins from further away too.
+
 ---
 
 ### Notes
