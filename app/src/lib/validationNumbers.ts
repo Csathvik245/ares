@@ -1,12 +1,10 @@
 // Numbers quoted in the Science page's validation report (section 4) that are not already
-// in lib/scienceNumbers.ts. Each one is COPIED from docs/validation.md or
-// docs/route-learning.md, and carries the exact piece of that document it was copied
+// in lib/scienceNumbers.ts. Each one is COPIED from docs/validation.md, and carries the exact piece of that document it was copied
 // from (`quote`). A test (components/science-page.test.tsx) fails if a quote is no longer
 // in its document, or if a value is not inside its quote. Never type a number here from
 // memory.
 
 const VALIDATION = "docs/validation.md";
-const LEARNING = "docs/route-learning.md";
 
 export type QuotedNumber = { value: string; source: string; quote: string };
 const from = (source: string, value: string, quote: string): QuotedNumber => ({ value, source, quote });
@@ -49,8 +47,4 @@ export const VALIDATION_NUMBERS = {
   sandSite: from(VALIDATION, "9.2%", "| Soft sand (thermal inertia under 175) | 4.8% | 9.2% |"),
   difficultyPath: from(VALIDATION, "1.48", "| 1.48 | 1.65 |"),
   difficultySite: from(VALIDATION, "1.65", "| 1.48 | 1.65 |"),
-
-  // f. The machine-learning check
-  folds: from(LEARNING, "5-fold", "Blocked 5-fold cross-validation in driving order"),
-  closerThanStraight: from(LEARNING, "10.4 m", "**10.4 m closer than a straight line**"),
 } as const;

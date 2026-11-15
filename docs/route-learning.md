@@ -122,6 +122,7 @@ An earlier run had no staircase cleanup and no checkpoint selection. It drifted 
 | `pipeline/learn_route_cost.py` | Training and testing script (Python: numpy, scipy, matplotlib) |
 | `pipeline/data/route_learning.json` | Every score, per-fold weights, per-route results, settings |
 | `docs/images/route_learning.png` | The figure above |
+| `pipeline/make_ml_charts.py` | Draws the three charts in the Science tab's machine-learning section (per-route distances, closer / same / further counts, learned factors) from `route_learning.json`, into `app/public/images/` |
 | `app/public/data/route-model.json` | The shipped model (safety-rule version, today equal to physics), with its source, scores and cross-check values. `python pipeline/learn_route_cost.py --export-model` rewrites it from `route_learning.json` |
 | `app/src/planner/learned.ts` | Reads the model (refusing any that is less careful than physics) and builds the learned grid for `planRoute(..., { routeGrid })`. Off by default |
 | `app/src/planner/learned.test.ts` | Tests: default planner byte-identical to before; demo mission 4.97 km, GO, 49% at return; Python and TypeScript features agree cell for cell; no-go cells unchanged; safety rule enforced |

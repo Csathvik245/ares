@@ -19,18 +19,19 @@ const text = html
   .replace(/\s+/g, " ");
 
 describe("SciencePage", () => {
-  it("renders all eight section headings, numbered, with a matching table of contents", () => {
+  it("renders all nine section headings, numbered, with a matching table of contents", () => {
     expect(SCIENCE_SECTIONS.map((s) => s.title)).toEqual([
       "Why Jezero",
       "The data",
       "How ARES picks a route",
       "How we validated ARES",
+      "Can machine learning do better?",
       "Uncertainty",
       "Emergencies",
       "How sure are we",
       "Builds on",
     ]);
-    expect(html.match(/<h2 tabindex="-1">/g)).toHaveLength(8);
+    expect(html.match(/<h2 tabindex="-1">/g)).toHaveLength(9);
     SCIENCE_SECTIONS.forEach((s, i) => {
       expect(html).toContain(`<section id="${s.id}"><h2 tabindex="-1">${i + 1}. ${s.title}</h2>`);
       expect(html).toMatch(new RegExp(`<a href="#science" data-section="${s.id}"[^>]*>${s.title.replace("?", "\\?")}</a>`));
@@ -59,20 +60,18 @@ describe("SciencePage", () => {
     expect(existsSync(repoFile("app/public/images/validation_traverse.jpg"))).toBe(true);
   });
 
-  it("shows the route-learning check in section 4, with its picture and credit", () => {
-    const start = html.indexOf('<section id="science-reality">');
+  it("shows the route-learning check in its own section 5, with its picture and credit", () => {
+    const start = html.indexOf('<section id="science-ml">');
     const section4 = html.slice(start, html.indexOf("</section>", start));
     const t = section4.replace(/<[^>]*>/g, " ").replace(/&#x27;/g, "'").replace(/\s+/g, " ");
-    expect(section4).toContain("<h3>f. A second check: machine learning</h3>");
-    expect(t).toContain("31 of Perseverance's real drives");
-    expect(t).toMatch(/could not beat the ARES physics planner/);
+    expect(section4).toContain('<h2 tabindex="-1">5. Can machine learning do better?</h2>');
     expect(t).toMatch(/planner stays deterministic/);
     expect(section4).toContain('src="/images/route_learning.jpg"');
     expect(t).toContain("Routes: NASA/JPL-Caltech (Mars 2020 traverse). Basemap: NASA/JPL-Caltech/University of Arizona/USGS (HiRISE).");
     expect(existsSync(repoFile("app/public/images/route_learning.jpg"))).toBe(true);
     // Section 3 still says the planner has no machine learning, and points here.
     expect(text).toContain("There is no machine learning in it: the same stops always give the same route.");
-    expect(text).toContain("We did test a machine-learning alternative (section 4); it didn't beat the physics model.");
+    expect(text).toContain("We did test a machine-learning alternative (section 5); it didn't beat the physics model.");
   });
 
   it("uses the planner's own constants", () => {
@@ -291,25 +290,25 @@ describe("dataset metadata table (section 2, mirrored in README.md)", async () =
 describe("section 4: the validation report", async () => {
   const { VALIDATION_NUMBERS } = await import("../lib/validationNumbers");
   const file = (path: string) => readFileSync(repoFile(path), "utf8").replace(/\r\n/g, "\n");
-  const docs = { demo: file("docs/demo-numbers.md"), validation: file("docs/validation.md"), learning: file("docs/route-learning.md") };
+  const docs = { demo: file("docs/demo-numbers.md"), validation: file("docs/validation.md") };
   const start = html.indexOf('<section id="science-reality">');
   const section4 = html.slice(start, html.indexOf("</section>", start));
   const t4 = section4.replace(/<[^>]*>/g, " ").replace(/&#x27;/g, "'").replace(/&quot;/g, '"').replace(/&amp;/g, "&").replace(/\s+/g, " ");
 
-  it("is titled 'How we validated ARES' and answers the seven questions in order", () => {
+  it("is titled 'How we validated ARES' and answers the six questions in order", () => {
     expect(section4).toContain('<h2 tabindex="-1">4. How we validated ARES</h2>');
-    const questions = [...section4.matchAll(/<h3>([a-g])\. ([^<]*)<\/h3>/g)].map((m) => `${m[1]}. ${m[2]}`);
+    const questions = [...section4.matchAll(/<h3>([a-f])\. ([^<]*)<\/h3>/g)].map((m) => `${m[1]}. ${m[2]}`);
     expect(questions).toEqual([
       "a. What did we compare against?",
       "b. What does 99.8% passable mean?",
       "c. What does r = 0.82 measure?",
       "d. The one failure",
       "e. Sensitivity: does the answer depend on our limits?",
-      "f. A second check: machine learning",
-      "g. Limits of this validation",
+      "f. Limits of this validation",
     ]);
+    expect(t4).toContain("A second check, with machine learning, is section 5.");
     // Each answer is short: two to four sentences of text under its heading (lists and tables aside).
-    const parts = section4.split(/<h3>[a-g]\. [^<]*<\/h3>/).slice(1, 7); // a to f; g is a list
+    const parts = section4.split(/<h3>[a-f]\. [^<]*<\/h3>/).slice(1, 6); // a to e; f is a list
     for (const part of parts) {
       const prose = [...part.matchAll(/<p>([\s\S]*?)<\/p>/g)].map((m) => m[1].replace(/<[^>]*>/g, " ")).join(" ");
       const sentences = prose.split(/(?<=[.:?])\s+(?=[A-Z])/).filter((x) => x.trim().length > 0);
@@ -327,12 +326,12 @@ describe("section 4: the validation report", async () => {
 
   it.each(Object.entries(VALIDATION_NUMBERS))("%s is quoted from its document and shown in section 4", (_name, n) => {
     expect(file(n.source)).toContain(n.quote); // the document still says this
-    expect(n.quote).toContain(n.value.replace(/ m$| to \d+$/, "").replace("5-fold", "5-fold")); // and the value is in the quote
+    expect(n.quote).toContain(n.value.replace(/ m$| to \d+$/, "")); // and the value is in the quote
     expect(t4.replace(/<[^>]*>/g, "")).toContain(n.value);
   });
 
-  it("every number in section 4 is in docs/demo-numbers.md, docs/validation.md or docs/route-learning.md", () => {
-    const all = `${docs.demo}\n${docs.validation}\n${docs.learning}`;
+  it("every number in section 4 is in docs/demo-numbers.md or docs/validation.md", () => {
+    const all = `${docs.demo}\n${docs.validation}`;
     // Numbers as written: 20.57, 99.80%, 20,570, 18.4588, 0.8 and so on. File names and the heading number are not data.
     const body = t4.replace(/docs\/[a-z-]+\.md/g, " ").replace(/^\s*4\. How we validated ARES/, " ");
     const numbers = [...new Set(body.match(/\d[\d,]*(?:\.\d+)?/g) ?? [])].map((n) => n.replace(/,$/, ""));
@@ -340,7 +339,7 @@ describe("section 4: the validation report", async () => {
     const missing = numbers.filter((n) => !new RegExp(`(?<![\d.])${n.replace(/[.,]/g, "\$&")}(?![\d])`).test(all));
     expect(missing).toEqual([]);
     // The headline four, spelled out: these are the frozen values.
-    for (const value of ["20.57 km", "99.8%", "98.6%", "r = 0.82", "313 waypoints", "41.7 m", "25.8°", "35.3 m", "24.8 m", "15.38 km"]) expect(t4).toContain(value);
+    for (const value of ["20.57 km", "99.8%", "98.6%", "r = 0.82", "313 waypoints", "41.7 m", "25.8°"]) expect(t4).toContain(value);
   });
 
   it("says what each number does and does not show", () => {
@@ -355,9 +354,9 @@ describe("section 4: the validation report", async () => {
     expect(t4).not.toMatch(/ML-powered|machine learning (picks|chooses) the route/i);
   });
 
-  it("has the four pictures: the two new charts are real files drawn by the pipeline script, at most 300 KB, with a NASA/JPL-Caltech credit", () => {
+  it("has the three pictures: the two charts are real files drawn by the pipeline script, at most 300 KB, with a NASA/JPL-Caltech credit", () => {
     const images = [...section4.matchAll(/<img src="\/images\/([^"]+)"/g)].map((m) => m[1]);
-    expect(images).toEqual(["validation_traverse.jpg", "validation_path_vs_site.png", "validation_slope_vs_tilt.png", "route_learning.jpg"]);
+    expect(images).toEqual(["validation_traverse.jpg", "validation_path_vs_site.png", "validation_slope_vs_tilt.png"]);
     const script = file("pipeline/make_validation_charts.py");
     for (const chart of ["validation_path_vs_site.png", "validation_slope_vs_tilt.png"]) {
       const bytes = readFileSync(repoFile(`app/public/images/${chart}`));
@@ -365,8 +364,8 @@ describe("section 4: the validation report", async () => {
       expect(bytes.length).toBeLessThanOrEqual(300_000);
       expect(script).toContain(chart);
     }
-    expect(section4.match(/<img[^>]*loading="lazy"/g)).toHaveLength(4);
-    expect(section4.match(/<figcaption>[\s\S]*?NASA\/JPL-Caltech[\s\S]*?<\/figcaption>/g)).toHaveLength(4);
+    expect(section4.match(/<img[^>]*loading="lazy"/g)).toHaveLength(3);
+    expect(section4.match(/<figcaption>[\s\S]*?NASA\/JPL-Caltech[\s\S]*?<\/figcaption>/g)).toHaveLength(3);
     // The scatter plot's points are computed the way validate_traverse.py does, and the page says so.
     expect(script).toContain("rover-waypoints-sample.json");
     expect(script).toContain('recorded["tilt_vs_our_slope_correlation"]');

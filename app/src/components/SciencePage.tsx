@@ -31,6 +31,7 @@ import {
 import { DEFAULT_TRIALS, MONTE_CARLO_DISCLAIMER, PARAMS } from "../planner/montecarlo";
 import { SCIENCE_NUMBERS as N } from "../lib/scienceNumbers";
 import { VALIDATION_NUMBERS as V } from "../lib/validationNumbers";
+import { ML_NUMBERS as M } from "../lib/mlNumbers";
 import { COARSE_LAYER_NOTE, DATASETS, DATASET_COLUMNS, NOT_RECORDED } from "../lib/datasetMetadata";
 import { EvidenceTag } from "./EvidenceTag";
 import { WHAT_IF_INVITE } from "./WhatIfPanel";
@@ -45,6 +46,7 @@ export const SCIENCE_SECTIONS = [
   { id: "science-route", title: "How ARES picks a route" },
   // The validation report. `key` marks it in the contents list: it is the section judges should not miss.
   { id: "science-reality", title: "How we validated ARES", key: true },
+  { id: "science-ml", title: "Can machine learning do better?" },
   { id: "science-uncertainty", title: "Uncertainty" },
   { id: "science-emergencies", title: "Emergencies" },
   { id: "science-evidence", title: "How sure are we" },
@@ -125,7 +127,7 @@ export function goToScienceSection(
 }
 
 export function SciencePage() {
-  const [why, data, route, reality, uncertainty, emergencies, evidence, related] = SCIENCE_SECTIONS;
+  const [why, data, route, reality, ml, uncertainty, emergencies, evidence, related] = SCIENCE_SECTIONS;
   const scroller = useRef<HTMLDivElement>(null);
   // The section being read, for the highlight in the contents list.
   const [current, setCurrent] = useState<string>(SCIENCE_SECTIONS[0].id);
@@ -281,7 +283,7 @@ export function SciencePage() {
             Every 25 m cell gets a walking speed. Steeper, sandier and rougher ground is slower, and some ground is
             off limits. ARES then finds the fastest safe path between the stops with a standard shortest-path method
             (Dijkstra and A*). There is no machine learning in it: the same stops always give the same route.
-            We did test a machine-learning alternative (section 4); it didn't beat the physics model.
+            We did test a machine-learning alternative (section 5); it didn't beat the physics model.
           </p>
           <p>
             Fastest is not the same as shortest. On the demo mission we also planned a terrain-blind route, chosen
@@ -346,9 +348,9 @@ export function SciencePage() {
         <section id={reality.id}>
           <h2 tabIndex={-1}>4. {reality.title}</h2>
           <p>
-            A plan is only as good as the map under it, so we checked ARES twice against data it was not built from.
-            Each answer below is short; the full write-ups are in the repository (<Num>docs/validation.md</Num>,{" "}
-            <Num>docs/route-learning.md</Num>).
+            A plan is only as good as the map under it, so we checked ARES against data it was not built from. Each
+            answer below is short; the full write-up is in the repository (<Num>docs/validation.md</Num>). A second
+            check, with machine learning, is section 5.
           </p>
 
           <h3>a. What did we compare against?</h3>
@@ -495,37 +497,7 @@ export function SciencePage() {
             </tbody>
           </table>
 
-          <h3>f. A second check: machine learning</h3>
-          <p>
-            We trained a model on 31 of Perseverance's real drives (<Num>{N.learnRouteLength.value}</Num>) to learn how
-            NASA's drivers choose routes, then tested it on routes it had not seen (<Num>{N.learnRoutes.value}</Num>,
-            by {V.folds.value} cross-validation in driving order, so the test routes are on ground the model did not
-            learn from). It could not beat the ARES physics planner, whose routes are on average{" "}
-            <Num>{N.learnPhysics.value}</Num> from the drivers' routes, against <Num>{N.learnStraightLine.value}</Num>{" "}
-            for a straight line: <Num>{V.closerThanStraight.value}</Num> closer. The learned model scored the same{" "}
-            <Num>{N.learnPhysics.value}</Num>, and chose the same route as the physics planner on{" "}
-            <Num>{N.learnSameRoute.value}</Num>.
-          </p>
-          <p>
-            So the planner stays deterministic, and the learning serves as an independent check on it: a method that
-            only sees what expert drivers did ends up agreeing with the terrain rules.
-          </p>
-          <figure>
-            <img
-              src={`${import.meta.env.BASE_URL}images/route_learning.jpg`}
-              width={1400}
-              height={720}
-              alt="Left: the Jezero site with Perseverance's real routes in white and the ARES physics routes in orange, lying almost on top of each other. Right: a bar chart of the mean distance from the rover's real route, with the straight line highest and the ARES physics and learned models equal."
-              loading="lazy"
-            />
-            <figcaption>
-              Perseverance's real routes and the ARES routes between the same end points, and how close each planner
-              gets. Routes: NASA/JPL-Caltech (Mars 2020 traverse). Basemap: NASA/JPL-Caltech/University of Arizona/USGS
-              (HiRISE).
-            </figcaption>
-          </figure>
-
-          <h3>g. Limits of this validation</h3>
+          <h3>f. Limits of this validation</h3>
           <ul>
             <li>
               <strong>A rover is not an astronaut.</strong> Wheels and legs fail on different ground, and a rover does
@@ -554,8 +526,159 @@ export function SciencePage() {
           </ul>
         </section>
 
+        <section id={ml.id}>
+          <h2 tabIndex={-1}>5. {ml.title}</h2>
+          <p>
+            Short answer: no. We tried, tested it fairly, and the plain physics model was already as close to expert
+            routes as the learned one. The full write-up is in the repository (<Num>docs/route-learning.md</Num>).
+          </p>
+
+          <h3>a. The question</h3>
+          <p>
+            NASA's rover drivers chose every route Perseverance drove. Can a model that learns from those routes pick
+            routes closer to theirs than our physics model, which only knows how slow each kind of ground is to walk
+            on?
+          </p>
+
+          <h3>b. What it learned from</h3>
+          <p>
+            <Num>{M.routes.value} routes</Num>, <Num>{M.km.value}</Num> in all, cut from the rover's real path inside
+            our site (sols <Num>{M.firstSol.value}</Num> to <Num>{M.lastSol.value}</Num>), each about{" "}
+            <Num>{M.routeLength.value}</Num> long. We dropped <Num>{M.dropped.value}</Num> more routes that wander:
+            their straight-line length is under <Num>{M.straightness.value}</Num> of the path driven. Those are
+            usually science work around an outcrop, not travel, so they teach nothing about choosing a route.
+          </p>
+
+          <h3>c. How it learns</h3>
+          <p>
+            It starts as our physics model. For each rover route it plans its own route between the same two ends and
+            compares the two. Where they differ, it nudges how much it dislikes each kind of ground (steeper slopes,
+            roughness, soft sand, loose ground, ground next to no-go areas: <Num>{M.features.value}</Num> measures in
+            all) so the drivers' route looks a little better and its own a little worse. It repeats this{" "}
+            <Num>{M.steps.value}</Num> times. The method is called maximum margin planning (Ratliff, Bagnell and
+            Zinkevich 2006,{" "}
+            <a href="https://doi.org/10.1145/1143844.1143936" target="_blank" rel="noreferrer">
+              doi:10.1145/1143844.1143936
+            </a>
+            ).
+          </p>
+
+          <h3>d. How we tested it fairly</h3>
+          <p>
+            A model can look good by memorising its examples, so it is only scored on routes it never saw
+            (<Num>{N.learnRoutes.value}</Num>). We split the
+            routes into five blocks in driving order and scored each block with a model trained on the other four
+            (blocked {M.folds.value} cross-validation). The score is the mean distance between the planned route and
+            the drivers' route, in meters: lower is closer.
+          </p>
+
+          <h3>e. The result</h3>
+          <p>
+            Physics against a straight line: the physics routes are on average <Num>{M.physicsMean.value}</Num> from
+            the drivers' routes, against <Num>{M.straightMean.value}</Num> for a straight line. That is{" "}
+            <Num>{M.gain.value}</Num> closer (95% interval <Num>{M.gainLow.value}</Num> to{" "}
+            <Num>{M.gainHigh.value}</Num>): closer on <Num>{M.closer.value}</Num> routes, further on{" "}
+            <Num>{M.further.value}</Num>, the same on <Num>{M.same.value}</Num> (within{" "}
+            <Num>{M.sameThreshold.value}</Num>).
+          </p>
+          <p>
+            Learned against physics: the learned model chose the same route as the physics model on{" "}
+            <Num>{N.learnSameRoute.value}</Num>, a gain of <Num>{M.learnedGain.value}</Num>.
+          </p>
+          <figure>
+            <img
+              src={`${import.meta.env.BASE_URL}images/ml_routes_dumbbell.png`}
+              width={1144}
+              height={1011}
+              alt="One row for each of the 31 held-out rover routes, sorted. Each row has a grey dot for the straight line, a white dot for the ARES physics model and a blue ring for the learned model, joined by a line. On every row the blue ring sits exactly on the white dot. On most rows the grey dot is further to the right, meaning further from the drivers' route."
+              loading="lazy"
+            />
+            <figcaption>
+              Every held-out route, one row each. The blue ring (learned) sits on the white dot (physics) every time.
+              Rover routes: NASA/JPL-Caltech (Mars 2020 traverse).
+            </figcaption>
+          </figure>
+          <figure>
+            <img
+              src={`${import.meta.env.BASE_URL}images/ml_win_tie_loss.png`}
+              width={1144}
+              height={429}
+              alt={`Two stacked bars. ARES physics against a straight line: closer on ${M.closer.value} routes, the same on ${M.same.value}, further on ${M.further.value}. Learned model against ARES physics: the same on all ${M.learnedSame.value}.`}
+              loading="lazy"
+            />
+            <figcaption>
+              The same result as counts of routes. Rover routes: NASA/JPL-Caltech (Mars 2020 traverse).
+            </figcaption>
+          </figure>
+          <figure>
+            <img
+              src={`${import.meta.env.BASE_URL}images/route_learning.jpg`}
+              width={1400}
+              height={720}
+              alt="Left: the Jezero site with Perseverance's real routes in white and the ARES physics routes in orange, lying almost on top of each other. Right: a bar chart of the mean distance from the rover's real route, with the straight line highest and the ARES physics and learned models equal."
+              loading="lazy"
+            />
+            <figcaption>
+              Perseverance's real routes and the ARES routes between the same end points, and how close each planner
+              gets. Routes: NASA/JPL-Caltech (Mars 2020 traverse). Basemap: NASA/JPL-Caltech/University of Arizona/USGS
+              (HiRISE).
+            </figcaption>
+          </figure>
+
+          <h3>f. What that means</h3>
+          <p>
+            In every one of the five test rounds, the best model was the physics model itself: nothing learned got
+            closer to the drivers on the training routes, so nothing learned was kept. We also trained a version
+            without our safety rule (the rule says a learned model may be more careful than physics, never less).
+            Left to run to the end, it drifted towards less caution and its routes got worse:{" "}
+            <Num>{M.noRuleEnd.value}</Num> from the drivers' routes against <Num>{M.physicsTraining.value}</Num> for
+            physics, on the routes it trained on.
+          </p>
+          <p>
+            So the planner stays deterministic, and the machine learning serves as an independent check on it: a
+            method that only sees what expert drivers did ends up agreeing with the terrain rules.
+          </p>
+          <figure>
+            <img
+              src={`${import.meta.env.BASE_URL}images/ml_dislike_factors.png`}
+              width={1144}
+              height={528}
+              alt={`Pairs of bars for six kinds of ground: slope above 8 degrees, slope above 15 degrees, roughness, soft sand, loose ground and ground near no-go areas. Every bar of the model with the safety rule is at 1.00, the physics model. The bars of the model with no rule are at or below 1.00; the lowest is roughness at ${M.noRuleRoughness.value}.`}
+              loading="lazy"
+            />
+            <figcaption>
+              How much each model had learned to dislike each kind of ground when training ended (1.00 = the physics
+              model). With the safety rule nothing moved. With no rule every factor slid to or below 1.00 (roughness to{" "}
+              <Num>{M.noRuleRoughness.value}</Num>), which means less careful, and the match got worse. The model we
+              kept fell back to physics, so the planner uses a factor of 1.00 everywhere. Rover routes:
+              NASA/JPL-Caltech (Mars 2020 traverse).
+            </figcaption>
+          </figure>
+
+          <h3>g. Limits</h3>
+          <ul>
+            <li>
+              <strong>Rover drivers are not astronauts.</strong> They plan for a six-wheeled rover, with its own tilt
+              limits, cameras and radio schedule. "Close to the rover's route" stands in for "a good walking route";
+              it does not prove it.
+            </li>
+            <li>
+              <strong>A 25 m grid.</strong> Two routes cannot differ by much less than one cell, and the physics model
+              is already about one cell from the drivers. A better model might not be able to show it here.
+            </li>
+            <li>
+              <strong>A small sample.</strong> <Num>{M.routes.value} routes</Num> from one rover's single path, and
+              neighbouring routes are not independent, so the 95% interval is somewhat too narrow.
+            </li>
+            <li>
+              <strong>It says nothing about oxygen or safety numbers.</strong> Those always come from the walking
+              model, whichever route is chosen.
+            </li>
+          </ul>
+        </section>
+
         <section id={uncertainty.id}>
-          <h2 tabIndex={-1}>5. {uncertainty.title}</h2>
+          <h2 tabIndex={-1}>6. {uncertainty.title}</h2>
           <p>
             Several inputs are our own estimates, so ARES also asks: what if they are a bit off? It replays a plan{" "}
             {DEFAULT_TRIALS.toLocaleString("en-US")} times with the walking speed ({spread("walkSpeed")}), the terrain ({spread("terrainSpeed")} per leg),
@@ -605,7 +728,7 @@ export function SciencePage() {
         </section>
 
         <section id={emergencies.id}>
-          <h2 tabIndex={-1}>6. {emergencies.title}</h2>
+          <h2 tabIndex={-1}>7. {emergencies.title}</h2>
           <p>
             When something goes wrong, ARES does not just raise an alarm. It works out a new plan from where the
             astronaut is standing, and shows two statuses: one for the mission and one for the way home. The sizes of
@@ -678,7 +801,7 @@ export function SciencePage() {
         </section>
 
         <section id={evidence.id}>
-          <h2 tabIndex={-1}>7. {evidence.title}</h2>
+          <h2 tabIndex={-1}>8. {evidence.title}</h2>
           <p>
             Not every number in ARES deserves the same trust, so each one carries one of four labels. The numbers
             about the human body and the suit, such as walking speed, oxygen use and the reserve, are{" "}
@@ -723,7 +846,7 @@ export function SciencePage() {
         </section>
 
         <section id={related.id}>
-          <h2 tabIndex={-1}>8. {related.title}</h2>
+          <h2 tabIndex={-1}>9. {related.title}</h2>
           <p>
             ARES follows a line of traverse planners made for real exploration. We did not invent route planning for
             astronauts; we applied these ideas to one Mars site with oxygen as the limit.
