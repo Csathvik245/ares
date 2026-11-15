@@ -114,6 +114,16 @@ function useMissionState() {
         : null,
     [site, normalCost, stops],
   );
+  // "Compare: shortest path" (off by default). The same stops by the shortest walkable path,
+  // timed with the real walking model. Only worked out while the toggle is on and the plan is calm.
+  const [compareShortest, setCompareShortest] = useState(false);
+  const shortestPlan = useMemo(
+    () =>
+      compareShortest && site && normalCost && plan && plan.legs.length > 0 && !emergency
+        ? planRoute(site, normalCost, site.habitat, stops, { shortestPath: true })
+        : null,
+    [compareShortest, site, normalCost, plan, stops, emergency],
+  );
   // The calm plan remains the immutable playback route; stormAt supplies all
   // emergency statuses, reasons, return geometry and oxygen guidance.
   const emergencyOutcome = emergency?.outcome ?? null;
@@ -295,6 +305,9 @@ function useMissionState() {
     stops,
     demo,
     loadDemo,
+    compareShortest,
+    setCompareShortest,
+    shortestPlan,
     terrainHint,
     clearTerrainHint: () => setTerrainHint(false),
     viewRequest,

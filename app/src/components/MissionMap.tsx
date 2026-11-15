@@ -23,6 +23,8 @@ import { layerOpacity, raster, zoneBounds, zoneRaster, type OverlayName } from "
 import { PROBE_SOURCES, probeVerdict } from "../lib/probe";
 /** Dark outline on each side of the planned route, in pixels, so the white line reads over amber terrain. */
 export const PLAN_OUTLINE_PX = 2;
+/** The shortest-path comparison line: the Mono theme's muted grey (--muted). */
+export const COMPARE_COLOR = "#a3a3a3";
 export const TREK_LAYER = "Mars_Viking_MDIM21_ClrMosaic_global_232m";
 
 /**
@@ -86,6 +88,7 @@ export function MissionMap({
   abort,
   shelter,
   blocked,
+  comparePaths,
   toolbar,
   onAdd,
   onMove,
@@ -121,6 +124,8 @@ export function MissionMap({
   onProbe: (i: number) => void;
   /** Walk-home time in seconds for every cell (the cached field from the habitat), for the cursor tooltip. */
   walkHome?: ArrayLike<number>;
+  /** The shortest walkable path, one list of points per leg, drawn as a thin dashed grey line for comparison. */
+  comparePaths?: LatLng[][];
 }) {
   const root = useRef<HTMLDivElement>(null),
     map = useRef<L.Map | null>(null),
@@ -516,11 +521,15 @@ export function MissionMap({
           pane: "routes", color: nogo, weight: 2, dashArray: "4 4", fill: false, interactive: false,
         }).addTo(g);
       }
-    } else plan.legs.forEach((l) => draw(l.path, "#ff6b35", 3, 1, undefined, PLAN_OUTLINE_PX * 2));
+    } else {
+      // The comparison line goes down first, so the planned route is drawn over it where they share ground.
+      comparePaths?.forEach((path) => draw(path, COMPARE_COLOR, 2, 1, "5 5"));
+      plan.legs.forEach((l) => draw(l.path, "#ff6b35", 3, 1, undefined, PLAN_OUTLINE_PX * 2));
+    }
     return () => {
       g.remove();
     };
-  }, [site, basemap, stops, plan, emergency, incidentAt, abort, shelter, blocked]);
+  }, [site, basemap, stops, plan, emergency, incidentAt, abort, shelter, blocked, comparePaths]);
   useEffect(() => {
     const m = map.current;
     if (!m) return;

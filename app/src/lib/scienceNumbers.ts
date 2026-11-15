@@ -65,4 +65,8 @@ export const SCIENCE_NUMBERS = {
   blockedMargin: from("8", "194 min → 193 min"),
   bigLossHomeMargin: from("8", "111 min"),
   bigLossContinueMargin: from("8", "31 min"),
+
+  // 9. ARES vs shortest path (demo mission)
+  shortestPathSlower: from("9", "14 min quicker"),
+  shortestPathOxygen: from("9", "18 min of oxygen"),
 } as const;

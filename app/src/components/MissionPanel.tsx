@@ -268,6 +268,19 @@ export function MissionPanel({
             </small>
           </div>
         </dl>
+        {m.shortestPlan && display && !m.emergency && (
+          // "Compare: shortest path" is on: the same stops by the shortest walkable path, timed with the real walking model.
+          <p className="compare-line" title="The shortest path is chosen by distance alone (same no-go ground), then timed with the same walking model as the ARES route.">
+            <span>
+              Shortest path: <b>{formatKm(m.shortestPlan.distM)}</b>, <b>{formatMinutes(m.shortestPlan.totalSec)}</b>,{" "}
+              <b>{formatMinutes(m.shortestPlan.marginSec)}</b> spare
+            </span>
+            {"  ·  "}
+            <span>
+              ARES: <b>{formatKm(display.distM)}</b>, <b>{formatMinutes(display.totalSec)}</b>, <b>{formatMinutes(display.marginSec)}</b> spare
+            </span>
+          </p>
+        )}
       </section>
   );
 

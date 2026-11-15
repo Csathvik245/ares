@@ -56,6 +56,9 @@ const toStop = (p: (typeof site.pois)[number], dwellMin: number): Stop => ({ id:
 const demoPois = site.pois.filter((p) => p.kind === "science").slice(0, 3);
 const demoStops = demoPois.map((p) => toStop(p, 30));
 const demo = planRoute(site, cost, site.habitat, demoStops);
+// The same mission by the SHORTEST walkable path (section 9): chosen by distance alone, then
+// timed with the real walking model, so its time and oxygen are what that path would really cost.
+const demoShortest = planRoute(site, cost, site.habitat, demoStops, { shortestPath: true });
 
 // The Wildcat Ridge SPE demo, as the app's "SPE at Wildcat Ridge" button runs it:
 // one stop, no science time, and the event starts on arrival.
@@ -334,6 +337,27 @@ Top sensitivity: **${stretchSim.sensitivity[0].label}** (a swing of ${formatMinu
 ## 8. New emergencies
 
 ${newEmergenciesBlock()}
+
+## 9. ARES vs shortest path
+
+The demo mission planned two ways. **ARES** picks the fastest safe path. The **shortest path** is the
+shortest walkable one in metres: same no-go ground, but slopes, soft sand and rough ground are ignored
+when choosing it. Both are then timed with the same walking model, so the shortest path's numbers are
+what it would really cost to walk it. Planner option: \`planRoute(..., { shortestPath: true })\`, off by default.
+
+Distances are measured along the 25 m grid. On a grid several paths can tie for shortest; the search
+keeps the one it finds, without looking at the terrain. So a shortest path can be the same length as the
+ARES route and still be slower: it crosses slower ground.
+
+| | ARES route | Shortest path | Difference |
+|---|---|---|---|
+| Distance | ${formatKm(demo.distM)} | ${formatKm(demoShortest.distM)} | ${roundHalfUp(demo.distM - demoShortest.distM) === 0 ? "the same length, to the metre" : `shortest path is ${roundHalfUp(demo.distM - demoShortest.distM)} m shorter`} |
+| Walk time | ${formatDuration(demo.walkSec)} (${formatMinutes(demo.walkSec)}) | ${formatDuration(demoShortest.walkSec)} (${formatMinutes(demoShortest.walkSec)}) | ARES saves ${formatMinutes(demoShortest.walkSec - demo.walkSec)} of walking |
+| Total time | ${formatDuration(demo.totalSec)} | ${formatDuration(demoShortest.totalSec)} | ARES is ${formatMinutes(demoShortest.totalSec - demo.totalSec)} quicker |
+| Oxygen used | ${formatMinutes(demo.oxygenUsedSec)} | ${formatMinutes(demoShortest.oxygenUsedSec)} | ARES saves ${formatMinutes(demoShortest.oxygenUsedSec - demo.oxygenUsedSec)} of oxygen |
+| Oxygen margin | ${formatMinutes(demo.marginSec)} | ${formatMinutes(demoShortest.marginSec)} | ${formatMinutes(demo.marginSec - demoShortest.marginSec)} more spare with ARES |
+| Oxygen at return | ${formatPct(demo.oxygenAtReturnPct)} | ${formatPct(demoShortest.oxygenAtReturnPct)} | |
+| Status | **${demo.status}** | **${demoShortest.status}** | |
 `;
 }
 
@@ -438,6 +462,16 @@ describe("docs/demo-numbers.md", () => {
     expect(formatMinutes(scenario("oxygen-loss").after.marginSec)).toBe("96 min");
     expect(formatMinutes(scenario("slow-walk").after.marginSec)).toBe("151 min");
     expect(formatMinutes(scenario("blocked-path").after.marginSec)).toBe("193 min");
+  });
+
+  it("section 9: the shortest path is shorter in metres, but ARES is at least as quick and uses no more oxygen", () => {
+    expect(demoShortest.ok).toBe(true);
+    expect(demoShortest.distM).toBeLessThanOrEqual(demo.distM);
+    expect(demoShortest.walkSec).toBeGreaterThanOrEqual(demo.walkSec);
+    expect(demoShortest.totalSec).toBeGreaterThanOrEqual(demo.totalSec);
+    expect(demoShortest.oxygenUsedSec).toBeGreaterThanOrEqual(demo.oxygenUsedSec);
+    expect(demoShortest.marginSec).toBeLessThanOrEqual(demo.marginSec);
+    expect(demoShortest.workSec).toBe(demo.workSec); // same science, different walk
   });
 
   it("the demo mission is the one in CLAUDE.md", () => {

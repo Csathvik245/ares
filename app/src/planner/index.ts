@@ -6,6 +6,7 @@ export { buildCostGrid, walkingSpeedMps } from "./cost";
 export { dijkstraField, aStar, pathTo, pathLengthM, pathTimeSec } from "./search";
 export { planRoute } from "./plan";
 export type { PlanOptions } from "./plan";
+export { buildShortestPathGrid } from "./shortest";
 export {
   ROUTE_FEATURES,
   STEEP_DEG,

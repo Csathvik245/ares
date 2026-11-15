@@ -178,6 +178,7 @@ const CASES: Record<string, [string, () => unknown]> = {
   learnedCostRatio: ["all 76,800 cells", () => planner.learnedCostRatio(site, routeModel)],
   buildLearnedCostGrid: ["all 76,800 cells", () => planner.buildLearnedCostGrid(site, routeModel, CALM)],
   compareRoutes: ["fastest vs learned demo mission", () => planner.compareRoutes(site, routeModel, plan, learnedPlan)],
+  buildShortestPathGrid: ["new grid + distance-only grid (cache miss)", () => planner.buildShortestPathGrid(buildCostGrid(site, CALM))],
 };
 
 describe("every exported planner function is fast", () => {

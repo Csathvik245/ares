@@ -7,7 +7,7 @@ the real `site.json` and formatted with `format.ts`, so they match what the app 
 and route-learning numbers are read from the pipeline's output files. `npm test` fails if this
 file and the code stop agreeing.
 
-**Numbers taken from commit `995862f`** (the planner and data at that commit).
+**Numbers taken from commit `00433f1`** (the planner and data at that commit).
 
 <!-- numbers start -->
 ## 1. Demo mission
@@ -250,3 +250,24 @@ Reasons, as the app shows them:
 > A 50% oxygen loss at T+1:16: ARES cancels the remaining stops and sends her straight home with 111 min of margin. Continuing to Delta front toe would leave only 31 min.
 
 The app's "Oxygen loss" button uses the default 25%, which keeps every stop on the demo mission. This demo case needs `lossFraction` passed to `scenarioAt`.
+
+## 9. ARES vs shortest path
+
+The demo mission planned two ways. **ARES** picks the fastest safe path. The **shortest path** is the
+shortest walkable one in metres: same no-go ground, but slopes, soft sand and rough ground are ignored
+when choosing it. Both are then timed with the same walking model, so the shortest path's numbers are
+what it would really cost to walk it. Planner option: `planRoute(..., { shortestPath: true })`, off by default.
+
+Distances are measured along the 25 m grid. On a grid several paths can tie for shortest; the search
+keeps the one it finds, without looking at the terrain. So a shortest path can be the same length as the
+ARES route and still be slower: it crosses slower ground.
+
+| | ARES route | Shortest path | Difference |
+|---|---|---|---|
+| Distance | 4.97 km | 4.97 km | the same length, to the metre |
+| Walk time | 2:05 (125 min) | 2:18 (138 min) | ARES saves 14 min of walking |
+| Total time | 3:35 | 3:48 | ARES is 14 min quicker |
+| Oxygen used | 243 min | 261 min | ARES saves 18 min of oxygen |
+| Oxygen margin | 192 min | 174 min | 18 min more spare with ARES |
+| Oxygen at return | 49% | 46% | |
+| Status | **GO** | **GO** | |

@@ -290,3 +290,44 @@ describe("oxygen section: the simulated range under the estimate", () => {
     expect(source).toContain("const sim = hasRoute && !m.emergency ?");
   });
 });
+
+describe("compare: shortest path", () => {
+  const source = (name: string) => readFileSync(new URL(name, import.meta.url), "utf8");
+
+  it("is off by default and shows nothing until it is switched on", () => {
+    expect(panel(demoStops, "budget")).not.toContain("compare-line");
+    const context = source("../lib/MissionContext.tsx");
+    expect(context).toContain("const [compareShortest, setCompareShortest] = useState(false);");
+    expect(context).toContain("planRoute(site, normalCost, site.habitat, stops, { shortestPath: true })");
+    expect(context).toMatch(/compareShortest && site && normalCost && plan && plan\.legs\.length > 0 && !emergency/); // calm plans only
+  });
+
+  it("when on, one line under the tiles gives the shortest path's real numbers next to the ARES route's", async () => {
+    const { formatKm, formatMinutes } = await import("../planner");
+    const plan = planRoute(site, cost, site.habitat, demoStops);
+    const shortestPlan = planRoute(site, cost, site.habitat, demoStops, { shortestPath: true });
+    const html = renderToStaticMarkup(
+      <MissionContextForTests.Provider value={{ ...missionWith(demoStops), compareShortest: true, shortestPlan } as MissionState}>
+        <MissionPanel part="budget" onDetail={nothing} />
+      </MissionContextForTests.Provider>,
+    );
+    const line = text(/<p class="compare-line"[^>]*>([\s\S]*?)<\/p>/.exec(html)![1]).replace(/ ,/g, ",");
+    expect(line).toBe(
+      `Shortest path: ${formatKm(shortestPlan.distM)}, ${formatMinutes(shortestPlan.totalSec)}, ${formatMinutes(shortestPlan.marginSec)} spare · ` +
+        `ARES: ${formatKm(plan.distM)}, ${formatMinutes(plan.totalSec)}, ${formatMinutes(plan.marginSec)} spare`,
+    );
+    expect(html.indexOf("stat-tiles")).toBeLessThan(html.indexOf("compare-line")); // under the tiles
+    expect(shortestPlan.marginSec).toBeLessThanOrEqual(plan.marginSec); // ARES never has less oxygen to spare
+  });
+
+  it("the toggle lives inside More details, and the map draws the shortest path as a thin dashed grey line", () => {
+    const app = source("../App.tsx");
+    const more = app.slice(app.indexOf('<details className="collapsible more-details">'), app.indexOf("</details>", app.indexOf('<details className="collapsible more-details">')));
+    expect(more).toContain("<span>Compare: shortest path</span>");
+    expect(more).toContain("checked={m.compareShortest}");
+    expect(app).toContain("comparePaths={m.shortestPlan?.legs.map((leg) => leg.path)}");
+    const map = source("./MissionMap.tsx");
+    expect(map).toContain('comparePaths?.forEach((path) => draw(path, COMPARE_COLOR, 2, 1, "5 5"));');
+    expect(map).toContain('export const COMPARE_COLOR = "#a3a3a3";'); // the theme's muted grey
+  });
+});

@@ -283,6 +283,12 @@ export function SciencePage() {
             We did test a machine-learning alternative (section 4); it didn't beat the physics model.
           </p>
           <p>
+            Fastest is not the same as shortest. On the demo mission we also planned the shortest walkable path and
+            timed it with the same walking model. It is the same length as the ARES route, yet ARES is{" "}
+            <Num>{N.shortestPathSlower.value}</Num> and saves <Num>{N.shortestPathOxygen.value}</Num>, because it
+            crosses faster ground. In the Plan tab, "Compare: shortest path" (under More details) draws both.
+          </p>
+          <p>
             Walking time becomes oxygen. The plan is GO only if the astronaut is home with the reserve untouched. The
             safe-return zone on the map is every place she could still walk to after her last stop and get home from
             with that reserve.

@@ -267,6 +267,7 @@ function Console({ initialHash }: { initialHash?: string }) {
             abort={abort?.path ?? EMPTY_PATH}
             shelter={winningShelter}
             blocked={m.scenario?.blocked}
+            comparePaths={m.shortestPlan?.legs.map((leg) => leg.path)}
             emergency={!!emergency}
             incidentAt={emergency?.at}
             viewRequest={m.viewRequest}
@@ -437,6 +438,16 @@ function Console({ initialHash }: { initialHash?: string }) {
                     <small>reliability · layers · start time</small>
                   </summary>
                   <div className="more-details-body">
+                    {/* Off by default. Shows what the shortest walkable path would cost, next to the ARES route. */}
+                    <label className="compare-toggle" title="Draw the shortest walkable path as a dashed grey line, and show its real time and oxygen next to the ARES route.">
+                      <input
+                        type="checkbox"
+                        checked={m.compareShortest}
+                        disabled={!!emergency || plan.legs.length === 0}
+                        onChange={(event) => m.setCompareShortest(event.target.checked)}
+                      />
+                      <span>Compare: shortest path</span>
+                    </label>
                     <MissionPanel part="reliability" onDetail={setDetail} />
                     <LayerRail
                       part="layers"

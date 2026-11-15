@@ -245,3 +245,47 @@ html[data-theme] .console-app .map-probe dd small {
   font: 400 9px/16px var(--font-mono);
   letter-spacing: 0.02em;
 }
+
+/* ---------- Compare: shortest path ---------- */
+html[data-theme] .console-app .compare-toggle {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 30px;
+  color: var(--text);
+  font: 400 12px/16px var(--font-body);
+  cursor: pointer;
+}
+html[data-theme] .console-app .compare-toggle input {
+  flex: none;
+  width: 14px;
+  height: 14px;
+  margin: 0;
+  accent-color: var(--safe);
+}
+html[data-theme] .console-app .compare-toggle:has(input:disabled) {
+  color: var(--muted);
+  cursor: default;
+}
+/* One compact line under the tiles. It wraps between its two halves, never inside a number. */
+html[data-theme] .console-app .compare-line {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0 6px;
+  margin: 8px 0 0;
+  color: var(--muted);
+  font: 400 11px/16px var(--font-mono);
+  white-space: pre;
+}
+html[data-theme] .console-app .compare-line span {
+  white-space: nowrap;
+}
+html[data-theme] .console-app .compare-line b {
+  color: var(--text);
+  font-weight: 500;
+}
+@media (max-width: 1024px) {
+  html[data-theme] .console-app .compare-toggle {
+    min-height: var(--touch-target);
+  }
+}

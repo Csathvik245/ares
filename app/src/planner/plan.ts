@@ -2,6 +2,7 @@ import { SOL_HOURS, STORM_EXTRA_RESERVE_MIN, WALK_BURN, WORK_BURN } from "./cons
 import { SUN_CAUTION_DEG, lowSunDuring } from "./env";
 import { isLowMargin, oxygenBudget } from "./oxygen";
 import { groundProblem } from "./cost";
+import { buildShortestPathGrid } from "./shortest";
 import { smoothPath } from "./geom";
 import { aStar, pathLengthM, pathTimeSec, pathTo } from "./search";
 import { cellIndexOf } from "./site";
@@ -16,6 +17,14 @@ export type PlanOptions = {
    * exactly what planRoute gave before this option existed.
    */
   routeGrid?: CostGrid;
+  /**
+   * Compare with the SHORTEST path (off by default). When true, each leg's path is the
+   * shortest walkable one in metres: same no-go cells and corner rule, but slopes, sand
+   * and rough ground are ignored when choosing. Its time, oxygen and status are still
+   * worked out with the real walking model on `cost`, so they are the true cost of taking
+   * that path. Ignored when `routeGrid` is given. Leaving it out changes nothing.
+   */
+  shortestPath?: boolean;
   /**
    * Re-planning in the middle of an EVA (used by emergencies.ts). All optional;
    * leaving them out gives exactly the normal habitat → stops → habitat plan.
@@ -68,6 +77,9 @@ const degrees = (deg: number) => `${deg < 0 ? "−" : ""}${Math.abs(deg).toFixed
  * options.routeGrid (additive, optional, off by default): choose each leg's path on
  * that grid instead, then time it on `cost`. Same safety rules and the same numbers
  * for the same path; only the choice of path changes.
+ *
+ * options.shortestPath (additive, optional, off by default): choose each leg's path by
+ * distance alone (buildShortestPathGrid), then time it on `cost` the same way.
  */
 export function planRoute(
   site: Site,
@@ -76,7 +88,7 @@ export function planRoute(
   stops: Stop[],
   options: PlanOptions = {},
 ): Plan {
-  const routeGrid = options.routeGrid ?? cost;
+  const routeGrid = options.routeGrid ?? (options.shortestPath ? buildShortestPathGrid(cost) : cost);
   if (routeGrid.width !== cost.width || routeGrid.height !== cost.height) {
     throw new RangeError("planRoute: routeGrid must be the same size as cost");
   }
@@ -134,7 +146,10 @@ export function planRoute(
       walkSec += legWalk;
       distM += legDist;
       legs.push({
-        path: smoothPath(site, routeGrid, cells, from.at, to.at),
+        // The drawn line is smoothed on the grid the path was chosen with. The shortest path is the
+        // exception: it is smoothed with the real walking model, so (as for a normal leg) the drawn
+        // line is never slower than the cells its time was measured on.
+        path: smoothPath(site, options.shortestPath && !options.routeGrid ? cost : routeGrid, cells, from.at, to.at),
         walkSec: legWalk,
         distM: legDist,
         arriveSec: clock,
