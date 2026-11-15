@@ -1,8 +1,8 @@
-// "Mission tools": one always-visible row under the oxygen tiles with the three things a
-// visitor should not have to hunt for: What if? (the assumption sliders), Briefing (the
-// printable one-page plan) and Share (a link to this exact mission).
-// It only shows buttons; the app owns what each one does.
-import { useEffect, useState, type ReactNode } from "react";
+// "Mission tools": a small floating toolbar at the top centre of the map with the three
+// things a visitor should not have to hunt for: What if? (the assumption sliders, in a
+// popover under the toolbar), Briefing (the printable one-page plan) and Share (a link to
+// this exact mission). It only shows buttons; the app owns what each one does.
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import { rememberWhatIfPulse, whatIfPulseNeeded } from "../lib/missionTools";
 
 export const MISSION_TOOLS_TITLE = "Mission tools";
@@ -19,7 +19,7 @@ export const TOOL_ICONS = {
   whatif: (
     <ToolIcon>
       <path d="M2 4.5 H14 M2 11.5 H14" />
-      <circle cx="10" cy="4.5" r="1.8" fill="var(--console)" />
+      <circle cx="10" cy="4.5" r="1.8" fill="var(--void)" />
       <circle cx="5.5" cy="11.5" r="1.8" fill="var(--console)" />
     </ToolIcon>
   ),
@@ -50,12 +50,18 @@ type Props = {
   onWhatIf: () => void;
   onBriefing: () => void;
   onShare: () => void;
-  /** The What if? sliders, when open. */
+  /** The What if? sliders, shown in the popover when open. */
   children?: ReactNode;
 };
+/** The gap between the storm banner and the toolbar under it, px. */
+export const BANNER_GAP_PX = 8;
 
-/** The row as it appears in the app: it adds the first-visit pulse on What if?. */
-export function MissionTools(props: Props) {
+/**
+ * The toolbar as it appears on the map. It adds what needs the browser: the first-visit
+ * pulse on What if?, closing the popover on Esc or a click outside, and, during an
+ * emergency, sitting just under the storm banner instead of over it.
+ */
+export function MissionTools({ onCloseWhatIf, underBanner = false, ...props }: Props & { onCloseWhatIf: () => void; underBanner?: boolean }) {
   // The first time a plan exists in this browser, pulse the What if? button once.
   const [pulse, setPulse] = useState(false);
   useEffect(() => {
@@ -65,18 +71,66 @@ export function MissionTools(props: Props) {
     const timer = window.setTimeout(() => setPulse(false), WHAT_IF_PULSE_MS);
     return () => window.clearTimeout(timer);
   }, []);
-  return <MissionToolsRow {...props} pulse={pulse} />;
+  // The popover closes on Esc or a click anywhere outside the toolbar.
+  const root = useRef<HTMLDivElement>(null);
+  const open = props.whatIfOpen;
+  useEffect(() => {
+    if (!open) return;
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key === "Escape") onCloseWhatIf();
+    };
+    const onDown = (event: MouseEvent) => {
+      if (root.current && !root.current.contains(event.target as Node)) onCloseWhatIf();
+    };
+    document.addEventListener("keydown", onKey);
+    document.addEventListener("mousedown", onDown);
+    return () => {
+      document.removeEventListener("keydown", onKey);
+      document.removeEventListener("mousedown", onDown);
+    };
+  }, [open, onCloseWhatIf]);
+  // During an emergency the storm banner lies across the top of the map: sit just under it.
+  const [top, setTop] = useState<number | undefined>(undefined);
+  useEffect(() => {
+    if (!underBanner) {
+      setTop(undefined);
+      return;
+    }
+    const banner = root.current?.parentElement?.querySelector<HTMLElement>(".storm-alert");
+    if (!banner) return;
+    const place = () => setTop(banner.offsetTop + banner.offsetHeight + BANNER_GAP_PX);
+    place();
+    if (typeof ResizeObserver === "undefined") return;
+    const observer = new ResizeObserver(place);
+    observer.observe(banner);
+    return () => observer.disconnect();
+  }, [underBanner]);
+  return <MissionToolsRow {...props} pulse={pulse} top={top} rootRef={root} />;
 }
 
-/** The row itself. No state of its own. */
-export function MissionToolsRow({ whatIfOpen, copied, canWhatIf, canBrief, canShare, onWhatIf, onBriefing, onShare, children, pulse = false }: Props & { pulse?: boolean }) {
+/** The toolbar itself. No state of its own. */
+export function MissionToolsRow({
+  whatIfOpen,
+  copied,
+  canWhatIf,
+  canBrief,
+  canShare,
+  onWhatIf,
+  onBriefing,
+  onShare,
+  children,
+  pulse = false,
+  top,
+  rootRef,
+}: Props & { pulse?: boolean; top?: number; rootRef?: React.Ref<HTMLDivElement> }) {
   return (
-    <section className="mission-tools" data-tour="tools" aria-label={MISSION_TOOLS_TITLE}>
-      <div className="mission-tools__row">
+    <div className="mission-tools" data-tour="tools" ref={rootRef} style={top === undefined ? undefined : { top }}>
+      <div className="mission-tools__row" role="toolbar" aria-label={MISSION_TOOLS_TITLE}>
         <button
           type="button"
           className={`mission-tools__button${whatIfOpen ? " is-open" : ""}${pulse ? " is-pulse" : ""}`}
           aria-expanded={whatIfOpen}
+          aria-controls="mission-tools-whatif"
           onClick={onWhatIf}
           disabled={!canWhatIf}
           title={canWhatIf ? "Re-plan with a different suit oxygen supply, walking speed or reserve." : "Reset the emergency to try different assumptions."}
@@ -106,7 +160,11 @@ export function MissionToolsRow({ whatIfOpen, copied, canWhatIf, canBrief, canSh
           {copied ? "Copied" : "Share"}
         </button>
       </div>
-      {children}
-    </section>
+      {whatIfOpen && children && (
+        <div className="mission-tools__popover" id="mission-tools-whatif" role="dialog" aria-label="What if?">
+          {children}
+        </div>
+      )}
+    </div>
   );
 }

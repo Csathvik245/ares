@@ -134,12 +134,12 @@ describe("What if? panel", () => {
     expect(elementsOf(idle).find((el) => el.type === "button")!.props.disabled).toBe(true);
   });
 
-  it("opens from the Mission tools row (not More details), re-plans after a short pause, and is off with no plan or during an emergency", () => {
+  it("opens from the map's Mission tools toolbar (not More details), re-plans after a short pause, and is off with no plan or during an emergency", () => {
     const app = read("../App.tsx");
     const more = app.slice(app.indexOf('<details className="collapsible more-details">'), app.indexOf("</details>", app.indexOf('<details className="collapsible more-details">')));
     expect(more).not.toContain("<WhatIfPanel");
     const tools = app.slice(app.indexOf("<MissionTools"), app.indexOf("</MissionTools>"));
-    expect(tools).toMatch(/\{whatIfOpen && \(\s*<WhatIfPanel/);
+    expect(tools).toMatch(/\{whatIfOpen && !emergency && \(\s*<WhatIfPanel/);
     expect(tools).toContain("disabled={!!emergency || plan.legs.length === 0}");
     const context = read("../lib/MissionContext.tsx");
     expect(context).toMatch(/setTimeout\(\(\) => setWhatIf\(whatIfDraft\), 150\)/); // debounced

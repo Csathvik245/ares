@@ -68,7 +68,7 @@ export const TOUR_STOPS: TourStop[] = [
   { id: "probe", label: "Hover box", selector: '[data-tour="map"]', consoleTab: "Map", text: "Move your mouse over the map. A small box says whether the ground is walkable, and why not if it is off-limits." },
   { id: "emergency", label: "Emergencies", selector: '[data-tour="emergency"]', consoleTab: "Plan", text: "Pick an emergency and press Trigger. ARES re-plans from where she is standing." },
   { id: "timeline", label: "Timeline and Play", selector: '[data-tour="timeline"]', consoleTab: "Map", text: "Press Play to watch the walk. The track shows walking in white and science in grey." },
-  { id: "tools", label: "Mission tools", selector: '[data-tour="tools"]', consoleTab: "Plan", text: "Try What if? to see how our assumptions change the answer. Briefing prints a one-page plan. Share copies a link to this exact mission." },
+  { id: "tools", label: "Mission tools", selector: '[data-tour="tools"]', consoleTab: "Map", text: "Try What if? to see how our assumptions change the answer. Briefing prints a one-page plan. Share copies a link to this exact mission." },
 ];
 
 /**

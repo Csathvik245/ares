@@ -198,7 +198,7 @@ describe("tab 1: Get started", () => {
     expect(action).toMatch(/ensurePlan\(\);[\s\S]*scrollIntoView\(\{ block: "nearest" \}\);[\s\S]*classList\.add\("is-flash"\)/);
     expect(app).toMatch(/const ensurePlan = \(\) => \{\s*if \(!m\.emergency && m\.stops\.length === 0\) m\.loadDemo\(\);/);
     // "Change the assumptions": the demo is loaded if there is no plan, and the What if? sliders open.
-    expect(action).toMatch(/if \(action === "whatif"\) \{[\s\S]*if \(m\.stops\.length === 0\) m\.loadDemo\(\);\s*setWhatIfOpen\(true\);/);
+    expect(action).toMatch(/if \(action === "whatif"\) \{[\s\S]*if \(m\.stops\.length === 0\) m\.loadDemo\(\);[\s\S]*setTab\("Map"\);[\s\S]*setWhatIfOpen\(true\)/);
     expect(PLAY_HINT_TEXT).toBe("Press Play to watch the walk");
     expect(app).toContain("{PLAY_HINT_TEXT}");
     expect(app).toMatch(/onScience=\{\(\) => \{\s*setGuideOpen\(false\);\s*go\("science"\);/);

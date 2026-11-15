@@ -807,7 +807,7 @@ export function SciencePage() {
             about the human body and the suit, such as walking speed, oxygen use and the reserve, are{" "}
             <strong>ASSUMED</strong>: they are our reasoned estimates, not measurements from astronauts or suit tests.
           </p>
-          <p>In the Plan tab, in the Mission tools row: {WHAT_IF_INVITE}</p>
+          <p>In the Plan tab, in the toolbar at the top of the map: {WHAT_IF_INVITE}</p>
           <table className="science-page__wide">
             <thead>
               <tr>

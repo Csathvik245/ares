@@ -1,5 +1,5 @@
 import { ShelterGuidance } from "./components/ShelterGuidance";
-import { lazy, Suspense, useEffect, useMemo, useState } from "react";
+import { useCallback, lazy, Suspense, useEffect, useMemo, useState } from "react";
 import { Hud, OpeningScreen } from "./components/DesignIntegration";
 import { ElevationProfile } from "./components/ElevationProfile";
 import { StopCard as StopDetailCard } from "./components/StopCard";
@@ -88,6 +88,7 @@ function Console({ initialHash }: { initialHash?: string }) {
   const [briefingOpen, setBriefingOpen] = useState(false);
   // The What if? sliders, opened from the Mission tools row under the oxygen tiles.
   const [whatIfOpen, setWhatIfOpen] = useState(false);
+  const closeWhatIf = useCallback(() => setWhatIfOpen(false), []);
   const [playHint, setPlayHint] = useState(false);
   const [guideOpen, setGuideOpen] = useState(false);
   const [guideHint, setGuideHint] = useState(false);
@@ -248,12 +249,13 @@ function Console({ initialHash }: { initialHash?: string }) {
       return;
     }
     if (action === "whatif") {
-      // "Change the assumptions": a calm plan on screen, with the What if? sliders open.
+      // "Change the assumptions": a calm plan on screen, with the What if? popover open on the map.
       if (m.emergency) m.reset();
       if (m.stops.length === 0) m.loadDemo();
-      setWhatIfOpen(true);
-      setTab("Plan"); // tablet: the Mission sheet holds the Mission tools row
-      window.setTimeout(() => document.querySelector('[data-tour="tools"]')?.scrollIntoView({ block: "nearest" }), 350);
+      setView3d(false);
+      setTab("Map"); // tablet: the toolbar is on the map
+      // After this click is over, so the popover's own "click outside" does not close it at once.
+      window.setTimeout(() => setWhatIfOpen(true), 0);
       return;
     }
     // "Throw an emergency at it": show the emergency controls and flash them.
@@ -406,7 +408,7 @@ function Console({ initialHash }: { initialHash?: string }) {
       : m.evaReasons.join(" · ");
   // The less-used views live in one menu.
   const canBrief = !emergency && plan.legs.length > 0;
-  // Mission tools: What if?, Briefing and Share, in one row under the oxygen tiles. Only with a plan.
+  // Mission tools: What if?, Briefing and Share, in a floating toolbar at the top centre of the map. Only with a plan.
   const missionTools =
     plan.legs.length > 0 ? (
       <MissionTools
@@ -416,10 +418,12 @@ function Console({ initialHash }: { initialHash?: string }) {
         canBrief={canBrief}
         canShare={m.stops.length > 0}
         onWhatIf={() => setWhatIfOpen((open) => !open)}
+        onCloseWhatIf={closeWhatIf}
+        underBanner={!!emergency}
         onBriefing={() => setBriefingOpen(true)}
         onShare={copyMissionLink}
       >
-        {whatIfOpen && (
+        {whatIfOpen && !emergency && (
           <WhatIfPanel
             values={m.whatIfDraft}
             active={isWhatIf(m.whatIfDraft)}
@@ -501,6 +505,8 @@ function Console({ initialHash }: { initialHash?: string }) {
             {noPlan && !view3d && (
               <EmptyPlanCard onRunDemo={() => runDemo(go)} onLoadDemo={m.loadDemo} canLoadDemo={m.demo.length > 0} />
             )}
+            {/* What if?, Briefing and Share: a floating toolbar at the top centre of the map. */}
+            {!view3d && missionTools}
             {/* The guided demo's caption card. It stays closed until "Run the demo" starts it. */}
             <GuidedDemo />
             {view3d && (
@@ -645,7 +651,6 @@ function Console({ initialHash }: { initialHash?: string }) {
                 <MissionPanel part="status" onDetail={setDetail} />
                 <MissionPanel part="stops" onDetail={setDetail} />
                 <MissionPanel part="budget" onDetail={setDetail} />
-                {missionTools}
                 {/* Everything a first-time visitor does not need yet, behind one expander. */}
                 <details className="collapsible more-details">
                   <summary>
@@ -694,7 +699,7 @@ function Console({ initialHash }: { initialHash?: string }) {
               onSources={() => setSources(true)}
             />
             {mapColumn}
-            <MissionPanel onDetail={setDetail} tools={missionTools} />
+            <MissionPanel onDetail={setDetail} />
           </>
         )}
       </div>
