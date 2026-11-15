@@ -31,8 +31,8 @@ function Console() {
     [m.site, m.plan, m.conditions],
   );
   const stopScores = useMemo(
-    () => (m.site && m.plan && m.cost ? scienceScore(m.site, m.plan, { stops: m.stops, cost: m.cost }) : []),
-    [m.site, m.plan, m.stops, m.cost],
+    () => (m.site && m.plan ? scienceScore(m.site, m.plan, { stops: m.stops }) : []),
+    [m.site, m.plan, m.stops],
   );
   const frontendOnly = new URLSearchParams(window.location.search).has(
     "frontend",

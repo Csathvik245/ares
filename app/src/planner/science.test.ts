@@ -57,10 +57,19 @@ describe("scienceScore on the demo mission", () => {
           .map(
             (s) =>
               `  ${s.id.padEnd(12)} science ${s.science.toFixed(3)}  extra O2 ${s.extraO2Min.toFixed(1)} min  ` +
-              `score ${s.score.toFixed(5)} per O2-min (${(s.score * 60).toFixed(3)} per O2-hour)`,
+              `score ${s.score.toFixed(5)} per oxygen-minute`,
           )
           .join("\n"),
     );
+  });
+
+  it("scores a calm plan on the calm grid by default, so an emergency does not change them", () => {
+    // The app keeps the calm plan during a dust storm or SPE. Its scores must not move.
+    const withCalmGrid = scienceScore(site, plan, { stops, cost });
+    expect(scienceScore(site, plan, { stops })).toEqual(withCalmGrid);
+    // Passing the storm grid is the mistake to avoid: the "skip this stop" walk gets slower, so scores change.
+    const stormGrid = buildCostGrid(site, { storm: true, spe: false, startLmst: 13 });
+    expect(scienceScore(site, plan, { stops, cost: stormGrid })).not.toEqual(withCalmGrid);
   });
 
   it("the delta front toe has the highest science value", () => {

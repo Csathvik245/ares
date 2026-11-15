@@ -72,12 +72,12 @@ import { scienceScore, suggestStops } from "../planner/science";
 **Score per stop card** (stop list in the mission panel, or the stop detail card). One entry per stop, in order: `{ id, science, extraO2Min, score }`.
 
 ```ts
-const scores = scienceScore(site, plan, { stops: m.stops, cost });
+const scores = scienceScore(site, plan, { stops: m.stops });
 ```
 
 - `science` is the mean science value (0 to 1) within 50 m of the stop. It is a relative CRISM index, not a mineral abundance.
 - `extraO2Min` is the oxygen the stop adds: the walking detour compared with skipping it, plus its science time.
-- `score` = `science / extraO2Min`. It is a small number (0.004 to 0.005 for the demo stops), so show it per oxygen-hour (`score * 60`, about 0.23 to 0.31) or show the two parts side by side ("science 0.54 · 131 O2-min").
+- `score` = `science / extraO2Min`. It is a small number (0.004 to 0.005 for the demo stops), so show it with three decimals ("0.004 per oxygen-minute") beside its two parts ("science 0.54 · 131 min O2"). Leave `cost` out (or pass the calm grid the plan was built on): passing the storm grid during an emergency changes the scores of stops already visited.
 - Demo mission: the delta front toe has by far the highest science (0.54) but costs the most oxygen; Sid scores best per minute because it is almost on the way home.
 
 **"Suggest stops" button** (mission panel, next to "Load demo mission"). Up to 3 stops that keep the plan GO, best score first. About 100 ms the first time, about 35 ms after.

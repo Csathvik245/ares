@@ -77,8 +77,8 @@ export function MissionPanel({
         ? "Review reasons"
         : "Plan not viable";
   const scores = useMemo(
-    () => scienceScore(m.site!, plan, { stops: m.stops, cost: m.cost! }),
-    [m.site, plan, m.stops, m.cost],
+    () => scienceScore(m.site!, plan, { stops: m.stops }),
+    [m.site, plan, m.stops],
   );
   const [ideas, setIdeas] = useState<ReturnType<typeof suggestStops>>([]);
   const statusSection = (
@@ -250,7 +250,7 @@ export function MissionPanel({
                 m.edit(next);
               }}
             >
-              <span className="stop-number">{i + 1}</span>
+              <span className="stop-number">{String(i + 1).padStart(2, "0")}</span>
               <div className="stop-summary">
                 <button
                   className="text-button stop-name"
@@ -270,7 +270,7 @@ export function MissionPanel({
                   <span>· {s.dwellMin} min science</span>
                 </span>
                 <span className="stop-science-score">
-                  {scores[i] ? `Science ${roundHalfUp(scores[i].science, 2)} · ${roundHalfUp(scores[i].score * 60, 2)} per O₂-hour` : "Science score unavailable"}
+                  {scores[i] ? `Science ${roundHalfUp(scores[i].science, 2)} · ${roundHalfUp(scores[i].score, 3).toFixed(3)} per oxygen-minute` : "Science score unavailable"}
                 </span>
               </div>
               <button
