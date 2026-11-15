@@ -27,6 +27,7 @@ pip install rasterio numpy matplotlib pillow
 
 ```bash
 python pipeline/build_site.py        # site.json   (first run: ~15 min, mostly the DTM read)
+python pipeline/build_shielding.py   # adds the skyView layer to site.json (about 20 s once the DTM is cached)
 python pipeline/check_site.py        # must print "0 failed"
 python pipeline/build_basemap.py     # basemap.png (first run: ~15 min)
 python pipeline/preview_site.py app/public/data/site.json docs/images
@@ -41,6 +42,7 @@ Delete a file in `data/raw/` to fetch it again.
 | Script | What it does | Output |
 |---|---|---|
 | `build_site.py` | Builds the real terrain from NASA/USGS data | `app/public/data/site.json` (~2.4 MB) |
+| `build_shielding.py` | Adds the sky-view layer (how much of the sky each cell can see) from the same HiRISE DTM. **Run it after `build_site.py`**, which writes `site.json` without it | `layers.skyView` and `sources.skyView` in `site.json`, `docs/images/skyview.png`, `pipeline/data/skyview_stats.json` |
 | `build_basemap.py` | Crops and shrinks the HiRISE orthomosaic to our bounds | `app/public/data/basemap.png` + `basemap.json` |
 | `validate_traverse.py` | Independent check: compares the terrain with Perseverance's real drive path (NASA traverse and waypoints files) | `docs/images/validation_traverse.png`, `pipeline/data/traverse_validation.json`, test sample. Results in `docs/validation.md` |
 | `check_site.py` | Checks a site file against Contract 1 and checks the terrain is walkable | Pass/fail list; exit code 0 = all pass |
@@ -121,6 +123,59 @@ Delete a file in `data/raw/` to fetch it again.
   30 min at each stop: **4.97 km, 3 h 35 min, 192 min oxygen margin, GO.**
 - The delta front toe is a **new science target selected from the CRISM clay signal, not visited by Perseverance**. That is deliberate: the challenge asks for new science, and this is where the orbital clay signal is strongest within walking range.
 - The rover's own delta-front sampling sites are 2.6–3.1 km from the landing site each way, so a loop through them is about 6.5 km (still GO, 134 min margin). They are in the file as extra POIs.
+
+## `build_shielding.py`
+
+```bash
+python pipeline/build_site.py          # only if site.json needs rebuilding
+python pipeline/build_shielding.py     # adds layers.skyView; changes nothing else in site.json
+python pipeline/check_site.py
+```
+
+Adds `layers.skyView` to `site.json`: for every 25 m cell, the fraction of the sky an
+astronaut standing there can see (1 = open sky all round). The planner's shelter
+routing (`app/src/planner/shelter.ts`) uses it in a solar particle event.
+
+- **Source:** the same HiRISE DTM mosaic as the elevation layer (doi:10.5066/P9REJ9JN),
+  read through `build_site.py`'s own functions, so the cache in `data/raw/`, the
+  projection handling and the grid are identical. Nothing else is downloaded.
+- **Method:** the DTM averaged to about 5 m; from each cell centre, 1.5 m above the
+  ground, the horizon angle is found in 32 compass directions out to 500 m;
+  `skyView = mean of (1 - sin(horizon angle))`. That is the open share of the sky's
+  solid angle. Rounded to 3 decimals; `site.json` grows to about 2.8 MB.
+- **Why 5 m and not 1 m:** it runs in seconds and still resolves the scarps and crater
+  walls that matter at 25 m. Ledges and boulders under about 5 m are smoothed away.
+- **`build_site.py` does not know about this layer.** Rebuilding `site.json` drops it,
+  so run `build_shielding.py` again afterwards. `check_site.py` fails on the real
+  file if the layer is missing.
+- **`preview_site.py` has no colour style for `skyView` yet** and stops with a
+  `KeyError` when it reaches it. Use `docs/images/skyview.png`, which
+  `build_shielding.py` writes itself, until a style line is added there.
+
+What the layer looks like (numbers from `pipeline/data/skyview_stats.json`):
+
+- Lowest 0.640, median 0.982, highest 1.000. Most of the site is open ground.
+- 4.2% of cells are below 0.9; 0.04% are below 0.8, and **none of those can be walked on**.
+- HAB-1, on the open crater floor: 0.988. The delta front toe stop: 0.939. The least
+  open walkable cell within 300 m of the toe, at the foot of the scarp: 0.826.
+- The lowest values are inside Belva crater, along the delta scarp and around Kodiak butte.
+- **Limits:** terrain beyond 500 m is ignored, and the DTM cache stops about 60 m
+  outside the site, so cells within 500 m of the site edge may read too open.
+
+What the layer means for shelter routing (`app/src/planner/shelter.ts`, run with its defaults, 14 November 2026):
+
+| SPE starts when the astronaut is at | Walk home | Shelter chosen | Dose with shelter | Dose walking home | Dose cut | `betterThanHome` |
+|---|---|---|---|---|---|---|
+| Farthest point of the demo route (T+1:42; this is the arrival at the delta front toe) | 48 min | none: walk home. Best shelter is 13 min away, sky view 0.83, and would give 0.653 mSv | 0.608 mSv | 0.608 mSv | 0% | false |
+| Arrival at the delta front toe (T+1:42) | 48 min | none: walk home (same point as the row above) | 0.608 mSv | 0.608 mSv | 0% | false |
+| Wildcat Ridge (Hawksbill Gap) | 73 min | 160 m away, 9 min walk, sky view 0.84 | 0.659 mSv | 0.750 mSv | 12% | true |
+| Amalik (Cape Nukshak) | 76 min | 330 m away, 14 min walk, sky view 0.86 | 0.677 mSv | 0.758 mSv | 11% | true |
+| Hidden Harbor (Yori Pass) | 79 min | 120 m away, 7 min walk, sky view 0.86 | 0.669 mSv | 0.751 mSv | 11% | true |
+
+- Oxygen used so far: the demo mission's own value for the two demo-route rows (120 min of the 480). The three rover sites are not on the demo mission, so they use the same 120 min, as if the astronaut had walked on from the delta front toe.
+- Doses are **illustrative** (the SPE rate is the ×30 demo multiplier) and cover an **assumed 60 minute event**. "Dose walking home" counts only the part of the walk inside those 60 minutes; the rest of the walk home is not counted for either option.
+- **On this site, natural shelter beats going home only when HAB-1 is more than about 55 minutes away; the best walkable shelter hides about 17% of the sky.** Even then it is not always offered: in a scan of 958 start points with full oxygen, the nearest one where a shelter won was 55 min from home, and 547 of the 958 got an offer.
+- The 55 minutes follows from the 60 minute assumption: inside it, the habitat (full shelter) is reached before the event ends. For a longer event, walking home wins from further away too.
 
 ## `build_basemap.py`
 

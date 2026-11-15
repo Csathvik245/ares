@@ -7,7 +7,7 @@ import {
 import type { HelmetHudProps } from "./HelmetHud";
 import type { MissionBriefingProps } from "./MissionBriefing";
 import type { DemoStop } from "../lib/MissionContext";
-import { photoDetails } from "../lib/photos";
+import { photoCreditFor } from "../lib/photoCredits";
 import { WORK_BURN } from "../lib/planner";
 import { publicAssetUrl } from "../lib/assets";
 import { Dialog } from "./Dialog";
@@ -38,7 +38,7 @@ type HudDesignProps = {
   tempC: number;
 };
 const DesignHud = design<HudDesignProps>("Hud");
-const DesignOpening = design<{ onBegin: () => void }>("OpeningScreen");
+const DesignOpening = design<MissionBriefingProps>("OpeningScreen");
 type StopDesignProps = {
   stop: DemoStop;
   photoUrl?: string;
@@ -86,7 +86,7 @@ export function Hud(props: HelmetHudProps) {
 export function OpeningScreen(props: MissionBriefingProps) {
   return DesignOpening ? (
     <Suspense fallback={<FallbackOpening {...props} />}>
-      <DesignOpening onBegin={props.onBeginPlanning} />
+      <DesignOpening {...props} />
     </Suspense>
   ) : (
     <FallbackOpening {...props} />
@@ -105,7 +105,7 @@ export function StopCard({
         <DesignStop
           stop={stop}
           photoUrl={publicAssetUrl(stop.photo)}
-          photoCredit={photoDetails(stop.photo)?.credit ?? stop.photoCredit}
+          photoCredit={photoCreditFor(stop.photo) ? `NASA/JPL-Caltech · ${photoCreditFor(stop.photo)!.camera} · sol ${photoCreditFor(stop.photo)!.sol}` : stop.photoCredit}
           why={stop.why}
           dwellMin={stop.dwellMin}
           tools={stop.tools ?? []}

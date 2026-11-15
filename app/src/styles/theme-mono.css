@@ -124,7 +124,7 @@
 [data-theme="mono"] .map-legend span:nth-child(2) .legend-glyph {
   color: var(--safe);
 }
-[data-theme="mono"] .map-legend span:last-child .legend-glyph {
+[data-theme="mono"] .map-legend span:nth-child(3) .legend-glyph {
   color: #d4d4d4;
 }
 

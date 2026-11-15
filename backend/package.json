@@ -1,0 +1,23 @@
+{
+  "name": "ares-backend",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "description": "ARES assistant API: one Vercel serverless function. The assistant explains plans; the planner decides.",
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "try": "tsx try.ts",
+    "try:dry": "tsx try.ts --dry"
+  },
+  "engines": {
+    "node": ">=22.12"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^1.8.0"
+  },
+  "devDependencies": {
+    "@types/node": "^26.6.6",
+    "tsx": "^4.23.15",
+    "typescript": "^7.0.2"
+  }
+}

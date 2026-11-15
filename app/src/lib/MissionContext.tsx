@@ -8,13 +8,15 @@ import {
 } from "react";
 import {
   loadSite,
+  readSkyView,
   buildCostGrid,
   planRoute,
   safeZone,
   positionAt,
-  abortRoute,
   envAt,
   homeField,
+  stormAt,
+  type StormOutcome,
   type Site,
   type Conditions,
   type LatLng,
@@ -35,6 +37,7 @@ function useMissionState() {
   const [site, setSite] = useState<Site | null>(null),
     [fake, setFake] = useState(false),
     [error, setError] = useState("");
+  const [skyView, setSkyView] = useState<Float32Array | null>(null);
   const [basemap, setBasemap] = useState<Basemap | null>(null);
   const [viewRequest, setViewRequest] = useState(0);
   const [stops, setStops] = useState<DemoStop[]>([]),
@@ -51,9 +54,8 @@ function useMissionState() {
     [playing, setPlaying] = useState(false),
     [emergency, setEmergency] = useState<{
       kind: "storm" | "spe";
-      from: LatLng;
-      used: number;
       at: number;
+      outcome: StormOutcome;
     } | null>(null);
   useEffect(() => {
     const control = new AbortController();
@@ -81,6 +83,7 @@ function useMissionState() {
       ]);
       if (control.signal.aborted) return;
       setSite(loadedSite);
+      setSkyView(readSkyView(json));
       setFake(json.fake === true);
       setDemo(readDemoStops(stopData) ?? demoStopsFromSite(loadedSite));
       setBasemap(readBasemap(mapData, loadedSite.bounds));
@@ -110,17 +113,9 @@ function useMissionState() {
         : null,
     [site, normalCost, stops],
   );
-  // Emergency EVA status is computed by the real planner on the active grid.
-  // The calm plan remains the immutable playback route for walked/cancelled portions.
-  const evaPlan = useMemo(
-    () =>
-      site && cost && plan
-        ? emergency
-          ? planRoute(site, cost, site.habitat, stops)
-          : plan
-        : null,
-    [site, cost, plan, stops, emergency],
-  );
+  // The calm plan remains the immutable playback route; stormAt supplies all
+  // emergency statuses, reasons, return geometry and oxygen guidance.
+  const emergencyOutcome = emergency?.outcome ?? null;
   const plannedPosition = useMemo(() => {
     const p = plan?.legs.length ? positionAt(plan, elapsed) : null;
     return p && Number.isFinite(p.lat) && Number.isFinite(p.lng)
@@ -143,17 +138,11 @@ function useMissionState() {
     () => (site && cost ? homeField(site, cost) : null),
     [site, cost],
   );
-  const abort = useMemo(
-    () =>
-      site && cost && emergency
-        ? abortRoute(site, cost, emergency.from, emergency.used)
-        : null,
-    [site, cost, emergency],
-  );
+  const abort = emergencyOutcome?.abort ?? null;
   const returnPlan = useMemo(
     () =>
       abort && emergency
-        ? returnPlaybackPlan(abort, emergency.used, conditions.storm)
+        ? returnPlaybackPlan(abort, emergencyOutcome!.position.oxygenUsedSec, conditions.storm)
         : null,
     [abort, emergency, conditions.storm],
   );
@@ -166,9 +155,9 @@ function useMissionState() {
       ? {
           ...returning,
           legIndex: plannedPosition.legIndex,
-          oxygenUsedSec: emergency.used + returning.oxygenUsedSec,
+          oxygenUsedSec: emergencyOutcome!.position.oxygenUsedSec + returning.oxygenUsedSec,
         }
-      : plannedPosition;
+      : emergencyOutcome?.position ?? plannedPosition;
   const clockElapsed = emergency ? emergency.at + returnElapsed : elapsed;
   useEffect(() => {
     if (!returnPlaying || !returnPlan) return;
@@ -258,24 +247,25 @@ function useMissionState() {
     ]);
     setSelected(id);
   };
-  const trigger = (kind: "storm" | "spe", at = elapsed) => {
-    const incidentAt = plan ? Math.max(0, Math.min(plan.totalSec, at)) : 0;
-    const candidate = plan?.legs.length
-      ? positionAt(plan, incidentAt)
-      : position;
-    const snapshot =
-      Number.isFinite(candidate.lat) && Number.isFinite(candidate.lng)
-        ? candidate
-        : plannedPosition;
+  const trigger = (kind: "storm" | "spe", at = elapsed, incidentPlan = plan) => {
+    const incidentAt = incidentPlan ? Math.max(0, Math.min(incidentPlan.totalSec, at)) : 0;
+    if (!site || !incidentPlan) return null;
+    const outcome = stormAt(
+      site,
+      incidentPlan,
+      incidentAt,
+      kind === "storm" ? "dust" : "spe",
+      conditions.startLmst,
+      { skyView },
+    );
     setElapsed(incidentAt);
     setPlaying(false);
     setReturnElapsed(0);
     setReturnPlaying(false);
     setEmergency({
       kind,
-      from: snapshot,
-      used: snapshot.oxygenUsedSec,
       at: incidentAt,
+      outcome,
     });
     const nextConditions = {
       ...conditions,
@@ -283,16 +273,22 @@ function useMissionState() {
       spe: kind === "spe",
     };
     setConditions(nextConditions);
-    return site
-      ? abortRoute(
-          site,
-          buildCostGrid(site, nextConditions),
-          snapshot,
-          snapshot.oxygenUsedSec,
-        )
-      : null;
+    return outcome.abort;
+  };
+  const wildcat = site?.pois.find((p) => p.id === "delta-wildcat-ridge");
+  const loadWildcatSpe = () => {
+    if (!site || !normalCost || !wildcat) return;
+    const stop = { ...wildcat, label: wildcat.name, dwellMin: 0 };
+    const demoPlan = planRoute(site, normalCost, site.habitat, [stop]);
+    if (!demoPlan.ok) return;
+    setStops([stop]);
+    setSelected("");
+    setViewRequest((n) => n + 1);
+    trigger("spe", demoPlan.legs[0].arriveSec, demoPlan);
   };
   return {
+    wildcat,
+    loadWildcatSpe,
     site,
     basemap,
     fake,
@@ -322,7 +318,10 @@ function useMissionState() {
     reset,
     cost,
     plan,
-    evaPlan,
+    evaPlan: plan,
+    evaStatus: emergencyOutcome?.evaStatus ?? plan?.status ?? "NO-GO",
+    evaReasons: emergencyOutcome?.evaReasons ?? plan?.reasons ?? [],
+    emergencyOutcome,
     position,
     zone,
     home,

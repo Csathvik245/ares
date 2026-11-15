@@ -131,9 +131,10 @@ main {
   text-decoration: none;
 }
 .nav__mark {
-  width: 10px;
-  height: 10px;
-  border: 2px solid var(--safe);
+  width: 48px;
+  height: 40px;
+  object-fit: contain;
+  flex-shrink: 0;
 }
 .nav__links {
   display: flex;

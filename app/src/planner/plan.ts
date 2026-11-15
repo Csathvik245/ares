@@ -1,6 +1,7 @@
 import { STORM_EXTRA_RESERVE_MIN, WALK_BURN, WORK_BURN } from "./constants";
 import { SUN_CAUTION_DEG, lowSunDuring } from "./env";
 import { isLowMargin, oxygenBudget } from "./oxygen";
+import { groundProblem } from "./cost";
 import { smoothPath } from "./geom";
 import { aStar, pathLengthM, pathTo } from "./search";
 import { cellIndexOf } from "./site";
@@ -41,14 +42,22 @@ const degrees = (deg: number) => `${deg < 0 ? "−" : ""}${Math.abs(deg).toFixed
  */
 export function planRoute(site: Site, cost: CostGrid, habitat: LatLng, stops: Stop[]): Plan {
   const { storm, spe } = cost.conditions;
-  const waypoints: { label: string; at: LatLng; cell: number }[] = [
-    { label: "the habitat", at: habitat, cell: cellIndexOf(site, habitat) },
-    ...stops.map((s) => ({ label: `stop "${s.label}"`, at: { lat: s.lat, lng: s.lng }, cell: cellIndexOf(site, s) })),
-  ];
+  // name: how the waypoint is called in a sentence. problem: why nobody can stand there, or null.
+  const waypoints: { name: string; at: LatLng; cell: number; problem: string | null }[] = [habitat, ...stops].map((p, i) => {
+    const cell = cellIndexOf(site, p);
+    return { name: i === 0 ? "the habitat" : `stop ${i}`, at: { lat: p.lat, lng: p.lng }, cell, problem: groundProblem(site, cell) };
+  });
   if (stops.length > 0) waypoints.push(waypoints[0]);
 
-  const legs: Leg[] = [];
+  // One clear sentence for each place that cannot be used ("Stop 2 is on a slope over 25 degrees.").
   const unreachable: string[] = [];
+  if (waypoints[0].problem) unreachable.push(`The habitat ${waypoints[0].problem}.`);
+  stops.forEach((_, i) => {
+    const problem = waypoints[i + 1].problem;
+    if (problem) unreachable.push(`Stop ${i + 1} ${problem}.`);
+  });
+
+  const legs: Leg[] = [];
   let walkSec = 0;
   let workSec = 0;
   let distM = 0;
@@ -57,17 +66,14 @@ export function planRoute(site: Site, cost: CostGrid, habitat: LatLng, stops: St
   for (let i = 1; i < waypoints.length; i++) {
     const from = waypoints[i - 1];
     const to = waypoints[i];
-    const result = aStar(cost, from.cell, to.cell);
-    const cells = pathTo(result, to.cell);
+    // A leg that starts or ends somewhere impossible is not searched: its sentence is already written.
+    const result = from.problem || to.problem ? null : aStar(cost, from.cell, to.cell);
+    const cells = result ? pathTo(result, to.cell) : [];
 
-    if (cells.length === 0) {
-      const why =
-        to.cell === -1 || from.cell === -1
-          ? "it is outside the mapped site"
-          : cost.secPerM[to.cell] === Infinity
-            ? "it sits on no-go terrain (too steep or too many boulders)"
-            : "no safe path exists (blocked by steep slopes or boulders)";
-      unreachable.push(`Cannot walk from ${from.label} to ${to.label}: ${why}.`);
+    if (!result || cells.length === 0) {
+      if (result) {
+        unreachable.push(`No safe path from ${from.name} to ${to.name}: steep slopes or rough ground block every way.`);
+      }
       legs.push({ path: [], walkSec: 0, distM: 0, arriveSec: clock });
     } else {
       const legWalk = result.cost[to.cell];
@@ -84,8 +90,10 @@ export function planRoute(site: Site, cost: CostGrid, habitat: LatLng, stops: St
     }
 
     // Science time at the stop this leg ends at (the last leg ends at the habitat).
+    // A missing, negative or broken dwell time counts as 0, so it can never poison the totals.
     if (i <= stops.length) {
-      const dwellSec = stops[i - 1].dwellMin * 60;
+      const dwellMin = stops[i - 1].dwellMin;
+      const dwellSec = Number.isFinite(dwellMin) && dwellMin > 0 ? dwellMin * 60 : 0;
       workSec += dwellSec;
       clock += dwellSec;
     }

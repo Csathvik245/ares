@@ -62,7 +62,8 @@ export function positionAt(plan: Plan, tSec: number): Position {
   if (legs.length === 0) {
     return { lat: NaN, lng: NaN, phase: "walk", legIndex: -1, oxygenUsedSec: 0 };
   }
-  const t = Math.min(Math.max(tSec, 0), plan.totalSec);
+  // Before the start (or not a number) → the start; after the end → the end.
+  const t = Number.isNaN(tSec) ? 0 : Math.min(Math.max(tSec, 0), plan.totalSec);
 
   let here: LatLng = legs.find((l) => l.path.length > 0)?.path[0] ?? { lat: NaN, lng: NaN };
   let used = 0;

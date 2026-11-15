@@ -1,9 +1,11 @@
-import { useEffect, useState } from "react";
+import { ShelterGuidance } from "./components/ShelterGuidance";
+import { useEffect, useMemo, useState } from "react";
 import { Hud, OpeningScreen } from "./components/DesignIntegration";
 import { ElevationProfile } from "./components/ElevationProfile";
 import { StopCard as StopDetailCard } from "./components/StopCard";
-import { WORK_BURN } from "./lib/planner";
-import { photoDetails } from "./lib/photos";
+import { WORK_BURN, computeBriefing, formatMinutes, SPE_IS_ILLUSTRATIVE, SPE_MEASURED_2017_PEAK_MULTIPLIER } from "./lib/planner";
+import { photoCreditFor } from "./lib/photoCredits";
+import { scienceScore } from "./planner/science";
 import { MissionMap } from "./components/MissionMap";
 import { MissionProvider, useMission } from "./lib/MissionContext";
 import { type OverlayName } from "./lib/layers";
@@ -24,6 +26,14 @@ import { Dialog } from "./components/Dialog";
 const EMPTY_PATH: LatLng[] = [];
 function Console() {
   const m = useMission();
+  const briefing = useMemo(
+    () => (m.site && m.plan ? computeBriefing(m.site, m.plan, m.conditions) : null),
+    [m.site, m.plan, m.conditions],
+  );
+  const stopScores = useMemo(
+    () => (m.site && m.plan && m.cost ? scienceScore(m.site, m.plan, { stops: m.stops, cost: m.cost }) : []),
+    [m.site, m.plan, m.stops, m.cost],
+  );
   const frontendOnly = new URLSearchParams(window.location.search).has(
     "frontend",
   );
@@ -38,7 +48,7 @@ function Console() {
     [detail, setDetail] = useState("");
   // Desktop uses one consolidated left panel; tablet keeps the Map / Plan / Layers tabs.
   const desktop = useMedia("(min-width: 1025px)");
-  // The consolidated layout belongs to the Deep Space theme; ?theme=classic keeps the three-column console.
+  // The consolidated layout belongs to the Deep Space / Mono themes; ?theme=classic keeps the three-column console.
   const consolidated =
     desktop && document.documentElement.dataset.theme !== "classic";
   const { site, plan, cost, position, emergency, abort } = m;
@@ -91,6 +101,9 @@ function Console() {
         onBeginPlanning={() => setScreen("plan")}
         terrainImageUrl={m.basemap?.url}
         imageCredit={m.basemap?.credit}
+        rows={briefing?.rows ?? []}
+        status={briefing?.status ?? "GO"}
+        reasons={briefing?.reasons ?? []}
       />
     );
   if (m.error)
@@ -107,16 +120,20 @@ function Console() {
       </main>
     );
   const next = m.stops[position.legIndex] ?? site.habitat;
+  const shelter = m.emergencyOutcome?.shelter;
+  const winningShelter = emergency?.kind === "spe" && shelter?.checked && shelter.betterThanHome ? shelter : undefined;
   const target = emergency ? site.habitat : next;
-  const status = m.evaPlan!.status;
+  const status = m.evaStatus;
   if (screen === "hud")
     return (
       <Hud
         status={status}
-        returnStatus={emergency ? (abort?.status ?? "NO-GO") : undefined}
-        nextStop={"label" in target ? target.label : target.name}
+        returnStatus={emergency ? abort?.status : undefined}
+        nextStop={winningShelter ? "SHELTER" : "label" in target ? target.label : target.name}
         distanceM={
-          emergency
+          winningShelter
+            ? distanceM(position, winningShelter.target)
+            : emergency
             ? m.returnPlan
               ? m.returnPlan.distM *
                 (1 -
@@ -127,19 +144,25 @@ function Console() {
             : distanceM(position, target)
         }
         headingDeg={routeHeading(
-          emergency
+          winningShelter
+            ? winningShelter.path
+            : emergency
             ? (abort?.path ?? [])
             : (plan.legs[position.legIndex]?.path ?? []),
           position,
         )}
+        shelterWalkSec={winningShelter?.sec}
+        shelterSimplified={winningShelter?.simplified}
         abortWalkMin={
           emergency
             ? Math.max(0, (abort?.sec ?? 0) - m.returnElapsed) / 60
             : undefined
         }
+        doseIsIllustrative={SPE_IS_ILLUSTRATIVE && m.emergency?.kind === "spe"}
+        measuredEventMultiplier={SPE_MEASURED_2017_PEAK_MULTIPLIER}
         oxygenRemainingMin={Math.max(
           0,
-          Math.round((CONSUMABLE_HOURS * 3600 - position.oxygenUsedSec) / 60),
+          (CONSUMABLE_HOURS * 3600 - position.oxygenUsedSec) / 60,
         )}
         marginMin={(abort?.marginSec ?? plan.marginSec) / 60}
         doseMsv={m.dose}
@@ -165,6 +188,7 @@ function Console() {
             active={active}
             position={position}
             abort={abort?.path ?? EMPTY_PATH}
+            shelter={winningShelter}
             emergency={!!emergency}
             incidentAt={emergency?.at}
             viewRequest={m.viewRequest}
@@ -188,7 +212,8 @@ function Console() {
                       : "SOLAR PARTICLE EVENT"}{" "}
                     · T+{clock(emergency.at)}
                   </strong>
-                  <p>{abort?.reasons[0] ?? "No return guidance available."}</p>
+                  <p>{abort?.reasons.find((r) => r.startsWith("Return home:")) ?? "No return guidance available."}</p>
+                  <ShelterGuidance shelter={shelter} from={m.emergencyOutcome!.position} />
                   <small>
                     {emergency.kind === "storm"
                       ? "Low visibility and visor dust slow walking."
@@ -224,6 +249,7 @@ function Console() {
     <main className={`console-app ${emergency ? "has-emergency" : ""}`}>
       <header className="console-header">
         <div className="console-brand">
+          <img className="console-patch" src="/brand/ares-patch.png" alt="The Ares Initiative mission patch" width="48" height="40" />
           <b>ARES</b>
           <span>
             ARES-1 EVA <small>Jezero delta front</small>
@@ -246,9 +272,9 @@ function Console() {
             EVA · {status}
             {emergency ? " · ABORTED" : ""}
           </span>
-          {emergency && (
-            <span className={`return-status ink-${abort?.status ?? "NO-GO"}`}>
-              RETURN HOME · {abort?.status ?? "NO-GO"}
+          {emergency && abort && (
+            <span className={`return-status ink-${abort.status}`}>
+              RETURN HOME · {abort.status}{abort.reasons.length ? ` · ${abort.reasons.filter((r) => !r.startsWith("Shelter")).join(" · ")}` : ""}
             </span>
           )}
           {assistantAvailable && (
@@ -324,7 +350,7 @@ function Console() {
             <p>
               <b>Local basemap:</b> {m.basemap.source}
               <br />
-              {m.basemap.credit} · {m.basemap.metersPerPixel.toFixed(2)} m/pixel
+              {m.basemap.credit} · {m.basemap.metersPerPixel} m/pixel
             </p>
           )}
           <p>
@@ -336,7 +362,8 @@ function Console() {
           </p>
           <p>
             Radiation: surface baseline measured by Curiosity RAD at Gale,
-            applied to Jezero. 0.64 mSv/sol; SPE ×30 illustrative. Suit, walking
+            applied to Jezero. 0.64 mSv/sol; SPE ×30 illustrative; measured
+            2017 event x{SPE_MEASURED_2017_PEAK_MULTIPLIER}. Suit, walking
             and reserve constants are demonstration assumptions in CLAUDE.md.
             Temperature interpolates measured Perseverance MEDA daily extrema
             (Table 1, doi:10.1029/2022JE007559, Ls 25°); sun uses Mars24 at Ls
@@ -364,14 +391,15 @@ function Console() {
             )}
             arriveSec={plan.legs[m.stops.indexOf(selected)]?.arriveSec ?? NaN}
             basemap={m.basemap}
+            scienceScore={stopScores.find((score) => score.id === selected.id)}
           />
           <p className="stop-work-cost">
             Science oxygen cost: {minutes(selected.dwellMin * 60 * WORK_BURN)}{" "}
             nominal min · assumed burn rate
           </p>
-          {photoDetails(selected.photo) && (
+          {photoCreditFor(selected.photo) && (
             <a
-              href={photoDetails(selected.photo)!.sourceUrl}
+              href={photoCreditFor(selected.photo)!.sourceUrl}
               target="_blank"
               rel="noopener noreferrer"
             >

@@ -60,6 +60,14 @@ Credit images "NASA/JPL-Caltech" (+ instrument team). Model assumptions are in [
 | Munguira, A., et al. (2023). Near Surface Atmospheric Temperatures at Jezero From Mars 2020 MEDA Measurements. *JGR Planets* 128, e2022JE007559. doi:10.1029/2022JE007559 | https://doi.org/10.1029/2022JE007559 (article PDF read at https://presentations.copernicus.org/EGU23/EGU23-5885_presentation.pdf; the publisher page returned 403 to us) | ✅ (Table 1 read) | **Source of the temperature values.** Table 1, air temperature at 1.45 m, Ls 25° (sols 34–40): Tmin 191 K at 05:00, Tmax 243 K at 15:00 (30-minute windows, local true solar time) |
 | NASA Human Integration Design Handbook (NASA/SP-2010-3407, Rev. 1, 2014) | https://www.nasa.gov/sites/default/files/atoms/files/human_integration_design_handbook_revision_1.pdf | 🔎 | Planned source for suited metabolic rates to replace `WALK_BURN` / `WORK_BURN` |
 
+### Related work (context only; no data or code from these is used in ARES)
+
+| Reference | Link | Checked | How ARES uses it |
+|---|---|---|---|
+| Norheim, J. J. (2018). Path planning for human planetary surface Exploration in rough terrain. S.M. thesis, Massachusetts Institute of Technology, Department of Aeronautics and Astronautics | https://hdl.handle.net/1721.1/119309 | ✅ record and abstract read; full thesis not read | Related work: SEXTANT, its web interface and Holo-SEXTANT AR navigation |
+| Bresina, J. L., Morris, P. H., Deans, M. C., Cohen, T. E., Lees, D. S. (2017). Traverse Planning with Temporal-Spatial Constraints. SPARK (Scheduling and Planning Applications woRKshop), ICAPS 2017, Pittsburgh. NASA report ARC-E-DAA-TN43434 | https://ntrs.nasa.gov/citations/20170010241 | ✅ NTRS record, abstract and workshop page read; paper PDF not read | Related work: the xGDS traverse planner and its reachability idea. It is a workshop paper at ICAPS 2017, not a main-conference paper |
+| Peña-Asensio, E., Sutherland, J., Tripathi, P., Mason, K., Goodwin, A., Bickel, V. T., Kring, D. A. (2024). Automated astronaut traverses with minimum metabolic workload: Accessing permanently shadowed regions near the lunar south pole. *Acta Astronautica* 214, 324–342. doi:10.1016/j.actaastro.2023.10.010 | https://doi.org/10.1016/j.actaastro.2023.10.010 | 🔎 citation confirmed from the Crossref and OpenAlex records; the publisher page would not open and the full text was not read | Related work: metabolic-workload traverses on LOLA terrain. The name "MoonPath" and the use of Dijkstra's algorithm are from news coverage (https://phys.org/news/2023-10-lunar-astronauts-easy-trails-moon.html), not from text we read in the paper |
+
 ## Notes on the terrain data
 
 - **Landing-site coordinates.** The often-quoted 18.4447 N, 77.4508 E appeared only on Wikipedia in our searches. NASA's own waypoints file gives 18.44462715 N, 77.45088572 E, so HAB-1 uses 18.4446 N, 77.4509 E (about 6 m different).

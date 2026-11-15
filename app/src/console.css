@@ -57,6 +57,12 @@ button:disabled {
   gap: 16px;
   white-space: nowrap;
 }
+.console-patch {
+  width: 48px;
+  height: 40px;
+  object-fit: contain;
+  flex-shrink: 0;
+}
 .console-brand > b {
   color: #ff6b35;
   font: 600 22px var(--font-heading, sans-serif);
@@ -107,6 +113,8 @@ button:disabled {
 .return-status {
   border: 1px solid currentColor;
   padding: 7px;
+  white-space: normal;
+  overflow-wrap: anywhere;
 }
 .console-body {
   display: grid;
@@ -1080,3 +1088,8 @@ dl {
 .stop-work-cost {
   font: 11px var(--font-mono, monospace);
 }
+
+.shelter-guidance { color: #4fd1ff; }
+.rail-status .shelter-guidance { white-space: normal; overflow: visible; }
+.model-tag { display: inline-block; border: 1px solid #4fd1ff66; padding: 0 4px; font-size: 9px; color: #b8dfe9; white-space: nowrap; }
+.shelter-legend { color: #4fd1ff; }

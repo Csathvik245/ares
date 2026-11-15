@@ -1,5 +1,6 @@
 import { useMission } from "../lib/MissionContext";
 import { clock, shortStop } from "../lib/presentation";
+import { formatDose, formatMet, roundHalfUp, SPE_IS_ILLUSTRATIVE, SPE_MEASURED_2017_PEAK_MULTIPLIER } from "../lib/planner";
 export function FlightTimeline() {
   const m = useMission(),
     plan = m.plan!;
@@ -33,14 +34,15 @@ export function FlightTimeline() {
           {(m.emergency ? m.returnPlaying : m.playing) ? "Pause" : "Play"}
         </button>
         <span className="timeline-clock">
-          T+{clock(m.clockElapsed)} <span>/ {clock(end)}</span>
+          {formatMet(m.clockElapsed)} <span>/ {formatMet(end)}</span>
         </span>
         <span className="activity" title={activity}>
           {activity}
         </span>
         <span className="timeline-conditions">
-          Sun {m.env.sunElevationDeg.toFixed(0)}° · {m.env.tempC.toFixed(0)} °C{" "}
-          <small>MEDA curve</small> · {m.env.doseRateMsvPerHr.toFixed(3)} mSv/h
+          Sun {roundHalfUp(m.env.sunElevationDeg)}° · {roundHalfUp(m.env.tempC)} °C{" "}
+          <small>MEDA measured data</small> · {formatDose(m.env.doseRateMsvPerHr).replace(" mSv", " mSv/h")}
+          {SPE_IS_ILLUSTRATIVE && m.conditions.spe && <small> illustrative · measured 2017 event x{SPE_MEASURED_2017_PEAK_MULTIPLIER}</small>}
         </span>
       </div>
       <div className="timeline-track">

@@ -8,6 +8,8 @@ import {
   type Stop,
   type Plan,
   type CostGrid,
+  type ShelterCheck,
+  roundHalfUp,
 } from "../lib/planner";
 import { removeSmallIslands } from "../lib/zoneCleanup";
 import { distanceM } from "../geo";
@@ -15,6 +17,20 @@ import { routeParts, shortStop } from "../lib/presentation";
 import type { Basemap } from "../lib/basemap";
 import { raster, type OverlayName } from "../lib/layers";
 export const TREK_LAYER = "Mars_Viking_MDIM21_ClrMosaic_global_232m";
+
+function fitMissionView(map: L.Map, site: Site, stops: Stop[]) {
+  const bounds = L.latLngBounds(
+    [site.habitat, ...stops].map((p) => [p.lat, p.lng] as [number, number]),
+  );
+  const size = map.getSize();
+  const padX = Math.max(48, size.x * 0.12);
+  const padY = Math.max(48, size.y * 0.12);
+  map.fitBounds(bounds, {
+    paddingTopLeft: [padX, padY],
+    paddingBottomRight: [padX, padY],
+    maxZoom: 14,
+  });
+}
 export function MissionMap({
   site,
   basemap,
@@ -25,6 +41,7 @@ export function MissionMap({
   active,
   position,
   abort,
+  shelter,
   onAdd,
   onMove,
   onSelect,
@@ -47,6 +64,7 @@ export function MissionMap({
   active: OverlayName[];
   position: LatLng;
   abort: LatLng[];
+  shelter?: Extract<ShelterCheck, { checked: true }>;
   onAdd: (p: LatLng) => void;
   onMove: (id: string, p: LatLng) => void;
   onSelect: (id: string) => void;
@@ -80,24 +98,7 @@ export function MissionMap({
       [site.bounds.south, site.bounds.west],
       [site.bounds.north, site.bounds.east],
     );
-    m.fitBounds(
-      L.latLngBounds(
-        [site.habitat, ...(stops.length ? stops : site.pois.slice(0, 3))].map(
-          (p) => [p.lat, p.lng] as [number, number],
-        ),
-      ),
-      {
-        paddingTopLeft: [
-          Math.max(60, m.getSize().x * 0.12),
-          Math.max(160, m.getSize().y * 0.12),
-        ],
-        paddingBottomRight: [
-          Math.max(60, m.getSize().x * 0.12),
-          Math.max(60, m.getSize().y * 0.12),
-        ],
-        maxZoom: 14,
-      },
-    );
+    fitMissionView(m, site, stops);
     m.attributionControl.setPrefix(false);
     for (const [name, z] of [
       ["routes", 450],
@@ -156,7 +157,7 @@ export function MissionMap({
       image.on("load", () => {
         if (!disposed)
           setBaseLabel(
-            `HiRISE local mosaic · ${basemap.metersPerPixel.toFixed(1)} m/pixel`,
+            `HiRISE local mosaic · ${roundHalfUp(basemap.metersPerPixel, 1)} m/pixel`,
           );
       });
       image.on("error", () => {
@@ -183,25 +184,8 @@ export function MissionMap({
   useEffect(() => {
     const m = map.current;
     if (!m) return;
-    m.fitBounds(
-      L.latLngBounds(
-        [site.habitat, ...(stops.length ? stops : site.pois.slice(0, 3))].map(
-          (p) => [p.lat, p.lng] as [number, number],
-        ),
-      ),
-      {
-        paddingTopLeft: [
-          Math.max(60, m.getSize().x * 0.12),
-          Math.max(160, m.getSize().y * 0.12),
-        ],
-        paddingBottomRight: [
-          Math.max(60, m.getSize().x * 0.12),
-          Math.max(60, m.getSize().y * 0.12),
-        ],
-        maxZoom: 14,
-      },
-    );
-  }, [site, basemap, viewRequest]);
+    fitMissionView(m, site, stops);
+  }, [site, basemap, viewRequest, stops]);
   useEffect(() => {
     const m = map.current;
     if (!m) return;
@@ -237,7 +221,7 @@ export function MissionMap({
         if (y > 65 && y < size.y - 60)
           label(
             m.containerPointToLatLng([size.x - 28, y]),
-            lat.toFixed(2) + "°N",
+            `${roundHalfUp(lat, 2)}°N`,
           );
       }
       for (
@@ -269,7 +253,7 @@ export function MissionMap({
         )
           label(
             m.containerPointToLatLng([x, size.y - 48]),
-            lng.toFixed(2) + "°E",
+            `${roundHalfUp(lng, 2)}°E`,
           );
       }
     };
@@ -427,12 +411,19 @@ export function MissionMap({
       const parts = routeParts(plan, incidentAt);
       parts.walked.forEach((p) => draw(p, "#ff6b35", 3, 0.35));
       parts.cancelled.forEach((p) => draw(p, "#8a919e", 2, 0.65, "6 6"));
-      draw(abort, "#ff4d5a", 5);
+      draw(abort, "#ff4d5a", shelter ? 3 : 5, shelter ? 0.4 : 1, shelter ? "6 6" : undefined);
+      if (shelter?.path && shelter.target) {
+        draw(shelter.path, "#4fd1ff", 4, 1, "6 4");
+        L.circleMarker([shelter.target.lat, shelter.target.lng], {
+          pane: "stops", radius: 5, color: "#4fd1ff", fillColor: "#4fd1ff",
+          fillOpacity: 1, weight: 2,
+        }).addTo(g).bindTooltip("SHELTER · simplified model", { direction: "bottom" });
+      }
     } else plan.legs.forEach((l) => draw(l.path, "#ff6b35", 3));
     return () => {
       g.remove();
     };
-  }, [site, basemap, stops, plan, emergency, incidentAt, abort]);
+  }, [site, basemap, stops, plan, emergency, incidentAt, abort, shelter]);
   useEffect(() => {
     const m = map.current;
     if (!m) return;
@@ -466,6 +457,11 @@ export function MissionMap({
         <span>
           <em className="legend-glyph">●</em> Rover sample site
         </span>
+        {shelter && (
+          <span className="shelter-legend">
+            <em className="legend-glyph">―</em> Shelter option
+          </span>
+        )}
       </div>
       <span className="map-north" aria-label="North">
         ↑<b>N</b>

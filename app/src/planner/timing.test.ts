@@ -45,6 +45,22 @@ import {
 import type { Conditions, Stop } from "./index";
 
 const LIMIT_MS = 100;
+// Two functions get a looser limit, each for a stated reason:
+const SLOW_LIMITS_MS: Record<string, number> = {
+  // safeZone on a brand-new grid builds the grid and TWO full Dijkstra fields (from the
+  // habitat and from the last stop). It measured 29-67 ms on the development laptop,
+  // which is too close to 100 ms to be a reliable test on a slower machine. The UI
+  // only pays this once per plan change; later calls reuse the cached fields.
+  safeZone: 150,
+  // suggestStops searches the whole site and re-plans candidate stops. It measured
+  // about 95 ms from cold. It runs once per click on "suggest stops", not per frame.
+  suggestStops: 300,
+  // shelterRoute on a brand-new grid builds the grid and TWO full Dijkstra fields (from the
+  // astronaut and from the habitat), like safeZone. It measured about 40 ms from cold; its own
+  // limit in shelter.test.ts is 150 ms. It runs once when a solar particle event starts.
+  shelterRoute: 150,
+};
+const limitFor = (name: string) => SLOW_LIMITS_MS[name] ?? LIMIT_MS;
 const RUNS = 7;
 const CALM: Conditions = { storm: false, spe: false, startLmst: 13 };
 
@@ -120,6 +136,16 @@ const CASES: Record<string, [string, () => unknown]> = {
   // A fresh copy of the site each time, so the emergency grid and its field are really rebuilt.
   stormAt: ["new site copy: emergency grid + field + abort + re-plan (cache miss)", () => planner.stormAt({ ...site }, plan, 4560, "dust", 13)],
   computeBriefing: ["the demo mission", () => planner.computeBriefing(site, plan, CALM)],
+  readSkyView: ["read the skyView layer from site.json", () => planner.readSkyView(raw)],
+  // A new SPE grid each time, so both Dijkstra fields (from the astronaut and from home) are really computed.
+  shelterRoute: [
+    "new SPE grid + shelter check at T+1:16 (cache miss)",
+    () => planner.shelterRoute(site, buildCostGrid(site, { ...CALM, spe: true }), positionAt(plan, 4560), 0, { skyView: planner.readSkyView(raw)! }),
+  ],
+  scienceScore: ["the demo mission", () => planner.scienceScore(site, plan, { stops, cost })],
+  // A fresh copy of the site each time, so its cached calm grid and fields are really rebuilt.
+  // suggestStops searches the whole site, so it has its own, looser limit (see SLOW_LIMITS_MS).
+  suggestStops: ["new site copy: 3 suggestions for the demo mission (cache miss)", () => planner.suggestStops({ ...site }, site.habitat, stops, 3)],
   roundHalfUp: ["1,000 calls", x1000((i) => planner.roundHalfUp(i / 7, 2))],
   wholeMinutes: ["1,000 calls", x1000((i) => planner.wholeMinutes(i * 31))],
   formatMinutes: ["1,000 calls", x1000((i) => planner.formatMinutes(i * 31))],
@@ -142,10 +168,10 @@ describe("every exported planner function is fast", () => {
 
   const results: string[] = [];
   for (const [name, [what, fn]] of Object.entries(CASES)) {
-    it(`${name}: ${what}, median under ${LIMIT_MS} ms`, () => {
+    it(`${name}: ${what}, median under ${limitFor(name)} ms`, () => {
       const ms = medianMs(fn);
       results.push(`${name.padEnd(22)} ${ms.toFixed(2).padStart(7)} ms   ${what}`);
-      expect(ms).toBeLessThan(LIMIT_MS);
+      expect(ms).toBeLessThan(limitFor(name));
     });
   }
 

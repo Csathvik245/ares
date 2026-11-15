@@ -490,7 +490,7 @@ describe("impossible plans return NO-GO", () => {
     const habitat = cellCenter(site, idx(site, 1, 1));
     const onCliff = planRoute(site, cost, habitat, [stopAt(site, 10, 10)]);
     expect(onCliff.status).toBe("NO-GO");
-    expect(onCliff.reasons.join(" ")).toMatch(/no-go terrain/i);
+    expect(onCliff.reasons).toContain("Stop 1 is on a slope over 25 degrees.");
     const outside = planRoute(site, cost, habitat, [{ id: "x", label: "Far away", dwellMin: 0, lat: 50, lng: 50 }]);
     expect(outside.status).toBe("NO-GO");
     expect(outside.reasons.join(" ")).toMatch(/outside/i);

@@ -512,7 +512,7 @@
 :is([data-theme="deep-space"], [data-theme="mono"]) .map-legend span,
 :is([data-theme="deep-space"], [data-theme="mono"]) .map-legend span:first-child,
 :is([data-theme="deep-space"], [data-theme="mono"]) .map-legend span:nth-child(2),
-:is([data-theme="deep-space"], [data-theme="mono"]) .map-legend span:last-child {
+:is([data-theme="deep-space"], [data-theme="mono"]) .map-legend span:nth-child(n) {
   color: var(--text);
 }
 :is([data-theme="deep-space"], [data-theme="mono"]) .legend-glyph {
@@ -526,8 +526,19 @@
 :is([data-theme="deep-space"], [data-theme="mono"]) .map-legend span:nth-child(2) .legend-glyph {
   color: var(--safe);
 }
-:is([data-theme="deep-space"], [data-theme="mono"]) .map-legend span:last-child .legend-glyph {
+:is([data-theme="deep-space"], [data-theme="mono"]) .map-legend span:nth-child(3) .legend-glyph {
   color: var(--science);
+}
+:is([data-theme="deep-space"], [data-theme="mono"]) .map-legend .shelter-legend .legend-glyph {
+  color: var(--safe);
+}
+/* The shelter route and marker are drawn in cyan by the map code; use the theme's safety color. */
+:is([data-theme="deep-space"], [data-theme="mono"]) .leaflet-routes-pane path[stroke="#4fd1ff"],
+:is([data-theme="deep-space"], [data-theme="mono"]) .leaflet-stops-pane path[stroke="#4fd1ff"] {
+  stroke: var(--safe);
+}
+:is([data-theme="deep-space"], [data-theme="mono"]) .leaflet-stops-pane path[fill="#4fd1ff"] {
+  fill: var(--safe);
 }
 :is([data-theme="deep-space"], [data-theme="mono"]) .map-north {
   top: 12px;
@@ -724,4 +735,39 @@
 :is([data-theme="deep-space"], [data-theme="mono"]) .hud-readouts small,
 :is([data-theme="deep-space"], [data-theme="mono"]) .hud-guidance p {
   color: var(--muted);
+}
+
+/* ---------- Header resilience ---------- */
+/* The return-home pill carries the planner's full sentence; keep it to one line and never squeeze the buttons. */
+:is([data-theme="deep-space"], [data-theme="mono"]) .console-brand {
+  min-width: 0;
+  flex: 1 1 auto;
+}
+:is([data-theme="deep-space"], [data-theme="mono"]) .brand-context {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+:is([data-theme="deep-space"], [data-theme="mono"]) .header-actions {
+  flex: 0 1 auto;
+  min-width: 0;
+}
+:is([data-theme="deep-space"], [data-theme="mono"]) .header-actions > button,
+:is([data-theme="deep-space"], [data-theme="mono"]) .header-clock {
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+:is([data-theme="deep-space"], [data-theme="mono"]) .return-status {
+  display: block;
+  min-width: 0;
+  max-width: 320px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+:is([data-theme="deep-space"], [data-theme="mono"]) .return-status::before {
+  display: inline-block;
+  margin-right: 8px;
+  vertical-align: 1px;
 }

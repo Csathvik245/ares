@@ -55,6 +55,10 @@ export {
   formatMet,
 } from "./format";
 export { stormAt } from "./storm";
-export type { EmergencyKind, StormOutcome } from "./storm";
+export type { EmergencyKind, ReturnRoute, ShelterCheck, StormOptions, StormOutcome } from "./storm";
+export { shelterRoute, readSkyView, SHELTER_MODEL_IS_SIMPLIFIED, DEFAULT_WAIT_MIN, MIN_DOSE_REDUCTION_PCT } from "./shelter";
+export type { ShelterRoute, ShelterOptions } from "./shelter";
 export { computeBriefing } from "./briefing";
 export type { Briefing, BriefingRow, BriefingStatus, Evidence } from "./briefing";
+export { scienceScore, suggestStops } from "./science";
+export type { StopScience, StopSuggestion, ScoreOptions, SuggestOptions } from "./science";

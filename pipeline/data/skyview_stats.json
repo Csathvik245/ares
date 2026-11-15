@@ -1,0 +1,41 @@
+{
+  "method": {
+    "azimuths": 32,
+    "search_radius_m": 500.0,
+    "helmet_height_m": 1.5,
+    "working_grid_m": 4.92,
+    "formula": "mean over azimuths of (1 - sin(horizon angle))"
+  },
+  "cells": 76800,
+  "null_cells": 0,
+  "min": 0.64,
+  "median": 0.982,
+  "max": 1.0,
+  "percentiles": {
+    "p1": 0.861,
+    "p5": 0.906,
+    "p25": 0.964,
+    "p75": 0.992,
+    "p95": 0.998,
+    "p99": 0.999
+  },
+  "share_below_0.9": 0.0418,
+  "share_below_0.8": 0.0004,
+  "share_below_0.7": 0.0,
+  "passable_cells_below_0.8": 0,
+  "passable_cells_below_0.7": 0,
+  "open_crater_floor_HAB-1": 0.988,
+  "delta_scarp_foot_delta-toe_poi": 0.939,
+  "lowest_passable_within_300m_of_delta-toe": {
+    "skyView": 0.826,
+    "lat": 18.46354,
+    "lng": 77.42191,
+    "distance_m": 252
+  },
+  "lowest_passable_within_1500m_of_HAB-1": {
+    "skyView": 0.885,
+    "lat": 18.45771,
+    "lng": 77.46478,
+    "distance_m": 1098
+  }
+}

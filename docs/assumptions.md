@@ -78,6 +78,26 @@ All layers come from real NASA/USGS data (see [`sources.md`](sources.md) and `pi
 | Habitat location | 18.4446 N, 77.4509 E | HAB-1 sits at the Perseverance landing site | NASA "Where is Perseverance" waypoints file, first waypoint. Flat, firm cell (slope 1.1°, thermal inertia 243). | Sourced |
 | Demo stop "Delta front toe" | 18.4594 N, 77.4228 E | A new science target selected from the CRISM clay signal, not visited by Perseverance | Chosen by us as the nearest flat, firm ground with science value over 0.6. The brief asks for new science, so this is deliberate. The rover's own delta-front sites are too far for a 4–5 km loop (2.6–3.1 km each way). | Assumption |
 | Other stops | seven Perseverance sampling sites | Real places with real samples | Coordinates and rock descriptions from the Mars 2020 Initial Reports, volumes 1 and 2. | Sourced |
+| Sky view (`skyView` layer) | open fraction of the sky per 25 m cell: mean over 32 compass directions of (1 − sin of the horizon angle), horizon searched to 500 m, eye 1.5 m above ground, on a 5 m grid | How much of the sky an astronaut standing there can see (1 = all of it) | Our calculation from the HiRISE DTM mosaic (doi:10.5066/P9REJ9JN), `pipeline/build_shielding.py`. **The 32 directions, 500 m, 1.5 m and 5 m grid are our choices.** It is a solid-angle fraction, not the cosine-weighted sky-view factor used for heat. Ledges under about 5 m are smoothed away; terrain beyond 500 m and beyond the site edge is not counted. Result: median 0.98, lowest 0.64 (on a no-go slope). **No walkable cell is below 0.8**: the least open walkable ground near the delta front toe sees 0.83 of the sky. Only 4.2% of cells are below 0.9. | Sourced data, our method |
+
+### Rock layer: why it is still a roughness proxy
+
+We looked for a real rock-abundance or boulder-count map of Jezero made from HiRISE images, to replace the roughness proxy. **We found none that can be downloaded**, so the rock layer is unchanged. Searched on 14 November 2026:
+
+| Where we looked | What we found | Why it could not be used |
+|---|---|---|
+| Landing-site rock maps by Golombek and colleagues | Papers and a 2015 LPSC abstract quote Jezero rock abundance and the engineering limit (about 12%). The same group published a rock-abundance GeoTIFF for the InSight landing site. | No equivalent data file for Mars 2020 or Jezero in the Caltech data repository or the DOI registry (DataCite). |
+| USGS Astrogeology Mars 2020 landing-site products | HiRISE and CTX elevation models and image mosaics (the ones we already use). USGS says JPL mapped rock fields onto this basemap for the landing hazard map. | The file store holds no rock or hazard layer; the hazard map itself is not published there. |
+| PDS (Geosciences, Cartography and Imaging) | Mars 2020 mission bundles and instrument data. | No rock-abundance or hazard product for Jezero found. |
+| NASA Mars Trek layer catalogue | Jezero imagery and elevation layers. | No rock, boulder or hazard layer. |
+| Boulder detection on the Jezero fan (Nagle-McNaughton et al. 2020, and a follow-up study) | Published boulder counts from one HiRISE image. | The boulder outlines are not in a public repository, and they cover the fan, not our whole site. |
+| Boulder-fall tracks (Sinha et al. 2020) and the boulder-rich blocky unit of the upper fan (JPL data repository, 2025) | Downloadable, but they map 63 rolled-boulder tracks and one unit's composition. | Not rock abundance. |
+| BOULDERING boulder-outline datasets (Zenodo, 2023 and 2024) | Downloadable boulder outlines around impact craters on the Moon and Mars. | Jezero is not named in either record. |
+| PLANMAP GIS archive for the Mars 2020 landing site (Zenodo, doi:10.5281/zenodo.4767519) | A 6.6 GB archive described as the original orbital datasets for a GIS of Jezero. | Its description lists no rock, boulder or hazard layer. **Not opened**: Zenodo refused our downloads, so its contents are unconfirmed. |
+
+**Not checked:** the Mars 2020 landing-site workshop pages (they would not load for us) and Zenodo's and USGS's own search pages (closed to automated access). Global thermal rock-abundance maps (TES, IRTM) were not considered: their pixels are several kilometres wide, about the size of our whole site.
+
+If such a map is published later, compare it with the roughness layer first (`docs/validation.md`) and change `site.json` only if it covers the whole site.
 
 ## Planner model choices
 
@@ -96,6 +116,25 @@ All layers come from real NASA/USGS data (see [`sources.md`](sources.md) and `pi
 | Distances | flat local approximation on a 3,396.19 km sphere | Metres between nearby lat/lng points | Fine over a 6 × 8 km site; ignores Mars's flattening. | Assumption |
 | Radiation site | Gale Crater measurement applied to Jezero | RAD is on Curiosity (Gale), not Perseverance | Both are low-elevation equatorial sites, but the dose depends on how much atmosphere is overhead. | Assumption |
 | SPE timing | instant switch to ×30 | Emergency starts at once in the demo | Real events build up over hours (Zeitlin et al. 2018). | Assumption (illustrative) |
+| Shelter model (`shelter.ts`) | SPE dose at a spot = SPE dose rate × sky view × time; habitat = full shelter (0); event lasts 60 min; shelter offered only for a dose cut of 5% or more | In a solar particle event, whether waiting at a shielded spot beats walking home | **Simplified** (`SHELTER_MODEL_IS_SIMPLIFIED`). Assumes the SPE flux is roughly the same from every direction of the sky, so dose scales with visible sky. Ignores that the atmosphere shields low directions more than high ones (so hiding the low sky helps less than the model says), and ignores secondary particles from the ground and rock walls. The SPE size is illustrative (`SPE_IS_ILLUSTRATIVE`). **The 60 min event length is assumed** (real events last hours); the astronaut walks to the shelter and waits there for the rest of it. The 5% minimum and the oxygen rate while waiting (the planner's 0.9 work rate) are our choices. A shelter is offered only if there is oxygen to walk home afterwards with the reserve intact. Sky view is per 25 m cell from a 5 m DTM. **What it gives at Jezero:** on the demo mission it never beats walking home (home is at most about 50 min away). Across the site a shelter is offered only from places about an hour or more from the habitat, and the largest dose cut is about 14%. That depends directly on the 60 min assumption: for a longer event, walking home wins. | Assumption |
+
+
+### Shelter model: what it gives at five places
+
+`shelterRoute` run with its defaults on the real terrain, 14 November 2026 (see the "Shelter model" row above for the assumptions).
+
+| SPE starts when the astronaut is at | Walk home | Shelter chosen | Dose with shelter | Dose walking home | Dose cut | `betterThanHome` |
+|---|---|---|---|---|---|---|
+| Farthest point of the demo route (T+1:42; this is the arrival at the delta front toe) | 48 min | none: walk home. Best shelter is 13 min away, sky view 0.83, and would give 0.653 mSv | 0.608 mSv | 0.608 mSv | 0% | false |
+| Arrival at the delta front toe (T+1:42) | 48 min | none: walk home (same point as the row above) | 0.608 mSv | 0.608 mSv | 0% | false |
+| Wildcat Ridge (Hawksbill Gap) | 73 min | 160 m away, 9 min walk, sky view 0.84 | 0.659 mSv | 0.750 mSv | 12% | true |
+| Amalik (Cape Nukshak) | 76 min | 330 m away, 14 min walk, sky view 0.86 | 0.677 mSv | 0.758 mSv | 11% | true |
+| Hidden Harbor (Yori Pass) | 79 min | 120 m away, 7 min walk, sky view 0.86 | 0.669 mSv | 0.751 mSv | 11% | true |
+
+- Oxygen used so far: the demo mission's own value for the two demo-route rows (120 min of the 480). The three rover sites are not on the demo mission, so they use the same 120 min, as if the astronaut had walked on from the delta front toe.
+- Doses are **illustrative** (the SPE rate is the ×30 demo multiplier) and cover an **assumed 60 minute event**. "Dose walking home" counts only the part of the walk inside those 60 minutes; the rest of the walk home is not counted for either option.
+- **On this site, natural shelter beats going home only when HAB-1 is more than about 55 minutes away; the best walkable shelter hides about 17% of the sky.** Even then it is not always offered: in a scan of 958 start points with full oxygen, the nearest one where a shelter won was 55 min from home, and 547 of the 958 got an offer.
+- The 55 minutes follows from the 60 minute assumption: inside it, the habitat (full shelter) is reached before the event ends. For a longer event, walking home wins from further away too.
 
 ---
 

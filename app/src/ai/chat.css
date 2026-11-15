@@ -1,0 +1,224 @@
+/* ARES assistant chat. Contract 6 tokens only. Console look: hairlines, mono for
+   labels and numbers, flat lines of text. No bubbles, shadows, gradients or emoji. */
+
+.ares-chat {
+  display: flex;
+  flex-direction: column;
+  min-width: min(520px, 100%);
+  border: 1px solid var(--hairline);
+  background: var(--console);
+  color: var(--text);
+  font: 13px/1.55 var(--font-body);
+}
+.ares-chat p {
+  margin: 0;
+}
+.ares-chat__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--space-3) var(--space-4);
+  border-bottom: 1px solid var(--hairline);
+  font: 600 11px var(--font-mono);
+  letter-spacing: 0.12em;
+}
+.ares-chat__state {
+  color: var(--muted);
+}
+.ares-chat__state--ready {
+  color: var(--go);
+}
+.ares-chat__state--busy,
+.ares-chat__state--checking {
+  color: var(--safe);
+}
+.ares-chat__rule {
+  padding: var(--space-2) var(--space-4);
+  border-bottom: 1px solid var(--hairline);
+  color: var(--muted);
+  font: 11px var(--font-mono);
+}
+.ares-chat__planner {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--space-2) var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  border-bottom: 1px solid var(--hairline);
+  color: var(--muted);
+  font: 10px var(--font-mono);
+  letter-spacing: 0.1em;
+}
+.ares-chat__status {
+  font: 600 13px var(--font-mono);
+  letter-spacing: 0.08em;
+}
+.ares-chat__status--GO {
+  color: var(--go);
+}
+.ares-chat__status--CAUTION {
+  color: var(--caution);
+}
+.ares-chat__status--NO-GO {
+  color: var(--nogo);
+}
+.ares-chat__reason {
+  flex-basis: 100%;
+  color: var(--text);
+  font: 12px/1.5 var(--font-body);
+  letter-spacing: 0;
+}
+.ares-chat__offline {
+  padding: var(--space-6) var(--space-4);
+}
+.ares-chat__offline strong {
+  display: block;
+  margin-bottom: var(--space-2);
+  font: 600 15px var(--font-heading);
+}
+.ares-chat__offline p {
+  color: var(--muted);
+}
+.ares-chat__log {
+  min-height: 180px;
+  max-height: 42svh;
+  overflow-y: auto;
+  padding: var(--space-2) var(--space-4);
+}
+.ares-chat__line {
+  display: grid;
+  grid-template-columns: 52px 1fr;
+  gap: var(--space-3);
+  padding: var(--space-3) 0;
+  border-bottom: 1px solid var(--hairline);
+}
+.ares-chat__line p {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.ares-chat__who {
+  padding-top: 2px;
+  color: var(--muted);
+  font: 600 10px var(--font-mono);
+  letter-spacing: 0.1em;
+}
+.ares-chat__line--assistant .ares-chat__who {
+  color: var(--safe);
+}
+.ares-chat__line--error .ares-chat__who,
+.ares-chat__line--error p {
+  color: var(--nogo);
+}
+.ares-chat__tool {
+  padding: var(--space-1) 0 var(--space-1) 64px;
+  color: var(--muted);
+  font: 11px var(--font-mono);
+}
+.ares-chat__tool--failed {
+  color: var(--caution);
+}
+.ares-chat__starters {
+  display: grid;
+  gap: var(--space-2);
+  padding: var(--space-3) 0;
+  color: var(--muted);
+  font-size: 12px;
+}
+.ares-chat button {
+  min-height: var(--touch-target);
+  padding: 0 var(--space-3);
+  border: 1px solid var(--hairline);
+  border-radius: 0;
+  background: transparent;
+  color: var(--text);
+  cursor: pointer;
+  font: 500 12px var(--font-body);
+  text-align: left;
+}
+.ares-chat button:hover:not(:disabled) {
+  border-color: var(--safe);
+}
+.ares-chat button:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+.ares-chat button:focus-visible,
+.ares-chat input:focus-visible {
+  outline: 2px solid var(--safe);
+  outline-offset: 2px;
+}
+.ares-chat__proposal {
+  padding: var(--space-3) var(--space-4);
+  border-top: 1px solid var(--mars);
+}
+.ares-chat__proposal-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  color: var(--mars);
+  font: 600 10px var(--font-mono);
+  letter-spacing: 0.1em;
+}
+.ares-chat__proposal ol {
+  margin: var(--space-2) 0;
+  padding: 0;
+  list-style: none;
+}
+.ares-chat__proposal li {
+  display: grid;
+  grid-template-columns: 28px 1fr auto;
+  gap: var(--space-2);
+  padding: var(--space-1) 0;
+  border-bottom: 1px solid var(--hairline);
+}
+.ares-chat__num {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+}
+.ares-chat__proposal-facts {
+  color: var(--muted);
+  font-size: 12px;
+}
+.ares-chat__proposal-facts .ares-chat__num {
+  color: var(--text);
+}
+.ares-chat__proposal-actions {
+  display: flex;
+  gap: var(--space-2);
+  margin-top: var(--space-3);
+}
+.ares-chat__proposal-actions button:first-child {
+  border-color: var(--mars);
+  color: var(--mars);
+}
+.ares-chat__form {
+  display: flex;
+  gap: var(--space-2);
+  padding: var(--space-3) var(--space-4);
+  border-top: 1px solid var(--hairline);
+}
+.ares-chat__form input {
+  flex: 1;
+  min-width: 0;
+  min-height: var(--touch-target);
+  padding: 0 var(--space-3);
+  border: 1px solid var(--hairline);
+  border-radius: 0;
+  background: var(--void);
+  color: var(--text);
+  font: 13px var(--font-body);
+}
+.ares-chat__sr {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+@media (prefers-reduced-motion: reduce) {
+  .ares-chat * {
+    transition: none !important;
+    animation: none !important;
+  }
+}
