@@ -49,7 +49,7 @@ Timeline
 
 🟧 Tier 2: should have (Sunday morning)
 Stop detail card
-[ ] Click a stop → card with real Perseverance photo (from app/public/photos/, credits in credits.json), why it matters, dwell time, oxygen cost of the stop, arrival time
+[x] Click a stop → card with real Perseverance photo (from app/public/photos/, credits in credits.json), why it matters, dwell time, oxygen cost of the stop, arrival time
 [x] Delta front toe has no rover photo: show a HiRISE crop of the spot instead, labelled "orbital view, no rover visit"
 Briefing (opening) screen
 [x] Full-bleed HiRISE image of Jezero, slow 10–15 s pan (respect reduced motion)
@@ -62,7 +62,7 @@ Helmet HUD
 Data honesty
 [ ] Evidence tags next to key numbers: Measured (HiRISE, RAD), Calculated (route, oxygen, slope), Assumed (burn rates, storm slowdown, SPE ×30). Small mono tags, not badges
 [x] Data sources panel lists every layer with its citation (read from site.json sources)
-[ ] Remove the * temperature marks once the MEDA values land
+[x] Remove the * temperature marks once the MEDA values land
 Motion (small and purposeful)
 [ ] Route draws in over 600 ms when the plan changes
 [ ] Status change: 250 ms color fade; NO-GO header pulses once, not forever
@@ -79,7 +79,7 @@ Before recording (Sunday ~2:30 pm)
 [ ] Live Vercel link loads in a fresh Chrome window with no console errors
 [ ] Browser window exactly 1440 × 900, zoom 100%, bookmarks bar hidden
 [x] "Load demo mission" → GO, 4.97 km, 3 h 35 m, 49% at return
-[ ] Storm at T+1:16 → EVA NO-GO, Return home CAUTION, 57 min, 66% on arrival
+[x] Storm at T+1:16 → EVA NO-GO, Return home CAUTION, 57 min, 66% on arrival
 [ ] Every number on screen matches README, slides, project page and video captions
 [ ] No real names anywhere in the UI
 Suggested order
@@ -107,3 +107,5 @@ Production CLI deployment succeeded at https://ares-mission-console.vercel.app. 
 Implemented and checked locally at 1440 × 900: padded mission fit with storm-banner clearance, separate HAB-1/03 labels and marker leader, wrapping status reasons, exact T+1:16 dust-storm preset, dual emergency HUD statuses, shared minute rounding, scale label above bar, populated lower-left probe, subtle coordinate grid, frame corners and north arrow. Screenshots and reproduction notes are in docs/frontend-screenshots/. All 147 tests, typecheck and build pass.
 
 Plugin integration is pending receipt of zoneCleanup.ts, ElevationProfile.tsx, StopCard.tsx and app/src/components/README-plugins.md. No planner or pipeline code was edited. Approved branding, MEDA observations, Figma comparison and final cross-document/video review remain separate inputs.
+
+All three supplied frontend plugins are now integrated and checked in Chrome; the requested four screenshots were refreshed at 1440 × 900 after integration. The pulled MEDA model is connected and its labels corrected. The merged suite passes 231 tests, typecheck and build.

@@ -40,7 +40,7 @@ export function FlightTimeline() {
         </span>
         <span className="timeline-conditions">
           Sun {m.env.sunElevationDeg.toFixed(0)}° · {m.env.tempC.toFixed(0)} °C{" "}
-          <small>assumed</small> · {m.env.doseRateMsvPerHr.toFixed(3)} mSv/h
+          <small>MEDA curve</small> · {m.env.doseRateMsvPerHr.toFixed(3)} mSv/h
         </span>
       </div>
       <div className="timeline-track">

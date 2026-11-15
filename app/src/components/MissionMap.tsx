@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type ReactNode } from "react";
+import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import {
@@ -9,6 +9,7 @@ import {
   type Plan,
   type CostGrid,
 } from "../lib/planner";
+import { removeSmallIslands } from "../lib/zoneCleanup";
 import { distanceM } from "../geo";
 import { routeParts, shortStop } from "../lib/presentation";
 import type { Basemap } from "../lib/basemap";
@@ -55,6 +56,11 @@ export function MissionMap({
     map = useRef<L.Map | null>(null),
     callbacks = useRef({ onAdd, onMove, onSelect, onProbe });
   callbacks.current = { onAdd, onMove, onSelect, onProbe };
+  // Display-only cleanup; keep the original planner mask for all safety decisions.
+  const drawnZone = useMemo(
+    () => removeSmallIslands(zone, site.width, site.height),
+    [zone, site.width, site.height],
+  );
   const [scaleWidth, setScaleWidth] = useState(80);
   const [baseLabel, setBaseLabel] = useState("Elevation hillshade");
   const cache = useRef(new Map<string, string>());
@@ -247,7 +253,20 @@ export function MissionMap({
           { weight: 0.6, opacity: 0.28, color: "#eceae6", interactive: false },
         ).addTo(group);
         const x = m.latLngToContainerPoint([b.getSouth(), lng]).x;
-        if (x > 80 && x < size.x - 65)
+        if (
+          x >
+            Math.max(
+              80,
+              (500 /
+                distanceM(
+                  m.containerPointToLatLng([0, size.y - 30]),
+                  m.containerPointToLatLng([100, size.y - 30]),
+                )) *
+                100 +
+                45,
+            ) &&
+          x < size.x - 65
+        )
           label(
             m.containerPointToLatLng([x, size.y - 48]),
             lng.toFixed(2) + "°E",
@@ -278,13 +297,13 @@ export function MissionMap({
       L.imageOverlay(url, bounds, { opacity: 0.8 }).addTo(group);
     });
     if (!emergency)
-      L.imageOverlay(raster(site, cost, "zone", zone), bounds, {
+      L.imageOverlay(raster(site, cost, "zone", drawnZone), bounds, {
         className: "safe-zone",
       }).addTo(group);
     return () => {
       group.remove();
     };
-  }, [site, basemap, cost, active, zone, emergency]);
+  }, [site, basemap, cost, active, drawnZone, emergency]);
   useEffect(() => {
     const m = map.current;
     if (!m) return;

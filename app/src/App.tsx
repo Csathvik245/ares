@@ -1,5 +1,9 @@
 import { useEffect, useState } from "react";
-import { Hud, OpeningScreen, StopCard } from "./components/DesignIntegration";
+import { Hud, OpeningScreen } from "./components/DesignIntegration";
+import { ElevationProfile } from "./components/ElevationProfile";
+import { StopCard as StopDetailCard } from "./components/StopCard";
+import { WORK_BURN } from "./lib/planner";
+import { photoDetails } from "./lib/photos";
 import { MissionMap } from "./components/MissionMap";
 import { MissionProvider, useMission } from "./lib/MissionContext";
 import { type OverlayName } from "./lib/layers";
@@ -247,6 +251,11 @@ function Console() {
               </aside>
             )}
           </MissionMap>
+          <ElevationProfile
+            site={site}
+            plan={emergency ? (m.returnPlan ?? plan) : plan}
+            currentTSec={emergency ? m.returnElapsed : m.elapsed}
+          />
           <FlightTimeline />
         </section>
         <MissionPanel onDetail={setDetail} />
@@ -280,23 +289,47 @@ function Console() {
             Radiation: surface baseline measured by Curiosity RAD at Gale,
             applied to Jezero. 0.64 mSv/sol; SPE ×30 illustrative. Suit, walking
             and reserve constants are demonstration assumptions in CLAUDE.md.
-            Temperature is a placeholder curve; sun uses Mars24 at Ls 0°. These
-            are not live weather observations.
+            Temperature interpolates measured Perseverance MEDA daily extrema
+            (Table 1, doi:10.1029/2022JE007559, Ls 25°); sun uses Mars24 at Ls
+            0°. These are not live weather observations.
           </p>
           <p>
             Safe-zone, position, abort and segment explanations use the real
             planner. Sun uses the planner’s Mars24 model at a fixed Ls of 0°.
-            Temperature uses a placeholder curve awaiting MEDA. AI assistant is
-            unavailable until its component and backend land.
+            Temperature uses a smooth interpolation of MEDA measurements, not
+            live weather. AI assistant is unavailable until its component and
+            backend land.
           </p>
         </Dialog>
       )}
       {selected && (
-        <StopCard
-          key={selected.id}
-          stop={selected}
-          onClose={() => setDetail("")}
-        />
+        <Dialog title={selected.label} onClose={() => setDetail("")}>
+          <StopDetailCard
+            stop={selected}
+            index={m.stops.indexOf(selected)}
+            poi={site.pois.find(
+              (p) =>
+                p.id === selected.id ||
+                (Math.abs(p.lat - selected.lat) < 0.00001 &&
+                  Math.abs(p.lng - selected.lng) < 0.00001),
+            )}
+            arriveSec={plan.legs[m.stops.indexOf(selected)]?.arriveSec ?? NaN}
+            basemap={m.basemap}
+          />
+          <p className="stop-work-cost">
+            Science oxygen cost: {minutes(selected.dwellMin * 60 * WORK_BURN)}{" "}
+            nominal min · assumed burn rate
+          </p>
+          {photoDetails(selected.photo) && (
+            <a
+              href={photoDetails(selected.photo)!.sourceUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              NASA original image
+            </a>
+          )}
+        </Dialog>
       )}
     </main>
   );

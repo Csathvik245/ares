@@ -1070,3 +1070,13 @@ dl {
   margin-top: 12px;
   flex-shrink: 0;
 }
+
+.map-column {
+  grid-template-rows: minmax(0, 1fr) 70px 96px;
+}
+.stop-detail .stop-card-plugin {
+  width: 100%;
+}
+.stop-work-cost {
+  font: 11px var(--font-mono, monospace);
+}

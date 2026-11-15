@@ -91,7 +91,7 @@ it("uses the supplied storm scenario without fixed display values", () => {
 it("uses identical nearest-minute rounding in panel and HUD values", () => {
   for (const seconds of [0, 2279, 2280, 2310, Infinity, -90]) {
     expect(minutes(seconds)).toBe(
-      Number.isFinite(seconds) ? String(Math.round(seconds / 60)) : "—",
+      Number.isFinite(seconds) ? String(Math.round(seconds / 60)).replace("-", "−") : "—",
     );
   }
 });

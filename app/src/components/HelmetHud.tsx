@@ -95,7 +95,7 @@ export function HelmetHud(p: HelmetHudProps) {
             {p.doseMsv.toFixed(3)}
             <small>mSv</small>
           </strong>
-          <span>{Math.round(p.temperatureC)} °C · assumed temperature</span>
+          <span>{Math.round(p.temperatureC)} °C · MEDA interpolation</span>
         </article>
       </section>
     </main>

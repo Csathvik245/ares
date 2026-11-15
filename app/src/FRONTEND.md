@@ -79,3 +79,12 @@ Status reasons wrap without ellipses. Left rail spacing is tighter and the probe
 Chrome screenshots and QA notes: docs/frontend-screenshots/. All four PNGs are 1440 × 900 at DPR 1: GO, playback on leg 2, exact storm preset on leg 2, and storm HUD. No page scroll or overlapping waypoint labels was visible; the stop list scrolls internally. The exact preset displayed NO-GO/ABORTED, return CAUTION, 57 min home, 244 min margin and 66% oxygen on arrival. The HUD matched 57 min and 244 min. All 147 tests, typecheck, build and diff whitespace check passed.
 
 The Git email uses the authenticated account's GitHub private noreply address; commit display name is The Ares Initiative. The requested plugin files and README-plugins.md were not yet present at the initial pull; no replacements for those components were built.
+
+
+## Integrated pieces after the final rebase
+
+The rebase brought in all three supplied pieces and their plugin README. MissionMap memoizes removeSmallIslands for drawing only; planner masks stay unchanged. ElevationProfile occupies 70 px below the map and takes current playback seconds (the return plan and return elapsed time during emergencies). StopCard is used directly in the existing Dialog for focus trapping and Escape; science oxygen cost and NASA source link remain alongside it. No supplied plugin implementation files were edited.
+
+The pull also supplied sourced MEDA extrema and interpolation in envAt. Timeline, HUD and source text now identify that curve correctly instead of calling it a placeholder. The planner and pipeline source changes came from origin/main, not this frontend work.
+
+Both orbital and rover stop cards were inspected in Chrome. All four requested 1440 × 900 / DPR 1 PNGs were refreshed after integration. Map marker labels and the storm overlay stay separated; there is no visible page scrollbar. The elevation strip fits without moving the timeline offscreen. Full merged suite: 231 tests, typecheck and production build pass.

@@ -1,4 +1,4 @@
-import { positionAt, polylineLengthM, type LatLng, type Plan } from "./planner";
+import { formatMinutes, positionAt, polylineLengthM, type LatLng, type Plan } from "./planner";
 import { distanceM, bearingDeg } from "../geo";
 
 export function clock(sec: number): string {
@@ -96,5 +96,5 @@ export function routeHeading(path: LatLng[], from: LatLng): number {
 
 /** All UI minute readouts share nearest-minute rounding; input is Earth seconds. */
 export function minutes(sec: number): string {
-  return Number.isFinite(sec) ? String(Math.round(sec / 60)) : "—";
+  return formatMinutes(sec).replace(/ min$/, "");
 }
