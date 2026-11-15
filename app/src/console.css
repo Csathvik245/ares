@@ -1093,3 +1093,10 @@ dl {
 .rail-status .shelter-guidance { white-space: normal; overflow: visible; }
 .model-tag { display: inline-block; border: 1px solid #4fd1ff66; padding: 0 4px; font-size: 9px; color: #b8dfe9; white-space: nowrap; }
 .shelter-legend { color: #4fd1ff; }
+
+[data-theme] .console-body.consolidated.sidebar-collapsed {
+  grid-template-columns: minmax(0, 1fr);
+}
+[data-theme] .console-body.consolidated .telemetry-col[hidden] {
+  display: none;
+}

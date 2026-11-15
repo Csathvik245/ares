@@ -50,6 +50,7 @@ function Console() {
     [tab, setTab] = useState("Map"),
     [sources, setSources] = useState(false),
     [assistant, setAssistant] = useState(false),
+    [sidebarCollapsed, setSidebarCollapsed] = useState(false),
     [detail, setDetail] = useState("");
   const [view3d, setView3d] = useState(false);
   // Desktop uses one consolidated left panel; tablet keeps the Map / Plan / Layers tabs.
@@ -291,6 +292,15 @@ function Console() {
           )}
         </div>
         <div className="header-actions">
+          {consolidated && (
+            <button
+              aria-controls="mission-sidebar"
+              aria-expanded={!sidebarCollapsed}
+              onClick={() => setSidebarCollapsed((collapsed) => !collapsed)}
+            >
+              {sidebarCollapsed ? "Show sidebar" : "Hide sidebar"}
+            </button>
+          )}
           <span className="header-clock">
             LMST{" "}
             {lmst(
@@ -324,12 +334,14 @@ function Console() {
         ))}
       </nav>
       <div
-        className={`console-body ${consolidated ? "consolidated" : ""} tablet-${tab.toLowerCase()}`}
+        className={`console-body ${consolidated ? "consolidated" : ""} ${sidebarCollapsed ? "sidebar-collapsed" : ""} tablet-${tab.toLowerCase()}`}
       >
         {consolidated ? (
           <>
             <aside
+              id="mission-sidebar"
               className="telemetry-col"
+              hidden={sidebarCollapsed}
               aria-label="Mission telemetry and plan"
             >
               <MissionPanel part="telemetry" onDetail={setDetail} />
