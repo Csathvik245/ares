@@ -19,7 +19,6 @@
 .mission-briefing .briefing-hero {
   position: relative;
   isolation: isolate;
-  overflow: clip;
   min-height: 100svh;
   display: flex;
   flex-direction: column;
@@ -57,12 +56,23 @@
   outline-offset: 4px;
 }
 .mission-briefing .briefing-terrain {
-  position: absolute;
-  z-index: -1;
-  inset: -20%;
+  position: fixed;
+  z-index: -2;
+  inset: -12%;
+  pointer-events: none;
   background-size: cover;
   background-position: center;
-  filter: grayscale(1) brightness(0.18);
+  filter: grayscale(1) brightness(0.4);
+}
+.mission-briefing::before {
+  content: "";
+  position: fixed;
+  z-index: -1;
+  inset: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(ellipse at 70% 25%, transparent, rgba(var(--ds-deep-rgb), 0.45)),
+    linear-gradient(180deg, rgba(var(--ds-deep-rgb), 0.45), rgba(var(--ds-deep-rgb), 0.65) 55%, rgba(var(--ds-deep-rgb), 0.82));
 }
 .mission-briefing header {
   display: flex;
@@ -86,6 +96,7 @@
   margin: 0 auto;
   padding: var(--space-12);
   scroll-margin-top: var(--space-6);
+  border-top: 1px solid var(--hairline);
 }
 .mission-briefing p,
 .mission-briefing h2 {
@@ -117,7 +128,8 @@
 }
 .mission-briefing .briefing-poll {
   padding: var(--space-4) var(--space-5);
-  background: var(--console);
+  background: rgba(var(--ds-void-rgb), 0.78);
+  backdrop-filter: blur(12px);
   border: 1px solid var(--hairline);
 }
 .mission-briefing .briefing-poll-heading {
@@ -265,8 +277,8 @@
   }
 }
 @keyframes briefing-terrain-drift {
-  from { transform: translate3d(0, -4%, 0); }
-  to { transform: translate3d(0, 12%, 0); }
+  from { transform: translate3d(0, -3%, 0) scale(1.02); }
+  to { transform: translate3d(0, 8%, 0) scale(1.06); }
 }
 @keyframes briefing-story-reveal {
   from { opacity: 0; transform: translate3d(0, 20px, 0); }

@@ -31,7 +31,6 @@ export function MissionBriefing({
 }: MissionBriefingProps) {
   return (
     <main className="mission-briefing" aria-label="Story">
-      <section className="briefing-hero" aria-labelledby="briefing-title">
       <div
         className="briefing-terrain"
         aria-hidden="true"
@@ -41,6 +40,7 @@ export function MissionBriefing({
             : undefined
         }
       />
+      <section className="briefing-hero" aria-labelledby="briefing-title">
       <header>
         ARES <span>MISSION CONTROL · STORY</span>
       </header>
