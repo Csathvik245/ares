@@ -79,6 +79,25 @@ All layers come from real NASA/USGS data (see [`sources.md`](sources.md) and `pi
 | Demo stop "Delta front toe" | 18.4594 N, 77.4228 E | A new science target selected from the CRISM clay signal, not visited by Perseverance | Chosen by us as the nearest flat, firm ground with science value over 0.6. The brief asks for new science, so this is deliberate. The rover's own delta-front sites are too far for a 4–5 km loop (2.6–3.1 km each way). | Assumption |
 | Other stops | seven Perseverance sampling sites | Real places with real samples | Coordinates and rock descriptions from the Mars 2020 Initial Reports, volumes 1 and 2. | Sourced |
 
+### Rock layer: why it is still a roughness proxy
+
+We looked for a real rock-abundance or boulder-count map of Jezero made from HiRISE images, to replace the roughness proxy. **We found none that can be downloaded**, so the rock layer is unchanged. Searched on 14 November 2026:
+
+| Where we looked | What we found | Why it could not be used |
+|---|---|---|
+| Landing-site rock maps by Golombek and colleagues | Papers and a 2015 LPSC abstract quote Jezero rock abundance and the engineering limit (about 12%). The same group published a rock-abundance GeoTIFF for the InSight landing site. | No equivalent data file for Mars 2020 or Jezero in the Caltech data repository or the DOI registry (DataCite). |
+| USGS Astrogeology Mars 2020 landing-site products | HiRISE and CTX elevation models and image mosaics (the ones we already use). USGS says JPL mapped rock fields onto this basemap for the landing hazard map. | The file store holds no rock or hazard layer; the hazard map itself is not published there. |
+| PDS (Geosciences, Cartography and Imaging) | Mars 2020 mission bundles and instrument data. | No rock-abundance or hazard product for Jezero found. |
+| NASA Mars Trek layer catalogue | Jezero imagery and elevation layers. | No rock, boulder or hazard layer. |
+| Boulder detection on the Jezero fan (Nagle-McNaughton et al. 2020, and a follow-up study) | Published boulder counts from one HiRISE image. | The boulder outlines are not in a public repository, and they cover the fan, not our whole site. |
+| Boulder-fall tracks (Sinha et al. 2020) and the boulder-rich blocky unit of the upper fan (JPL data repository, 2025) | Downloadable, but they map 63 rolled-boulder tracks and one unit's composition. | Not rock abundance. |
+| BOULDERING boulder-outline datasets (Zenodo, 2023 and 2024) | Downloadable boulder outlines around impact craters on the Moon and Mars. | Jezero is not named in either record. |
+| PLANMAP GIS archive for the Mars 2020 landing site (Zenodo, doi:10.5281/zenodo.4767519) | A 6.6 GB archive described as the original orbital datasets for a GIS of Jezero. | Its description lists no rock, boulder or hazard layer. **Not opened**: Zenodo refused our downloads, so its contents are unconfirmed. |
+
+**Not checked:** the Mars 2020 landing-site workshop pages (they would not load for us) and Zenodo's and USGS's own search pages (closed to automated access). Global thermal rock-abundance maps (TES, IRTM) were not considered: their pixels are several kilometres wide, about the size of our whole site.
+
+If such a map is published later, compare it with the roughness layer first (`docs/validation.md`) and change `site.json` only if it covers the whole site.
+
 ## Planner model choices
 
 | Name | Value | What it means | Source or justification | Status |
