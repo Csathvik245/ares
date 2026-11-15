@@ -1,4 +1,4 @@
-# ARES — Space Apps project page text (draft)
+# ARES: Space Apps project page text (draft)
 
 Text to paste into our team's **Project** tab on spaceappschallenge.org. One section per form field, in the order of the [Project Submission Guide](https://www.spaceappschallenge.org/resources/project-submission-guide/) ("Project Page Form Field Instructions").
 
@@ -12,7 +12,7 @@ Text to paste into our team's **Project** tab on spaceappschallenge.org. One sec
 
 ## Project Name
 
-ARES — Astronaut Route & EVA Safety system
+ARES: Astronaut Route & EVA Safety system
 
 ## High-Level Project Summary
 

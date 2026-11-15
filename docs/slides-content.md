@@ -1,4 +1,4 @@
-# ARES — slide text (7 slides)
+# ARES: slide text (7 slides)
 
 The exact words for the 7-slide demo deck. Rules, image credits and the 7-slide limit are in [`slides-outline.md`](slides-outline.md); follow them.
 
@@ -8,7 +8,7 @@ The exact words for the 7-slide demo deck. Rules, image credits and the 7-slide 
 
 ---
 
-## Slide 1 — The problem
+## Slide 1: The problem
 
 **ARES: Astronaut Route & EVA Safety**
 The Ares Initiative · NASA Space Apps 2026 · *Interplanetary Survival Guide: Martian Map*
@@ -19,7 +19,7 @@ The Ares Initiative · NASA Space Apps 2026 · *Interplanetary Survival Guide: M
 
 *Visual:* Mars Trek global view → the Jezero delta front. Credit: NASA/JPL-Caltech.
 
-## Slide 2 — The idea
+## Slide 2: The idea
 
 - Google Maps for a person in a spacesuit, built for one Marswalk.
 - Jezero Crater, 2040: sample clays and carbonates where an ancient river met a lake.
@@ -28,7 +28,7 @@ The Ares Initiative · NASA Space Apps 2026 · *Interplanetary Survival Guide: M
 
 *Visual:* ARES opening briefing screen. Credit: NASA/JPL-Caltech/University of Arizona (HiRISE).
 
-## Slide 3 — How it works
+## Slide 3: How it works
 
 - Six NASA data types → one 25 m grid: HiRISE terrain, THEMIS soft sand, CRISM minerals, RAD radiation, MEDA temperature, Mars24 sun.
 - Walking speed per cell (Tobler's hiking function), slower on slopes, sand and rough ground.
@@ -37,7 +37,7 @@ The Ares Initiative · NASA Space Apps 2026 · *Interplanetary Survival Guide: M
 
 *Visual:* data → grid → planner → app diagram, plus layer thumbnails. Credit: NASA/JPL-Caltech/University of Arizona (HiRISE), NASA/JPL-Caltech/ASU (THEMIS), NASA/JPL-Caltech/JHUAPL (CRISM).
 
-## Slide 4 — The demo: a normal plan, then emergencies
+## Slide 4: The demo: a normal plan, then emergencies
 
 **Normal plan:** Brac → delta front toe → Sid → home
 - 4.97 km, 3 h 35 min, 49% oxygen at return, 192 min above reserve: **GO**
@@ -53,7 +53,7 @@ The Ares Initiative · NASA Space Apps 2026 · *Interplanetary Survival Guide: M
 
 *Visual:* console with the demo GO plan; console mid-storm with both statuses; if there is room, the route home after the oxygen loss. Credit: NASA/JPL-Caltech/University of Arizona (HiRISE basemap).
 
-## Slide 5 — Checked against Perseverance, and against our own assumptions
+## Slide 5: Checked against Perseverance, and against our own assumptions
 
 **Against the rover:**
 - We compared ARES with 20.57 km of Perseverance's real drives (NASA traverse file). None of it was used to build the map.
@@ -67,7 +67,7 @@ The Ares Initiative · NASA Space Apps 2026 · *Interplanetary Survival Guide: M
 
 *Visual:* `docs/images/route_learning.png` or `docs/images/validation_traverse.png`. Credit: NASA/JPL-Caltech (traverse); NASA/JPL-Caltech/University of Arizona/USGS (HiRISE).
 
-## Slide 6 — Related work: what we build on
+## Slide 6: Related work: what we build on
 
 - **SEXTANT** (MIT and NASA Ames): walking routes for astronauts, with AR navigation, field-tested in NASA's BASALT campaign.
 - **xGDS traverse planner** (NASA Ames): reachability, where you can still get to and by when.
@@ -76,7 +76,7 @@ The Ares Initiative · NASA Space Apps 2026 · *Interplanetary Survival Guide: M
 
 *Visual:* text only. Sources: Norheim 2018; Bresina et al. 2017; Peña-Asensio et al. 2024 (see [`sources.md`](sources.md)).
 
-## Slide 7 — Team and limits
+## Slide 7: Team and limits
 
 **The Ares Initiative**: a team of six. Everyone shares every role.
 

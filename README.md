@@ -1,98 +1,193 @@
-**Live demo: https://ares-mars-alpha.vercel.app**
-
-# ARES — Astronaut Route & EVA Safety system
+# ARES: Astronaut Route & EVA Safety
 
 **Science first. Safety always.**
+
+**Live app: https://ares-mars-alpha.vercel.app**
+
+ARES plans a spacewalk on Mars using real NASA terrain data, and answers one question: can the astronaut get there and back?
+
+- **Challenge:** Interplanetary Survival Guide: Martian Map, [NASA Space Apps Challenge 2026](https://www.spaceappschallenge.org/2026/challenges/interplanetary-survival-guide-martian-map/)
+- **Team:** The Ares Initiative
 
 ![The ARES Plan view: a walking route between three science stops at Jezero Crater, drawn on a NASA HiRISE image, with the oxygen budget and a GO status](docs/images/plan-view.jpg)
 
 *The Plan view with the demo mission loaded. Map image: NASA/JPL-Caltech/University of Arizona/USGS (HiRISE).*
 
-- **What it does:** ARES plans a spacewalk on Mars. The astronaut picks science stops; ARES finds the safest walking route, adds up the oxygen, and says GO, CAUTION or NO-GO: can the astronaut get there and back? If a dust storm or solar particle event hits, it re-plans the way home at once.
-- **The data:** six kinds of real NASA data on one 25 m grid of Jezero Crater: HiRISE images and elevation (MRO), THEMIS thermal inertia (Mars Odyssey), CRISM minerals (MRO), MEDA air temperature (Perseverance) and RAD radiation (Curiosity). Sources: [docs/sources.md](docs/sources.md).
-- **How it was validated:** we laid Perseverance's real 20.57 km drive over our terrain model. ARES rates 99.8% of that path as passable, and our slope layer matches the rover's own tilt sensor (r = 0.82 over 313 waypoints). What this does and does not show: [docs/validation.md](docs/validation.md).
+## The question
 
-ARES is a route planner for an astronaut walking on Mars. It works like a map app that also tracks oxygen and tells you when you must turn back. The astronaut picks science stops at Jezero Crater's ancient river delta. ARES plans the fastest safe walk around steep slopes, boulder fields and soft sand, and adds up walking time, oxygen and radiation dose. It draws a **safe-return zone** showing everywhere the astronaut can still reach and get home from. It gives a GO / CAUTION / NO-GO status with the reason written out, and it plays the walk across the Martian day. Dust storm and solar particle event buttons show an instant abort route home. ARES was built by The Ares Initiative for the NASA Space Apps Challenge 2026, challenge *Interplanetary Survival Guide: Martian Map*.
+Can an astronaut walk to the science and get back safely?
 
-> **Demo video:** _link to be added_
+On Mars that question is hard, for three reasons.
 
-## The problem
+- **Radio delay.** A message to Earth and the answer back can take many minutes. Mission Control cannot talk an astronaut home in real time. The answer has to be ready in the habitat and in the suit.
+- **Oxygen.** The suit carries a fixed supply. Every step and every minute of science uses some of it, and a reserve must still be there at the airlock.
+- **Terrain.** Steep slopes, soft sand and rough ground slow a person on foot or stop them. The shortest line on a map is often not the safest walk.
 
-NASA's challenge asks teams to build "a layered, integrated view of a location or route on the Martian surface that pulls together data from multiple NASA science missions and could help a human explorer plan and carry out a successful Marswalk while conducting new and exciting science along the way" ([challenge page](https://www.spaceappschallenge.org/2026/challenges/interplanetary-survival-guide-martian-map/)).
+Existing Mars maps show regions or the whole planet. A spacewalk happens over a few kilometres. ARES works at that scale, for one walk at Jezero Crater's ancient river delta, where clay and carbonate rocks may hold signs of past life.
 
-Tools like JPL's Mars Trek and the USGS-NASA geologic maps show Mars at a regional or global scale. A spacewalk happens at the scale of a few kilometres. An astronaut on foot needs to know which slope is too steep, where the sand is soft, how much oxygen the walk will use, and how far they can go and still get home. ARES answers those questions for a single EVA.
+## Try it in 60 seconds
 
-## Key features
+Open the [live app](https://ares-mars-alpha.vercel.app). It runs in the browser on a laptop or tablet, with nothing to install.
 
-- **Layered map**: Mars imagery with toggleable analysis layers (walking difficulty, slope, soft sand, boulders, science value). Each layer is labelled with its data type and the NASA mission it comes from.
-- **Route planner**: click to add science stops and set how long to stay. ARES finds the fastest safe route habitat → stops → habitat.
-- **Oxygen budget**: a gauge shows oxygen left at return and the margin above the required reserve.
-- **Safe-return zone**: a glowing electric-blue boundary around everywhere still reachable with a safe walk home. It shrinks as stops are added.
-- **Status light**: GO / CAUTION / NO-GO, always with the word and the reason, never colour alone.
-- **Sol timeline**: play or scrub through the walk; the astronaut marker moves while sun elevation, temperature and radiation update.
-- **Emergencies**: Dust Storm and Solar Particle Event buttons turn the status red, collapse the zone, and draw an abort route home from the astronaut's current position.
-- **Helmet HUD**: a full-screen minimal view with heading, distance to the next stop, oxygen, margin and dose.
-- **Ground view**: a Perseverance rover photo at each stop.
+1. **Story tab.** Press **Run the demo**. Four guided steps show the plan, the reliability check, a dust storm and the walk home.
+2. **Plan tab.** Press **Load demo**. Then pick an emergency (for example **Dust storm**) and press **Trigger**. Try **3D** on the map, and open **More details** for **Mission reliability**.
+3. **Science tab.** A short, plain explanation of the data, the method, the checks and the limits.
+
+## What ARES does
+
+- **Plans the route on real terrain.** The astronaut picks science stops. ARES finds the fastest safe walk from the habitat to each stop and home, around steep slopes, soft sand and rough ground.
+- **Keeps an oxygen budget and a reserve.** It adds up walking and science time, turns that into oxygen used, and shows the margin left above a 45 min reserve.
+- **Draws the safe-return zone.** A blue edge marks everywhere the astronaut can still reach and get home from with the reserve intact. It shrinks as stops are added.
+- **Gives one status with its reason.** GO, CAUTION or NO-GO, always as a word with the reason written out, never colour alone.
+- **Re-plans in five emergencies.** Dust storm, solar particle event (with a check for nearby shelter), oxygen loss, slower walking and a blocked path. Each one re-plans from where the astronaut is standing at that moment.
+- **Tests the plan many times.** A Monte Carlo run walks the same plan 1000 times with slightly different speeds and oxygen use, and reports how often the astronaut gets home with the reserve.
+- **Says how sure it is.** Every number carries an evidence level: observed, calculated, interpreted or assumed.
+- **Shows the walk in 3D.** The same route and zone over the real elevation model.
+- **Scores science stops.** Each stop shows its science value from orbital mineral data, and ARES can suggest stops by science gained per minute of oxygen.
+
+The demo mission, as the planner computes it today (from [docs/demo-numbers.md](docs/demo-numbers.md), which the tests keep equal to the code):
+
+| | |
+|---|---|
+| Route | Habitat, three science stops, habitat |
+| Distance | 4.97 km |
+| Total time | 3:35 |
+| Oxygen margin above the reserve | 192 min |
+| Oxygen at return | 49% |
+| Status | GO |
+| Dust storm at T+1:16 | EVA NO-GO (aborted). Return home CAUTION: a 57 min walk, home with 66% oxygen and 244 min of margin |
+
+## Real NASA data
+
+All terrain in the app is real data, processed by the scripts in `pipeline/`. Full references, links and what we checked are in [docs/sources.md](docs/sources.md).
+
+| Dataset | Instrument and mission | What ARES uses it for | DOI or credit |
+|---|---|---|---|
+| Mars 2020 Terrain Relative Navigation HiRISE DTM Mosaic (Fergason et al. 2020) | HiRISE, Mars Reconnaissance Orbiter | Elevation, slope and ground roughness, which set walking speed and no-go ground | doi:10.5066/P9REJ9JN. NASA/JPL-Caltech/University of Arizona/USGS |
+| Mars 2020 Terrain Relative Navigation HiRISE Orthorectified Image Mosaic (Fergason et al. 2020) | HiRISE, Mars Reconnaissance Orbiter | The map picture under the route | doi:10.5066/P9QJDP48. NASA/JPL-Caltech/University of Arizona/USGS |
+| THEMIS-derived Thermal Inertia of Jezero Crater (Edwards & Buz 2021) | THEMIS, Mars Odyssey | Soft sand: low thermal inertia means loose ground and slower walking | doi:10.5281/zenodo.4931348 (CC BY 4.0). NASA/JPL-Caltech/ASU |
+| CRISM targeted observation HRL000040FF, summary parameters from Viviano-Beck et al. 2014 | CRISM, Mars Reconnaissance Orbiter | Science value: a relative clay and carbonate signal for choosing stops | PDS Geosciences Node, doi:10.1002/2014JE004627 (parameter definitions). NASA/JPL-Caltech/JHUAPL |
+| Near-surface air temperature (Munguira et al. 2023) | MEDA, Perseverance | Daily low and high temperature along the walk | doi:10.1029/2022JE007559 |
+| Surface radiation dose rate (Hassler et al. 2014) | RAD, Curiosity (measured at Gale Crater, applied to Jezero as an estimate) | Radiation dose during the walk | doi:10.1126/science.1244797 |
+| Perseverance raw images, waypoints and traverse | Hazcam and Navcam, Perseverance | A ground photo at each rover sampling stop, the habitat position, and the validation below | NASA/JPL-Caltech |
+| Mars 2020 Initial Reports (Farley & Stack 2022, 2023) | Perseverance sample dossier, NASA PDS | Positions and descriptions of the rover sampling sites used as stops | doi:10.17189/68tf-re13, doi:10.17189/49zd-2k55 |
+
+Sun position uses the Mars24 algorithm (NASA GISS; Allison & McEwen 2000).
 
 ## How it works
 
-```mermaid
-flowchart LR
-    A["NASA data<br/>HiRISE DTM + imagery<br/>THEMIS thermal inertia<br/>CRISM minerals"] -->|"pipeline/ (Python)<br/>clip, reproject, resample"| B["site.json<br/>320 × 240 grid, 25 m cells<br/>elevation, slope, rock,<br/>thermal inertia, science"]
-    B --> C["Planner<br/>app/src/planner (TypeScript)<br/>cost grid → Dijkstra / A*<br/>oxygen, safe zone, abort"]
-    E["Environment model<br/>Mars24 sun position<br/>Curiosity RAD dose<br/>temperature curve"] --> C
-    C --> D["App<br/>React + Leaflet<br/>map, mission panel,<br/>timeline, HUD"]
-```
+1. **Terrain grid.** The data above is put on one grid of about 25 m cells covering the delta front. Each cell has elevation, slope, roughness, thermal inertia and a science value.
+2. **Walking model.** Each cell gets a walking speed from a version of Tobler's hiking function: 3 km/h on flat firm ground, slower on slopes, in soft sand and on rough ground. Ground steeper than 25° or too rough is no-go.
+3. **Route.** Dijkstra and A* search find the fastest safe path between the habitat and each stop.
+4. **Oxygen and reserve.** Walking and science time become oxygen used. What is left above the reserve is the margin, and the margin sets the status.
+5. **Safe-return zone.** One search outward from the last stop and one from the habitat give, for every cell, whether the astronaut can go there and still get home with the reserve.
+6. **Emergencies.** When something goes wrong, ARES re-plans from the astronaut's position with the new conditions. During a dust storm or solar particle event it shows two statuses: the EVA (aborted, NO-GO) and the walk home (CAUTION or NO-GO).
 
-1. **Data → grid.** Python scripts in [`pipeline/`](pipeline/) clip NASA datasets to the Jezero delta front (18.40–18.50 N, 77.36–77.50 E). They reproject everything onto one 320 × 240 grid of 25 m cells and save it as `app/public/data/site.json`.
-2. **Grid → cost.** For each cell, the planner works out walking speed with a version of **Tobler's hiking function**, slowed for soft sand (low thermal inertia) and boulders. Cells that are too steep (> 25°) or too rocky are no-go.
-3. **Cost → route.** The planner treats the grid as a graph and uses **Dijkstra and A\*** to find the fastest safe path between stops. It is deterministic, with no machine learning, so every route is predictable, explainable and testable. We checked it against the real routes Perseverance's drivers chose. Its routes are on average 24.8 m from theirs, and a machine-learning model trained on those routes could not do better on routes it had not seen ([`docs/route-learning.md`](docs/route-learning.md)).
-4. **Route → safety.** The planner adds up walking and science time, turns it into oxygen used, and checks the margin against the reserve. A full-field search from the habitat gives the walk-home time from every cell. That powers the safe-return zone and the abort route.
-5. **Planner → app.** The React app draws the layers, route and zone on a Leaflet map (equirectangular, `EPSG:4326`, to match Mars Trek tiles). It runs the planner again every time the plan changes.
+The planner is deterministic. The same inputs always give the same route and the same numbers, and it has unit tests. No AI or machine-learning model makes or changes a route or a safety decision. A longer explanation is in [docs/how-it-works.md](docs/how-it-works.md).
 
-## Checked against reality
+## Does it match reality?
 
-- **Perseverance's real drive.** We compared the terrain model with 20.57 km of the rover's real path, which was not used to build it. ARES rates 99.8% of that path as passable, and our slope layer agrees with the rover's own tilt sensor (r = 0.82). Details: [`docs/validation.md`](docs/validation.md).
-- **A machine-learning alternative.** We trained a model on 31 of Perseverance's real drives (15.38 km) to learn how NASA's drivers choose routes. On routes it had not seen, it could not beat the ARES physics planner: both are on average 24.8 m from the drivers' routes, against 35.3 m for a straight line. So the planner stays deterministic, and the learning serves as an independent check. Details: [`docs/route-learning.md`](docs/route-learning.md).
+We ran two checks against data the planner never used.
+
+**Perseverance's real drive.** We laid the rover's actual path, 20.57 km inside our site, over the ARES terrain model.
+
+- ARES rates 99.8% of that path as passable.
+- Our slope layer agrees with the rover's own tilt sensor: r = 0.82 over 313 waypoints.
+- The path crosses one no-go cell, at Skinner Ridge on the delta front: 41.7 m of path where our slope is 25.8°, just over the 25° limit.
+
+A caveat we keep next to the first number: 98.6% of the whole site is passable, so that figure alone does not prove much. The tilt agreement is the stronger evidence. A rover is also not a person on foot, so this checks the map, not the walking speeds. Details: [docs/validation.md](docs/validation.md).
+
+**A machine-learning check.** We asked whether a model trained on the rover drivers' real choices could plan routes more like theirs than our physics model does. We trained a small route-cost model on 31 real drive routes (15.38 km) and tested it on routes it had not seen.
+
+| Planner | Mean distance from the rover's real route |
+|---|---|
+| Straight line | 35.3 m |
+| ARES physics model | 24.8 m |
+| Learned model (with the safety rule) | 24.8 m |
+
+The physics model is 10.4 m closer to the drivers' routes than a straight line, about one grid cell away from them. The learned model did not beat it: it chose the same route on 31 of 31 test routes. So the physics planner stays the planner, and the learned model is off by default. Details: [docs/route-learning.md](docs/route-learning.md).
+
+## How sure we are
+
+Every number in the app carries one of four evidence levels.
+
+| Level | Meaning |
+|---|---|
+| OBSERVED | Measured by an instrument. We use the published value |
+| CALCULATED | Worked out from observed values by a stated formula |
+| INTERPRETED | A reading of measured data that depends on a judgement, such as "this spectral signal means clay" |
+| ASSUMED | Our own choice for the demo. Not measured |
+
+The human-performance numbers are ASSUMED: walking speed in a suit, oxygen use while walking and working, the size of the reserve, and how much a dust storm slows a person. They are reasonable round figures, not spacesuit test data. The reliability run shows how much they matter. On a harder stretch mission the plan says CAUTION with 18 min of margin, and 279 of 1000 simulated walks end below the reserve. That simulation tests our own assumptions. It is not a measured mission success rate.
+
+Every parameter, its source and its evidence level is listed in [docs/parameters.md](docs/parameters.md). What ARES cannot do is in [docs/LIMITATIONS.md](docs/LIMITATIONS.md). The top three limits:
+
+- **Walking and oxygen are estimates.** They are not based on Mars spacesuit measurements.
+- **The rock layer is a roughness measure, not a boulder count.** The elevation data cannot see small boulders.
+- **The solar particle event is illustrative, and the radiation baseline was measured at Gale Crater.** Perseverance carries no radiation detector, so the Curiosity value is applied to Jezero as an estimate.
+
+## Builds on
+
+ARES follows ideas from earlier traverse planners. No data or code from them is used.
+
+- **NASA SEXTANT** (MIT and NASA Ames): plans walking routes for astronauts over rough terrain.
+- **xGDS traverse planner** (NASA Ames): plans traverses with constraints of place and time, built around reachability.
+- **MoonPath**: automated astronaut routes near the lunar south pole that minimise metabolic workload.
+
+References are in [docs/sources.md](docs/sources.md) and [docs/how-it-works.md](docs/how-it-works.md).
 
 ## Run it locally
 
-You need Node.js 22.12 or newer.
+You need Node.js and npm. The team builds with Node 22; `app/package.json` does not pin a version.
 
 ```bash
 cd app
-npm ci          # install exact dependency versions
-npm run dev     # start the app at the URL Vite prints
-npm test        # run the planner and app tests
+npm ci
+npm run dev
 ```
 
-### Testing
+Then open the address Vite prints.
 
-- `npm test` checks that the planner gives the right answers. It skips every speed-limit test, so it never fails just because the computer was busy.
-- `npm run test:speed` runs the same tests **plus** the speed limits (for example "every planner function under 100 ms on the real 76,800-cell grid"). It sets `RUN_SPEED_TESTS=1` for you and works on Windows, macOS and Linux. Run it on a quiet machine.
+| Command (in `app/`) | What it does |
+|---|---|
+| `npm test` | Runs the unit tests: planner, emergencies, reliability, and checks that the docs match the code |
+| `npm run test:speed` | Runs the timing tests, which are kept out of `npm test` |
+| `npm run build` | Builds the app for production into `app/dist` |
 
-## Data sources
+Optional: `pipeline/` holds the Python scripts that rebuild the terrain grid, the basemap, the validation and the route-learning results from NASA's files. See [pipeline/README.md](pipeline/README.md).
 
-ARES combines six NASA data types: HiRISE imagery and elevation (Mars Reconnaissance Orbiter), MOLA (Mars Global Surveyor), THEMIS (Mars Odyssey), CRISM (MRO), MEDA (Perseverance) and RAD (Curiosity). Every dataset and paper, with links and how we use it, is in **[docs/sources.md](docs/sources.md)**.
+## Repository map
 
-Images: NASA/JPL-Caltech, plus the instrument team named with each image.
-
-## Model assumptions
-
-Every number in the planner either has a source or is labelled as our assumption. Examples: the 8-hour oxygen supply, walking speed, the 45-minute reserve, and the solar particle event multiplier (illustrative). The full list is in **[docs/assumptions.md](docs/assumptions.md)**.
-
-## Space Apps submission
-
-Rules, deadline and judging criteria are summarised, with links to the official pages, in **[docs/submission.md](docs/submission.md)**.
+| Path | What is in it |
+|---|---|
+| `app/src/planner/` | The planner: walking model, route search, oxygen, safe-return zone, emergencies, reliability, and their tests. No interface code |
+| `app/src/components/` | The interface: Story, Plan and Science pages, the map, the sidebar, the 3D view, the guided demo |
+| `app/public/data/` | The terrain grid (`site.json`) and the basemap, both built from NASA data |
+| `pipeline/` | Python scripts that build the data and run the two validation checks |
+| `docs/demo-numbers.md` | Every headline number, kept equal to the planner by the tests |
+| `docs/how-it-works.md` | The method, in plain words |
+| `docs/validation.md` | The check against Perseverance's drive |
+| `docs/route-learning.md` | The machine-learning check |
+| `docs/parameters.md` | Every parameter with its source and evidence level |
+| `docs/assumptions.md` | Every modelling assumption and why we made it |
+| `docs/LIMITATIONS.md` | What ARES does not do |
+| `docs/sources.md` | Every dataset and paper, with links |
+| `docs/ai-disclosure.md` | Where and how AI tools were used |
 
 ## AI use
 
-AI coding and chat assistants helped us write and test the code and docs. Every route and safety decision in the app comes from deterministic algorithms, not AI. Full disclosure: **[docs/ai-disclosure.md](docs/ai-disclosure.md)**.
+We used AI coding assistants (Claude Code and ChatGPT) to help write and review code and documentation, and an AI chat assistant for early brainstorming and planning. Team members gave the instructions, reviewed the output and ran the tests. Every route and safety decision in the app comes from deterministic algorithms, not from AI.
 
-## Team
+The repository also contains code for an optional chat assistant. It is not enabled in the app and is not part of the submission. The full disclosure is in [docs/ai-disclosure.md](docs/ai-disclosure.md).
 
-**The Ares Initiative**: a team of six. Everyone shares every role: data, planner, frontend, design and story.
+## Credits and licence
 
-## License
+- **Images and terrain:** NASA/JPL-Caltech/University of Arizona/USGS (HiRISE image and elevation mosaics, USGS Astrogeology).
+- **Thermal inertia:** NASA/JPL-Caltech/ASU (THEMIS), from Edwards & Buz 2021.
+- **Minerals:** NASA/JPL-Caltech/JHUAPL (CRISM), from the PDS Geosciences Node.
+- **Rover photos, waypoints and traverse:** NASA/JPL-Caltech (Mars 2020 Perseverance).
+- **Temperature and radiation:** the Perseverance MEDA and Curiosity RAD instrument teams, through the papers cited above.
 
-[MIT](LICENSE)
+ARES is not affiliated with or endorsed by NASA. The NASA logo is not used.
+
+Code: MIT licence, copyright The Ares Initiative. See [LICENSE](LICENSE).
