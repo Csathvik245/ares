@@ -1,6 +1,7 @@
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
+import { SPEED_TEST, cpuNow } from "../test-utils/cpuClock";
 import {
   BASE_SPEED_KMH,
   MAX_SLOPE_DEG,
@@ -301,7 +302,9 @@ describe("safeZone", () => {
     expect(zone.length).toBe(site.width * site.height);
     expect(zone[idx(site, 60, 20)]).toBe(1);
     expect(zone[idx(site, 40, 30)]).toBe(1);
-    for (let i = 0; i < zone.length; i++) if (zone[i]) expect(cost.secPerM[i]).not.toBe(Infinity);
+    const noGoInZone: number[] = [];
+    for (let i = 0; i < zone.length; i++) if (zone[i] && cost.secPerM[i] === Infinity) noGoInZone.push(i);
+    expect(noGoInZone).toEqual([]);
     // Some of the map is out of reach: the zone is a real boundary, not the whole grid.
     expect(countInside(zone)).toBeLessThan(zone.length * 0.9);
   });
@@ -609,7 +612,7 @@ describe("fake Jezero site.json", () => {
     }
   });
 
-  it("safeZone on the 320 × 240 grid runs in under 100 ms", () => {
+  it("safeZone on the 320 × 240 grid runs in under 100 ms", SPEED_TEST, () => {
     // carb-1 → clay-1 fits (≈75 min margin); all three science POIs do not.
     const poi = (id: string, dwellMin = 20): Stop => {
       const p = site.pois.find((q) => q.id === id)!;
@@ -631,19 +634,19 @@ describe("fake Jezero site.json", () => {
       const lastStop = { ...poi("clay-1"), lat: poi("clay-1").lat - i * 0.0005 };
       const p2 = planRoute(site, grid, site.habitat, [poi("carb-1"), lastStop]);
       expect(p2.marginSec).toBeGreaterThan(0); // otherwise safeZone returns early and the timing means nothing
-      let t0 = performance.now();
+      let t0 = cpuNow();
       inside = countInside(safeZone(site, grid, p2));
-      typical.push(performance.now() - t0);
-      t0 = performance.now();
+      typical.push(cpuNow() - t0);
+      t0 = cpuNow();
       safeZone(site, grid, p2);
-      cached.push(performance.now() - t0);
+      cached.push(cpuNow() - t0);
 
       // Cold: brand-new grid (e.g. a storm just started) → both fields computed.
       const fresh = buildCostGrid(site, CALM);
       const p3 = planRoute(site, fresh, site.habitat, stops);
-      t0 = performance.now();
+      t0 = cpuNow();
       safeZone(site, fresh, p3);
-      cold.push(performance.now() - t0);
+      cold.push(cpuNow() - t0);
     }
     for (const a of [typical, cold, cached]) a.sort((x, y) => x - y);
     console.log(
@@ -656,7 +659,7 @@ describe("fake Jezero site.json", () => {
     expect(cold[0]).toBeLessThan(100);
   });
 
-  it("abortRoute on the 320 × 240 grid runs in under 100 ms", () => {
+  it("abortRoute on the 320 × 240 grid runs in under 100 ms", SPEED_TEST, () => {
     const carb = site.pois.find((p) => p.id === "carb-1")!;
     const plan = planRoute(site, cost, site.habitat, [
       { id: carb.id, label: carb.name, lat: carb.lat, lng: carb.lng, dwellMin: 30 },
@@ -668,13 +671,13 @@ describe("fake Jezero site.json", () => {
     for (let i = 0; i < 7; i++) {
       const stormGrid = buildCostGrid(site, { ...CALM, storm: true }); // the storm just started
       const at = positionAt(plan, plan.legs[0].walkSec * (0.2 + 0.1 * i));
-      let t0 = performance.now();
+      let t0 = cpuNow();
       const abort = abortRoute(site, stormGrid, at, at.oxygenUsedSec); // builds the storm field
-      first.push(performance.now() - t0);
+      first.push(cpuNow() - t0);
       const later = positionAt(plan, plan.legs[0].arriveSec);
-      t0 = performance.now();
+      t0 = cpuNow();
       abortRoute(site, stormGrid, later, later.oxygenUsedSec); // storm field cached
-      again.push(performance.now() - t0);
+      again.push(cpuNow() - t0);
       expect(abort.path.length).toBeGreaterThan(1);
       status = abort.status;
     }
@@ -687,21 +690,21 @@ describe("fake Jezero site.json", () => {
     expect(first[3]).toBeLessThan(100);
   });
 
-  it("full-field Dijkstra over 76,800 cells runs in under 100 ms", () => {
+  it("full-field Dijkstra over 76,800 cells runs in under 100 ms", SPEED_TEST, () => {
     dijkstraField(cost, habitatCell); // warm-up so the JIT has compiled the loop
     const times: number[] = [];
     for (let i = 0; i < 7; i++) {
-      const t0 = performance.now();
+      const t0 = cpuNow();
       dijkstraField(cost, habitatCell);
-      times.push(performance.now() - t0);
+      times.push(cpuNow() - t0);
     }
     times.sort((a, b) => a - b);
     const median = times[3];
 
     const carbCell = cellIndexOf(site, site.pois[0]);
-    const t0 = performance.now();
+    const t0 = cpuNow();
     for (let i = 0; i < 7; i++) aStar(cost, habitatCell, carbCell);
-    const aStarMs = (performance.now() - t0) / 7;
+    const aStarMs = (cpuNow() - t0) / 7;
 
     console.log(
       `full-field Dijkstra: median ${median.toFixed(1)} ms (min ${times[0].toFixed(1)}, max ${times[6].toFixed(1)}); ` +

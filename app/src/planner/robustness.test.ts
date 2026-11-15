@@ -6,6 +6,7 @@
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
+import { SPEED_TEST, cpuNow } from "../test-utils/cpuClock";
 import {
   MAX_SLOPE_DEG,
   ROCK_NO_GO,
@@ -212,12 +213,12 @@ describe("how many stops, and how long", () => {
     expect(exercise(site, calm, CALM, [demo()[0]]).status).toBe("GO");
   });
 
-  it("10 stops: valid plan, in well under 200 ms", () => {
+  it("10 stops: valid plan, in well under 200 ms", SPEED_TEST, () => {
     const pts = site.pois.filter((p) => p.kind === "science");
     const ten = Array.from({ length: 10 }, (_, i) => stopAt(`s${i}`, pts[i % pts.length], 5));
-    const t0 = performance.now();
+    const t0 = cpuNow();
     const plan = planRoute(site, calm, site.habitat, ten);
-    const ms = performance.now() - t0;
+    const ms = cpuNow() - t0;
     expectValidPlan(plan);
     expect(plan.legs).toHaveLength(11);
     expect(ms).toBeLessThan(200);
@@ -357,7 +358,7 @@ describe("fuzz: 500 random plans", () => {
     };
   }
 
-  it("every plan is valid, has a status and a reason, and takes under 200 ms", () => {
+  it("every plan is valid, has a status and a reason, and takes under 200 ms", { ...SPEED_TEST, timeout: 60_000 }, () => {
     const rnd = mulberry32(20261115);
     const { south, north, west, east } = site.bounds;
     const grids = new Map<string, CostGrid>();
@@ -393,9 +394,9 @@ describe("fuzz: 500 random plans", () => {
       if (!base) grids.set(key, (base = buildCostGrid(site, { storm, spe: false, startLmst: 13 })));
       const grid: CostGrid = { ...base, conditions: { storm, spe, startLmst } };
 
-      const t0 = performance.now();
+      const t0 = cpuNow();
       const plan = planRoute(site, grid, site.habitat, stops);
-      const ms = performance.now() - t0;
+      const ms = cpuNow() - t0;
       times.push(ms);
       if (ms > slowest) [slowest, slowestN] = [ms, n];
 
@@ -421,5 +422,5 @@ describe("fuzz: 500 random plans", () => {
     expect(counts.GO + counts.CAUTION + counts["NO-GO"]).toBe(500);
     expect(counts.GO).toBeGreaterThan(0);
     expect(counts["NO-GO"]).toBeGreaterThan(0);
-  }, 60_000);
+  });
 });

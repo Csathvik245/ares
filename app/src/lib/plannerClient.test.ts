@@ -3,6 +3,7 @@
 // between a page and a real Web Worker, so anything that could not cross is caught.
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
+import { SPEED_TEST, cpuNow } from "../test-utils/cpuClock";
 import {
   abortRoute,
   buildCostGrid,
@@ -208,7 +209,7 @@ describe("errors", () => {
 });
 
 describe("speed", () => {
-  it("a full round trip (plan + zone) through the client stays well under 100 ms", async () => {
+  it("a full round trip (plan + zone) through the client stays well under 100 ms", SPEED_TEST, async () => {
     const client = createPlannerClient({ worker: inProcessWorker().worker, siteUrl: "x" });
     await client.ready;
     await client.plan(stops, CALM); // warm-up
@@ -216,10 +217,10 @@ describe("speed", () => {
     const times: number[] = [];
     for (let i = 0; i < 5; i++) {
       const moved = stops.map((s, k) => (k === 2 ? { ...s, dwellMin: 30 + i } : s));
-      const t0 = performance.now();
+      const t0 = cpuNow();
       await client.plan(moved, CALM);
       await client.safeZone();
-      times.push(performance.now() - t0);
+      times.push(cpuNow() - t0);
     }
     times.sort((a, b) => a - b);
     console.log(`plannerClient round trip (plan + safeZone, in-process, incl. structured clone): median ${times[2].toFixed(1)} ms`);

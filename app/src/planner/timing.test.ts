@@ -5,6 +5,7 @@
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
+import { SPEED_TEST, cpuNow } from "../test-utils/cpuClock";
 import * as planner from "./index";
 import {
   aStar,
@@ -89,9 +90,9 @@ function medianMs(fn: () => unknown): number {
   fn();
   const times: number[] = [];
   for (let i = 0; i < RUNS; i++) {
-    const t0 = performance.now();
+    const t0 = cpuNow();
     fn();
-    times.push(performance.now() - t0);
+    times.push(cpuNow() - t0);
   }
   times.sort((a, b) => a - b);
   return times[Math.floor(RUNS / 2)];
@@ -178,7 +179,7 @@ describe("every exported planner function is fast", () => {
 
   const results: string[] = [];
   for (const [name, [what, fn]] of Object.entries(CASES)) {
-    it(`${name}: ${what}, median under ${limitFor(name)} ms`, () => {
+    it(`${name}: ${what}, median under ${limitFor(name)} ms`, SPEED_TEST, () => {
       const ms = medianMs(fn);
       results.push(`${name.padEnd(22)} ${ms.toFixed(2).padStart(7)} ms   ${what}`);
       expect(ms).toBeLessThan(limitFor(name));

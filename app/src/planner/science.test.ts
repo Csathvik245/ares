@@ -2,6 +2,7 @@
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
+import { SPEED_TEST, cpuNow } from "../test-utils/cpuClock";
 import { WALK_BURN, WORK_BURN, buildCostGrid, cellIndexOf, distanceM, loadSite, planRoute } from "./index";
 import type { Conditions, Stop } from "./index";
 import {
@@ -167,23 +168,23 @@ describe("suggestStops on the demo mission", () => {
     expect(suggestStops(site, site.habitat, tight, 3)).toEqual([]);
   });
 
-  it("runs in under 300 ms on the real grid, even with nothing cached", () => {
+  it("runs in under 300 ms on the real grid, even with nothing cached", SPEED_TEST, () => {
     const times: number[] = [];
     for (let i = 0; i < 7; i++) {
       // A fresh copy of the site, so the cost grid and both Dijkstra fields are rebuilt.
       const fresh = { ...site };
-      const t0 = performance.now();
+      const t0 = cpuNow();
       const out = suggestStops(fresh, fresh.habitat, stops, 3);
-      times.push(performance.now() - t0);
+      times.push(cpuNow() - t0);
       expect(out).toHaveLength(3);
     }
     times.sort((a, b) => a - b);
-    const t1 = performance.now();
+    const t1 = cpuNow();
     suggestStops(site, site.habitat, stops, 3);
-    const warm = performance.now() - t1;
-    const t2 = performance.now();
+    const warm = cpuNow() - t1;
+    const t2 = cpuNow();
     scienceScore(site, plan, { stops, cost });
-    const scoreMs = performance.now() - t2;
+    const scoreMs = cpuNow() - t2;
     console.log(
       `suggestStops: cold median ${times[3].toFixed(1)} ms (max ${times[6].toFixed(1)}), ` +
         `fields cached ${warm.toFixed(1)} ms; scienceScore ${scoreMs.toFixed(1)} ms`,
