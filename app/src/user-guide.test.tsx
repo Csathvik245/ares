@@ -15,6 +15,7 @@ import { ColoursPanel, GetStartedPanel, GuideButton, ReadScreenPanel, UserGuide,
 import {
   GUIDE_CARDS,
   GUIDE_HINT_KEY,
+  GUIDE_HINT_MS,
   GUIDE_HINT_TEXT,
   GUIDE_RESERVE,
   GUIDE_STATUSES,
@@ -426,6 +427,12 @@ describe("first-visit hint", () => {
     const app = read("./App.tsx");
     expect(app).toContain('if (screen === "plan" && hintNeeded()) setGuideHint(true);');
     expect(app).toContain('hint={guideHint && screen === "plan"}');
+    // Not clicked: it hides itself after 8 s and is remembered as seen.
+    expect(GUIDE_HINT_MS).toBe(8000);
+    expect(app).toMatch(/if \(!guideHint \|\| screen !== "plan"\) return;\s*const timer = window\.setTimeout\(\(\) => \{\s*setGuideHint\(false\);\s*rememberHint\(\);\s*\}, GUIDE_HINT_MS\);\s*return \(\) => window\.clearTimeout\(timer\);/);
+    // It hangs from the Guide button's left edge and runs right, clear of the map's Mission tools toolbar.
+    const css = read("./styles/user-guide.css");
+    expect(css).toMatch(/\.console-app \.header-actions \.guide-hint \{\s*position: absolute;\s*top: calc\(100% \+ 10px\);\s*left: 0;\s*right: auto;/);
     expect(app).toMatch(/const toggleGuide = \(\) => \{[^}]*dismissGuideHint\(\);/);
     expect(renderToStaticMarkup(<App initialHash="#story" />)).not.toContain("guide-hint");
   });

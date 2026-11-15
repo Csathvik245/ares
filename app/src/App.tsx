@@ -37,7 +37,7 @@ import { SciencePage } from "./components/SciencePage";
 import { CONSOLE_TABS, hashOfTab, runDemo, tabFromHash, type AppTab } from "./lib/appTabs";
 import { demoBriefing } from "./lib/story";
 import { GuideButton, UserGuide } from "./components/UserGuide";
-import { PLAY_HINT_TEXT, hintNeeded, rememberHint, type GuideAction, type TourStop } from "./lib/guide";
+import { GUIDE_HINT_MS, PLAY_HINT_TEXT, hintNeeded, rememberHint, type GuideAction, type TourStop } from "./lib/guide";
 import { GuideTour } from "./components/GuideTour";
 import { WhatIfPanel, WhatIfTag } from "./components/WhatIfPanel";
 import { MissionTools } from "./components/MissionTools";
@@ -104,6 +104,15 @@ function Console({ initialHash }: { initialHash?: string }) {
   useEffect(() => {
     if (screen === "plan" && hintNeeded()) setGuideHint(true);
   }, [screen]);
+  // Not clicked? The hint goes away by itself after a few seconds, and is not shown again.
+  useEffect(() => {
+    if (!guideHint || screen !== "plan") return;
+    const timer = window.setTimeout(() => {
+      setGuideHint(false);
+      rememberHint();
+    }, GUIDE_HINT_MS);
+    return () => window.clearTimeout(timer);
+  }, [guideHint, screen]);
   // The tour is of the Plan view: leaving the tab ends it. The Play pointer goes once the walk is playing.
   useEffect(() => {
     if (screen !== "plan") setTourIndex(-1);

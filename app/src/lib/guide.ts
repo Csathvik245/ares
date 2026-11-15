@@ -14,6 +14,8 @@ export const GUIDE_TRIALS = DEFAULT_TRIALS.toLocaleString("en-US");
 
 export const GUIDE_TITLE = "How to use ARES";
 export const GUIDE_HINT_TEXT = "New here? Start with the guide.";
+/** The first-visit hint hides itself after this long if it is not clicked. */
+export const GUIDE_HINT_MS = 8000;
 export const PLAY_HINT_TEXT = "Press Play to watch the walk";
 
 // ---- The four tabs ----
