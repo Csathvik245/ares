@@ -23,7 +23,7 @@ export function Nav() {
             window.scrollTo({ top: 0 });
           }}
         >
-          <span className="nav__mark" aria-hidden="true" />
+          <img className="nav__mark" src="/brand/ares-patch.png" alt="" width="48" height="40" />
           The Ares Initiative
         </a>
         <nav className="nav__links" aria-label="Sections">

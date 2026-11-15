@@ -165,6 +165,7 @@ function Console() {
     <main className={`console-app ${emergency ? "has-emergency" : ""}`}>
       <header className="console-header">
         <div className="console-brand">
+          <img className="console-patch" src="/brand/ares-patch.png" alt="The Ares Initiative mission patch" width="48" height="40" />
           <b>ARES</b>
           <span>
             ARES-1 EVA <small>Jezero delta front</small>

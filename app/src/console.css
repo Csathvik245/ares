@@ -57,6 +57,12 @@ button:disabled {
   gap: 16px;
   white-space: nowrap;
 }
+.console-patch {
+  width: 48px;
+  height: 40px;
+  object-fit: contain;
+  flex-shrink: 0;
+}
 .console-brand > b {
   color: #ff6b35;
   font: 600 22px var(--font-heading, sans-serif);
