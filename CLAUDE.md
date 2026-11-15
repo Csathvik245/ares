@@ -75,10 +75,10 @@ We don't just toggle layers; we combine them into: **where it's safe to walk, wh
 | Topographic | HiRISE DTM mosaic, 1 m (MRO), USGS Mars 2020 TRN mosaic | Elevation, slope, cliffs, ground roughness | Walking difficulty |
 | Thermal | THEMIS thermal inertia, 100 m (Mars Odyssey), Edwards & Buz 2021 | Low = soft sand, high = firm ground | Walking difficulty |
 | Spectral | CRISM observation HRL000040FF, 36 m (MRO) | Clay and carbonate signatures | Science value |
-| Atmospheric | MEDA (Perseverance) | Temperature over the sol | Conditions over the day. **Not loaded yet: the temperature curve is a placeholder.** |
+| Atmospheric | MEDA (Perseverance), Munguira et al. 2023 | Daily low and high air temperature and when they happen | Conditions over the day |
 | Radiation | RAD (Curiosity, at Gale Crater) | Surface dose ~0.64 mSv/sol | Conditions over the day |
 
-The first four are real data in the app today. Exact products, DOIs and links: `docs/sources.md`. How each layer is made: `pipeline/README.md`.
+All six are real data in the app today. Exact products, DOIs and links: `docs/sources.md`. How each layer is made: `pipeline/README.md`.
 
 Note: RAD is on Curiosity, not Perseverance. Label it "surface baseline measured by Curiosity RAD, applied to Jezero."
 
@@ -371,7 +371,7 @@ Do **not** use the NASA logo in our branding. Credit images "NASA/JPL-Caltech" (
 ### `envAt` (sol model)
 
 - Sun elevation from Mars24 at latitude 18.45 N, fixed demo date.
-- Temperature: daily curve from ~−83 °C before dawn to ~−23 °C early afternoon (placeholder; replace with MEDA values).
+- Temperature: measured by Perseverance MEDA at 1.45 m (Munguira et al. 2023, Table 1, Ls 25°): low 191 K (−82 °C) around 05:15 true solar time, high 243 K (−30 °C) around 15:15. The curve between them is our smooth interpolation. `TEMP_IS_SOURCED = true`.
 - Dose rate: `DOSE_MSV_PER_SOL / SOL_HOURS` per hour, × `SPE_MULTIPLIER` during SPE.
 
 ---
@@ -403,7 +403,7 @@ Done and reproducible: `python pipeline/build_site.py`, then `python pipeline/ch
 6. Everything is reprojected to `+proj=longlat +R=3396190 +no_defs` on the 320 × 240 grid; each source file's own projection is read from the file.
 7. Layer previews for slides: `docs/images/`.
 
-Still open: Perseverance MEDA temperatures (the curve in `env.ts` is a placeholder) and rover photos for the stops.
+Temperature in `env.ts` now uses measured MEDA values (see section 6, `envAt`).
 
 ---
 

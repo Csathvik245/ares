@@ -21,7 +21,7 @@ Full references with links are in [`sources.md`](sources.md).
 - **Safe-return zone:** everywhere the astronaut can still reach after the last stop and still walk home with the reserve intact. This is the Apollo "walkback" idea, computed over real terrain.
 - **Dust storm:** Mars air is about 1% as dense as Earth's, so wind can't knock a person over (NASA). We slow walking to 55% because of low visibility and dust on the visor.
 - **Radiation:** baseline surface dose measured by Curiosity's RAD at Gale Crater, applied to Jezero. The ×30 solar-particle-event spike is **illustrative**. The largest event RAD has seen raised the surface dose rate only 2–3×.
-- **Sun and temperature:** sun position from NASA's Mars24 algorithm (Allison & McEwen 2000) for one fixed season (Ls 0°). The temperature curve is a placeholder until we load Perseverance MEDA data.
+- **Sun and temperature:** sun position from NASA's Mars24 algorithm (Allison & McEwen 2000) for one fixed season (Ls 0°). Air temperature uses values measured by Perseverance's MEDA weather station at Jezero: a low of −82 °C just before sunrise and a high of −30 °C in mid-afternoon (Munguira et al. 2023, season Ls 25°). The curve between those two points is our own smooth interpolation.
 
 ---
 
@@ -54,8 +54,10 @@ Full references with links are in [`sources.md`](sources.md).
 | `SITE_LAT_DEG` | 18.45° N | Latitude used for sun elevation | Centre of our site bounds (18.40–18.50 N). | Sourced (our site definition) |
 | `DEMO_LS_DEG` | Ls 0° | Season for the demo (northern spring equinox) | No source: a fixed demo season. The story lead can change it. | Assumption |
 | Sun refraction / terrain shadow | ignored | Sun elevation is geometric (sun centre, flat horizon) | Simplification. Crater walls may hide a low sun earlier than shown. | Assumption |
-| `TEMP_MIN_C` / `TEMP_MAX_C` | −83 °C / −23 °C | Coldest (pre-dawn) and warmest (early afternoon) air temperature | Placeholder. University of the Basque Country MEDA team (phys.org, 2023) gives a Jezero average near −55 °C with "typical differences of around 50 to 60 degrees" between day and night. Our 60 °C range is consistent but not measured. Replace with MEDA data. | Placeholder |
-| `TEMP_MIN_LMST` / `TEMP_MAX_LMST` | 05:30 / 14:00 | Times of coldest and warmest air | Placeholder shape (smooth cosine curve). | Placeholder |
+| `TEMP_MIN_K` / `TEMP_MAX_K` (`TEMP_MIN_C` / `TEMP_MAX_C`) | 191 K / 243 K (−82.15 °C / −30.15 °C) | Daily minimum and maximum air temperature at 1.45 m above the ground | Measured by Perseverance MEDA. Munguira et al. 2023 (*JGR Planets*), **Table 1**, row for 1.45 m, season Ls 25° (sols 34–40): Tmin 191 K, Tmax 243 K, daily range 52 K. Rodriguez-Manfredi et al. 2023 (*Nature Geoscience*) independently reports a diurnal half amplitude of 26 K at 1.45 m, which matches the 52 K range. | Sourced |
+| `TEMP_MIN_LTST` / `TEMP_MAX_LTST` | 05:15 / 15:15 true solar time (05:56 / 15:56 on the LMST clock at Ls 0°) | Times of the coldest and warmest air | Munguira et al. 2023, Table 1: time of Tmin 05:00 and time of Tmax 15:00, each the start of a 30-minute window in local true solar time. We use the middle of each window, then convert to LMST with the Mars24 equation of time for the demo season. | Sourced (window midpoint and conversion are ours) |
+| Temperature season | measured at Ls 25°, used at Ls 0° | The table's closest season to our demo season | Ls 25° (sols 34–40) is the earliest season Table 1 lists; Perseverance landed at Ls 5°. The paper says daily air temperatures "increased only slightly over the first 280 sols", so we treat Ls 25° as representative of Ls 0°. That step is ours, not a measurement. | Assumption |
+| Temperature curve shape | half a cosine up (min → max), half a cosine down | Temperature between the two measured points | Our interpolation. It passes through the measured minimum and maximum at the measured times and never leaves that range, but the real curve between them is not a cosine. | Assumption |
 | Dose rate over the sol | flat: 0.64 / 24.66 mSv per h | Dose spread evenly through the day | Simplification. RAD measured a daily cycle tied to atmospheric pressure (seen in search results, paper not opened). | Assumption |
 
 ## Terrain data (`pipeline/build_site.py`)
@@ -98,4 +100,4 @@ All layers come from real NASA/USGS data (see [`sources.md`](sources.md) and `pi
 ### Notes
 
 1. **Dose value to confirm.** The constant is 0.64 mSv **per sol**. The only figure we could read is 0.67 mSv **per day**, galactic cosmic rays only, from the SwRI press release for Hassler et al. 2014. 0.64 may be the paper's total including solar particles, but we could not open the paper to check. Before the final slides, someone with access to the *Science* paper should confirm the number and whether it is per day or per sol. A sol is 2.7% longer than a day. Changing the constant is a Contract 2 change, so the team must agree first.
-2. Every "Assumption" row is a candidate for "future work" on the slides. Real suit metabolic data (NASA Human Integration Design Handbook) would replace the burn rates. MEDA data would replace the temperature placeholder.
+2. Every "Assumption" row is a candidate for "future work" on the slides. Real suit metabolic data (NASA Human Integration Design Handbook) would replace the burn rates. The temperature curve's shape between its measured minimum and maximum could be replaced by the full MEDA diurnal cycle.

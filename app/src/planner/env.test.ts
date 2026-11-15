@@ -3,10 +3,16 @@ import { DOSE_MSV_PER_SOL, SOL_HOURS, SPE_MULTIPLIER } from "./constants";
 import {
   DEMO_LS_DEG,
   SITE_LAT_DEG,
+  TEMP_IS_SOURCED,
   TEMP_MAX_C,
+  TEMP_MAX_K,
   TEMP_MAX_LMST,
+  TEMP_MAX_LTST,
   TEMP_MIN_C,
+  TEMP_MIN_K,
   TEMP_MIN_LMST,
+  TEMP_MIN_LTST,
+  TEMP_SOURCE_LS_DEG,
   envAt,
   equationOfTimeDeg,
   lmstToLtst,
@@ -104,12 +110,32 @@ describe("Mars24 sun model", () => {
   });
 });
 
-describe("temperature (placeholder curve)", () => {
-  it("hits its minimum and maximum at the configured times", () => {
-    expect(TEMP_MIN_C).toBe(-83);
-    expect(TEMP_MAX_C).toBe(-23);
+describe("temperature (Perseverance MEDA: Munguira et al. 2023, Table 1)", () => {
+  it("uses the measured minimum and maximum, flagged as sourced", () => {
+    expect(TEMP_IS_SOURCED).toBe(true);
+    expect(TEMP_SOURCE_LS_DEG).toBe(25);
+    expect(TEMP_MIN_K).toBe(191);
+    expect(TEMP_MAX_K).toBe(243);
+    expect(TEMP_MIN_C).toBeCloseTo(-82.15, 9);
+    expect(TEMP_MAX_C).toBeCloseTo(-30.15, 9);
+    expect(TEMP_MAX_K - TEMP_MIN_K).toBe(52); // the table's daily range at 1.45 m
+  });
+
+  it("puts them at the measured true-solar times, converted to the LMST clock", () => {
+    // Table 1: minimum in the 05:00-05:30 window, maximum in the 15:00-15:30 window (LTST).
+    expect(TEMP_MIN_LTST).toBe(5.25);
+    expect(TEMP_MAX_LTST).toBe(15.25);
+    expect(lmstToLtst(TEMP_MIN_LMST)).toBeCloseTo(TEMP_MIN_LTST, 9);
+    expect(lmstToLtst(TEMP_MAX_LMST)).toBeCloseTo(TEMP_MAX_LTST, 9);
+    // At Ls 0 the LMST clock runs about 41 min ahead of true solar time.
+    expect(TEMP_MIN_LMST - TEMP_MIN_LTST).toBeCloseTo(0.69, 1);
     expect(envAt(TEMP_MIN_LMST, false).tempC).toBeCloseTo(TEMP_MIN_C, 9);
     expect(envAt(TEMP_MAX_LMST, false).tempC).toBeCloseTo(TEMP_MAX_C, 9);
+  });
+
+  it("the coldest moment is before sunrise and the warmest is mid-afternoon", () => {
+    expect(envAt(TEMP_MIN_LMST, false).sunElevationDeg).toBeLessThan(0);
+    expect(envAt(TEMP_MAX_LMST, false).sunElevationDeg).toBeGreaterThan(20);
   });
 
   it("stays between the minimum and maximum, and is smooth across midnight", () => {
@@ -125,8 +151,9 @@ describe("temperature (placeholder curve)", () => {
       if (tempC > warmest.tempC) warmest = { lmst, tempC };
       if (i > 0) biggestStep = Math.max(biggestStep, Math.abs(tempC - temperatureC((i - 1) / 60)));
     }
-    expect(coldest.lmst).toBeCloseTo(TEMP_MIN_LMST, 6);
-    expect(warmest.lmst).toBeCloseTo(TEMP_MAX_LMST, 6);
+    // Sampled once a minute, so the extremes are found to within a minute.
+    expect(Math.abs(coldest.lmst - TEMP_MIN_LMST)).toBeLessThan(1 / 60);
+    expect(Math.abs(warmest.lmst - TEMP_MAX_LMST)).toBeLessThan(1 / 60);
     expect(biggestStep).toBeLessThan(0.25); // no jumps: under 0.25 °C per minute
     expect(temperatureC(24)).toBeCloseTo(temperatureC(0), 9);
   });
