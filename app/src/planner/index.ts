@@ -50,3 +50,5 @@ export {
 } from "./format";
 export { stormAt } from "./storm";
 export type { EmergencyKind, StormOutcome } from "./storm";
+export { computeBriefing } from "./briefing";
+export type { Briefing, BriefingRow, BriefingStatus, Evidence } from "./briefing";
