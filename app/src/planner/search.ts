@@ -214,3 +214,25 @@ export function pathLengthM(grid: CostGrid, path: number[]): number {
   }
   return total;
 }
+
+/**
+ * Walking time in seconds along a path of cell indices on `grid`, with the same edge
+ * rule as the search (step length × mean of the two cells' seconds per meter).
+ * Infinity if the path crosses a no-go cell. For a path found on the same grid this
+ * equals the search's own cost.
+ */
+export function pathTimeSec(grid: CostGrid, path: number[]): number {
+  const { width, secPerM } = grid;
+  const { x, y } = grid.cellSizeM;
+  const diag = Math.hypot(x, y);
+  let total = 0;
+  for (let i = 1; i < path.length; i++) {
+    const a = path[i - 1];
+    const b = path[i];
+    const dRow = Math.floor(a / width) - Math.floor(b / width);
+    const dCol = (a % width) - (b % width);
+    const len = dRow !== 0 && dCol !== 0 ? diag : dRow !== 0 ? y : x;
+    total += len * 0.5 * (secPerM[a] + secPerM[b]);
+  }
+  return total;
+}

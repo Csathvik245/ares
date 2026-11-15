@@ -17,10 +17,11 @@ Run everything from the **repo root**. Python 3.10+.
 python -m venv .venv
 # Windows:      .venv\Scripts\activate
 # macOS/Linux:  source .venv/bin/activate
-pip install rasterio numpy matplotlib pillow
+pip install rasterio numpy matplotlib pillow scipy
 ```
 
-`rasterio` includes GDAL, which reads the NASA file formats. `.venv/` and
+`rasterio` includes GDAL, which reads the NASA file formats. `scipy` is only
+needed by `learn_route_cost.py` (fast Dijkstra). `.venv/` and
 `data/raw/` (downloaded source data) are in `.gitignore`.
 
 ## Rebuild everything from scratch
@@ -31,6 +32,8 @@ python pipeline/build_shielding.py   # adds the skyView layer to site.json (abou
 python pipeline/check_site.py        # must print "0 failed"
 python pipeline/build_basemap.py     # basemap.png (first run: ~15 min)
 python pipeline/preview_site.py app/public/data/site.json docs/images
+python pipeline/validate_traverse.py # terrain vs Perseverance's real drive (docs/validation.md)
+python pipeline/learn_route_cost.py  # can ML beat the planner? (docs/route-learning.md, ~35 min)
 cd app && npm test                   # includes real-site.test.ts (demo mission stays 4-5 km and GO)
 ```
 
@@ -45,6 +48,7 @@ Delete a file in `data/raw/` to fetch it again.
 | `build_shielding.py` | Adds the sky-view layer (how much of the sky each cell can see) from the same HiRISE DTM. **Run it after `build_site.py`**, which writes `site.json` without it | `layers.skyView` and `sources.skyView` in `site.json`, `docs/images/skyview.png`, `pipeline/data/skyview_stats.json` |
 | `build_basemap.py` | Crops and shrinks the HiRISE orthomosaic to our bounds | `app/public/data/basemap.png` + `basemap.json` |
 | `validate_traverse.py` | Independent check: compares the terrain with Perseverance's real drive path (NASA traverse and waypoints files) | `docs/images/validation_traverse.png`, `pipeline/data/traverse_validation.json`, test sample. Results in `docs/validation.md` |
+| `learn_route_cost.py` | Validation with machine learning: learns a terrain cost from the routes Perseverance's drivers chose (maximum margin planning) and tests, on held-out routes, whether it picks routes closer to the experts' than the ARES physics model. The app does not use it | `pipeline/data/route_learning.json`, `docs/images/route_learning.png`. Results in `docs/route-learning.md` |
 | `check_site.py` | Checks a site file against Contract 1 and checks the terrain is walkable | Pass/fail list; exit code 0 = all pass |
 | `preview_site.py` | Draws each layer as a PNG with HAB-1 and the POIs marked, plus a no-go map | `pipeline/previews/*.png` or a folder you name |
 | `data/site_meta.json` | Habitat and POIs, each with the source of its coordinates (hand-edited) | read by `build_site.py` |

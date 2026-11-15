@@ -3,8 +3,18 @@ export * from "./constants";
 export * from "./types";
 export { loadSite, cellIndexOf, cellCenter } from "./site";
 export { buildCostGrid, walkingSpeedMps } from "./cost";
-export { dijkstraField, aStar, pathTo, pathLengthM } from "./search";
+export { dijkstraField, aStar, pathTo, pathLengthM, pathTimeSec } from "./search";
 export { planRoute } from "./plan";
+export type { PlanOptions } from "./plan";
+export {
+  ROUTE_FEATURES,
+  STEEP_DEG,
+  loadRouteModel,
+  learnedCostRatio,
+  buildLearnedCostGrid,
+  compareRoutes,
+} from "./learned";
+export type { RouteFeature, RouteModel, RouteComparison, RouteTerrain } from "./learned";
 export { smoothPath, segmentIsClear, segmentTimeSec, forEachCellOnSegment, distanceM, polylineLengthM } from "./geom";
 export { oxygenBudget, isLowMargin, CAUTION_MARGIN_FRACTION } from "./oxygen";
 export type { OxygenBudget } from "./oxygen";

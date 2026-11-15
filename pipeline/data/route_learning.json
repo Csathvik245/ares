@@ -1,0 +1,1107 @@
+{
+ "question": "Can a model learned from the routes Perseverance's drivers chose pick routes closer to the experts' than the ARES physics (walking-time) model?",
+ "answer": "Physics routes are 10.4 m closer to the rover's real routes than straight lines. The learned model with the safety rule is 0.0 m closer than physics (95% CI 0.0 to 0.0); without the rule, 0.0 m.",
+ "source": {
+  "traverse": "https://mars.nasa.gov/mmgis-maps/M20/Layers/json/M20_traverse.json",
+  "credit": "NASA/JPL-Caltech",
+  "sols": [
+   105,
+   770
+  ],
+  "routes": 31,
+  "km": 15.38
+ },
+ "features": [
+  {
+   "id": "log_walk_time",
+   "about": "log of walking time per meter from the Contract 2 model divided by the time on flat firm ground; its weight a is a power: walk_time^a"
+  },
+  {
+   "id": "slope_over_8",
+   "about": "Slope above 8 degrees: max(0, slope - 8) / 10"
+  },
+  {
+   "id": "slope_over_15",
+   "about": "Slope above 15 degrees: max(0, slope - 15) / 10"
+  },
+  {
+   "id": "roughness",
+   "about": "Ground roughness (rock layer) / 0.2"
+  },
+  {
+   "id": "soft_sand",
+   "about": "1 if thermal inertia is under 175 (soft sand), else 0"
+  },
+  {
+   "id": "loose_ground",
+   "about": "How loose the ground is: (250 - thermal inertia) / 75, clipped to 0..1"
+  },
+  {
+   "id": "near_no_go",
+   "about": "1 if a no-go cell is within 2 cells (about 50 m), else 0"
+  }
+ ],
+ "costModel": "cost per meter = walk_time^a x exp(sum of v x feature); physics model = (a = 1, every v = 0)",
+ "training": {
+  "method": "Exponentiated maximum margin planning (Ratliff, Bagnell & Zinkevich 2006; Ratliff, Silver & Bagnell 2009): subgradient steps with loss-augmented Dijkstra, weights averaged over iterations",
+  "routeLengthM": 500,
+  "minStraightness": 0.6,
+  "iterations": 150,
+  "step": 0.1,
+  "maxStep": 0.2,
+  "regularization": 0.1,
+  "margin": 0.1,
+  "lossRadiusM": 37.5,
+  "prior": "walking time only (the physics model)",
+  "dropped": {
+   "wandering": 9,
+   "no_go": 0,
+   "short": 0
+  },
+  "safetyRule": "learned_safe: hazard weights >= 0 and walking-time power >= 1 (never less careful than physics)",
+  "modelSelection": "every 10 iterations, keep the averaged weights with the smallest mean distance from the experts' routes on the TRAINING routes (iteration 0 = physics model)",
+  "demoCleanup": "rover path rasterized to the grid, loops removed, staircase corners removed (taut)"
+ },
+ "evaluation": {
+  "method": "Blocked 5-fold cross-validation in driving order; learned models never see the block they are scored on",
+  "routes": 31,
+  "metric_mean_dev_m": "Mean distance between the planned route and the rover's real route, measured both ways, meters (lower = closer to the experts)",
+  "metric_within_50m_pct": "Share of the planned route within 50 m of the rover's real route, % (higher = closer)",
+  "straight_line": {
+   "mean_dev_m": {
+    "mean": 35.3,
+    "median": 35.3
+   },
+   "within_50m_pct": {
+    "mean": 76.7,
+    "median": 78.9
+   }
+  },
+  "physics": {
+   "mean_dev_m": {
+    "mean": 24.8,
+    "median": 25.0
+   },
+   "within_50m_pct": {
+    "mean": 89.9,
+    "median": 100.0
+   }
+  },
+  "learned_safe": {
+   "mean_dev_m": {
+    "mean": 24.8,
+    "median": 25.0
+   },
+   "within_50m_pct": {
+    "mean": 89.9,
+    "median": 100.0
+   }
+  },
+  "learned_no_rule": {
+   "mean_dev_m": {
+    "mean": 24.8,
+    "median": 25.0
+   },
+   "within_50m_pct": {
+    "mean": 89.9,
+    "median": 100.0
+   }
+  },
+  "physics_vs_straight_line": {
+   "mean_gain_m": 10.4,
+   "gain_95ci_m": [
+    4.0,
+    17.1
+   ],
+   "closer": 18,
+   "further": 10,
+   "same": 3
+  },
+  "learned_safe_vs_physics": {
+   "mean_gain_m": 0.0,
+   "gain_95ci_m": [
+    0.0,
+    0.0
+   ],
+   "closer": 0,
+   "further": 0,
+   "same": 31
+  },
+  "learned_no_rule_vs_physics": {
+   "mean_gain_m": 0.0,
+   "gain_95ci_m": [
+    0.0,
+    0.0
+   ],
+   "closer": 0,
+   "further": 0,
+   "same": 31
+  },
+  "weights_per_fold": {
+   "learned_safe": [
+    [
+     1.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0
+    ],
+    [
+     1.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0
+    ],
+    [
+     1.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0
+    ],
+    [
+     1.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0
+    ],
+    [
+     1.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0
+    ]
+   ],
+   "learned_no_rule": [
+    [
+     1.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0
+    ],
+    [
+     1.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0
+    ],
+    [
+     1.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0
+    ],
+    [
+     1.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0
+    ],
+    [
+     1.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0
+    ]
+   ]
+  }
+ },
+ "finalWeights": {
+  "learned_safe": {
+   "selected": {
+    "log_walk_time": 1.0,
+    "slope_over_8": 0.0,
+    "slope_over_15": 0.0,
+    "roughness": 0.0,
+    "soft_sand": 0.0,
+    "loose_ground": 0.0,
+    "near_no_go": 0.0
+   },
+   "endOfTraining": {
+    "log_walk_time": 1.0,
+    "slope_over_8": 0.0,
+    "slope_over_15": 0.0,
+    "roughness": 0.0,
+    "soft_sand": 0.0,
+    "loose_ground": 0.0,
+    "near_no_go": 0.0
+   },
+   "endOfTrainingFactors": {
+    "slope_over_8": 1.0,
+    "slope_over_15": 1.0,
+    "roughness": 1.0,
+    "soft_sand": 1.0,
+    "loose_ground": 1.0,
+    "near_no_go": 1.0
+   },
+   "endOfTrainingDeviationM": 24.85,
+   "physicsDeviationM": 24.85
+  },
+  "learned_no_rule": {
+   "selected": {
+    "log_walk_time": 1.0,
+    "slope_over_8": 0.0,
+    "slope_over_15": 0.0,
+    "roughness": 0.0,
+    "soft_sand": 0.0,
+    "loose_ground": 0.0,
+    "near_no_go": 0.0
+   },
+   "endOfTraining": {
+    "log_walk_time": 0.8303,
+    "slope_over_8": -0.0502,
+    "slope_over_15": -0.0025,
+    "roughness": -0.1576,
+    "soft_sand": -0.0876,
+    "loose_ground": -0.0755,
+    "near_no_go": -0.0145
+   },
+   "endOfTrainingFactors": {
+    "slope_over_8": 0.951,
+    "slope_over_15": 0.998,
+    "roughness": 0.854,
+    "soft_sand": 0.916,
+    "loose_ground": 0.927,
+    "near_no_go": 0.986
+   },
+   "endOfTrainingDeviationM": 27.4,
+   "physicsDeviationM": 24.85
+  }
+ },
+ "routes": [
+  {
+   "order": 1,
+   "sols": [
+    105,
+    130
+   ],
+   "length_m": 504,
+   "straight_line": {
+    "mean_dev_m": 44.02666959613592,
+    "within_50m_pct": 64.28571428571429
+   },
+   "physics": {
+    "mean_dev_m": 32.82360750981126,
+    "within_50m_pct": 64.28571428571429
+   },
+   "learned_safe": {
+    "mean_dev_m": 32.82360750981126,
+    "within_50m_pct": 64.28571428571429
+   },
+   "learned_safe_fold": 0,
+   "learned_no_rule": {
+    "mean_dev_m": 32.82360750981126,
+    "within_50m_pct": 64.28571428571429
+   },
+   "learned_no_rule_fold": 0
+  },
+  {
+   "order": 2,
+   "sols": [
+    130,
+    153
+   ],
+   "length_m": 501,
+   "straight_line": {
+    "mean_dev_m": 36.885967070837,
+    "within_50m_pct": 84.21052631578947
+   },
+   "physics": {
+    "mean_dev_m": 6.473684210526316,
+    "within_50m_pct": 100.0
+   },
+   "learned_safe": {
+    "mean_dev_m": 6.473684210526316,
+    "within_50m_pct": 100.0
+   },
+   "learned_safe_fold": 0,
+   "learned_no_rule": {
+    "mean_dev_m": 6.473684210526316,
+    "within_50m_pct": 100.0
+   },
+   "learned_no_rule_fold": 0
+  },
+  {
+   "order": 3,
+   "sols": [
+    153,
+    177
+   ],
+   "length_m": 501,
+   "straight_line": {
+    "mean_dev_m": 35.33154908378224,
+    "within_50m_pct": 78.57142857142857
+   },
+   "physics": {
+    "mean_dev_m": 43.31553605169832,
+    "within_50m_pct": 78.57142857142857
+   },
+   "learned_safe": {
+    "mean_dev_m": 43.31553605169832,
+    "within_50m_pct": 78.57142857142857
+   },
+   "learned_safe_fold": 0,
+   "learned_no_rule": {
+    "mean_dev_m": 43.31553605169832,
+    "within_50m_pct": 78.57142857142857
+   },
+   "learned_no_rule_fold": 0
+  },
+  {
+   "order": 4,
+   "sols": [
+    177,
+    203
+   ],
+   "length_m": 501,
+   "straight_line": {
+    "mean_dev_m": 24.16769932126201,
+    "within_50m_pct": 100.0
+   },
+   "physics": {
+    "mean_dev_m": 35.220780658322596,
+    "within_50m_pct": 100.0
+   },
+   "learned_safe": {
+    "mean_dev_m": 35.220780658322596,
+    "within_50m_pct": 100.0
+   },
+   "learned_safe_fold": 0,
+   "learned_no_rule": {
+    "mean_dev_m": 35.220780658322596,
+    "within_50m_pct": 100.0
+   },
+   "learned_no_rule_fold": 0
+  },
+  {
+   "order": 6,
+   "sols": [
+    340,
+    350
+   ],
+   "length_m": 432,
+   "straight_line": {
+    "mean_dev_m": 27.574613148313095,
+    "within_50m_pct": 87.5
+   },
+   "physics": {
+    "mean_dev_m": 28.169784987527066,
+    "within_50m_pct": 81.25
+   },
+   "learned_safe": {
+    "mean_dev_m": 28.169784987527066,
+    "within_50m_pct": 81.25
+   },
+   "learned_safe_fold": 0,
+   "learned_no_rule": {
+    "mean_dev_m": 28.169784987527066,
+    "within_50m_pct": 81.25
+   },
+   "learned_no_rule_fold": 0
+  },
+  {
+   "order": 7,
+   "sols": [
+    351,
+    351
+   ],
+   "length_m": 406,
+   "straight_line": {
+    "mean_dev_m": 44.517990177040716,
+    "within_50m_pct": 64.28571428571429
+   },
+   "physics": {
+    "mean_dev_m": 44.517990177040716,
+    "within_50m_pct": 64.28571428571429
+   },
+   "learned_safe": {
+    "mean_dev_m": 44.517990177040716,
+    "within_50m_pct": 64.28571428571429
+   },
+   "learned_safe_fold": 0,
+   "learned_no_rule": {
+    "mean_dev_m": 44.517990177040716,
+    "within_50m_pct": 64.28571428571429
+   },
+   "learned_no_rule_fold": 0
+  },
+  {
+   "order": 9,
+   "sols": [
+    353,
+    355
+   ],
+   "length_m": 502,
+   "straight_line": {
+    "mean_dev_m": 6.473684210526316,
+    "within_50m_pct": 100.0
+   },
+   "physics": {
+    "mean_dev_m": 10.357894736842105,
+    "within_50m_pct": 100.0
+   },
+   "learned_safe": {
+    "mean_dev_m": 10.357894736842105,
+    "within_50m_pct": 100.0
+   },
+   "learned_safe_fold": 0,
+   "learned_no_rule": {
+    "mean_dev_m": 10.357894736842105,
+    "within_50m_pct": 100.0
+   },
+   "learned_no_rule_fold": 0
+  },
+  {
+   "order": 10,
+   "sols": [
+    359,
+    380
+   ],
+   "length_m": 502,
+   "straight_line": {
+    "mean_dev_m": 13.837500000000002,
+    "within_50m_pct": 100.0
+   },
+   "physics": {
+    "mean_dev_m": 13.837500000000002,
+    "within_50m_pct": 100.0
+   },
+   "learned_safe": {
+    "mean_dev_m": 13.837500000000002,
+    "within_50m_pct": 100.0
+   },
+   "learned_safe_fold": 1,
+   "learned_no_rule": {
+    "mean_dev_m": 13.837500000000002,
+    "within_50m_pct": 100.0
+   },
+   "learned_no_rule_fold": 1
+  },
+  {
+   "order": 11,
+   "sols": [
+    381,
+    382
+   ],
+   "length_m": 511,
+   "straight_line": {
+    "mean_dev_m": 43.58581268363187,
+    "within_50m_pct": 62.5
+   },
+   "physics": {
+    "mean_dev_m": 38.026439255186574,
+    "within_50m_pct": 68.75
+   },
+   "learned_safe": {
+    "mean_dev_m": 38.026439255186574,
+    "within_50m_pct": 68.75
+   },
+   "learned_safe_fold": 1,
+   "learned_no_rule": {
+    "mean_dev_m": 38.026439255186574,
+    "within_50m_pct": 68.75
+   },
+   "learned_no_rule_fold": 1
+  },
+  {
+   "order": 12,
+   "sols": [
+    382,
+    386
+   ],
+   "length_m": 504,
+   "straight_line": {
+    "mean_dev_m": 56.3545195359632,
+    "within_50m_pct": 47.05882352941176
+   },
+   "physics": {
+    "mean_dev_m": 30.52582501076806,
+    "within_50m_pct": 88.23529411764706
+   },
+   "learned_safe": {
+    "mean_dev_m": 30.52582501076806,
+    "within_50m_pct": 88.23529411764706
+   },
+   "learned_safe_fold": 1,
+   "learned_no_rule": {
+    "mean_dev_m": 30.52582501076806,
+    "within_50m_pct": 88.23529411764706
+   },
+   "learned_no_rule_fold": 1
+  },
+  {
+   "order": 13,
+   "sols": [
+    386,
+    388
+   ],
+   "length_m": 502,
+   "straight_line": {
+    "mean_dev_m": 40.62696892280475,
+    "within_50m_pct": 66.66666666666666
+   },
+   "physics": {
+    "mean_dev_m": 12.870024223728153,
+    "within_50m_pct": 100.0
+   },
+   "learned_safe": {
+    "mean_dev_m": 12.870024223728153,
+    "within_50m_pct": 100.0
+   },
+   "learned_safe_fold": 1,
+   "learned_no_rule": {
+    "mean_dev_m": 12.870024223728153,
+    "within_50m_pct": 100.0
+   },
+   "learned_no_rule_fold": 1
+  },
+  {
+   "order": 14,
+   "sols": [
+    388,
+    394
+   ],
+   "length_m": 501,
+   "straight_line": {
+    "mean_dev_m": 63.80170132364008,
+    "within_50m_pct": 44.44444444444444
+   },
+   "physics": {
+    "mean_dev_m": 78.16406345290977,
+    "within_50m_pct": 31.57894736842105
+   },
+   "learned_safe": {
+    "mean_dev_m": 78.16406345290977,
+    "within_50m_pct": 31.57894736842105
+   },
+   "learned_safe_fold": 1,
+   "learned_no_rule": {
+    "mean_dev_m": 78.16406345290977,
+    "within_50m_pct": 31.57894736842105
+   },
+   "learned_no_rule_fold": 1
+  },
+  {
+   "order": 15,
+   "sols": [
+    394,
+    397
+   ],
+   "length_m": 501,
+   "straight_line": {
+    "mean_dev_m": 15.769544572719365,
+    "within_50m_pct": 100.0
+   },
+   "physics": {
+    "mean_dev_m": 47.21265702666719,
+    "within_50m_pct": 57.14285714285714
+   },
+   "learned_safe": {
+    "mean_dev_m": 47.21265702666719,
+    "within_50m_pct": 57.14285714285714
+   },
+   "learned_safe_fold": 1,
+   "learned_no_rule": {
+    "mean_dev_m": 47.21265702666719,
+    "within_50m_pct": 57.14285714285714
+   },
+   "learned_no_rule_fold": 1
+  },
+  {
+   "order": 16,
+   "sols": [
+    397,
+    400
+   ],
+   "length_m": 503,
+   "straight_line": {
+    "mean_dev_m": 34.58345196177729,
+    "within_50m_pct": 81.25
+   },
+   "physics": {
+    "mean_dev_m": 35.9954789568737,
+    "within_50m_pct": 87.5
+   },
+   "learned_safe": {
+    "mean_dev_m": 35.9954789568737,
+    "within_50m_pct": 87.5
+   },
+   "learned_safe_fold": 2,
+   "learned_no_rule": {
+    "mean_dev_m": 35.9954789568737,
+    "within_50m_pct": 87.5
+   },
+   "learned_no_rule_fold": 2
+  },
+  {
+   "order": 17,
+   "sols": [
+    400,
+    402
+   ],
+   "length_m": 500,
+   "straight_line": {
+    "mean_dev_m": 59.83700575578136,
+    "within_50m_pct": 36.84210526315789
+   },
+   "physics": {
+    "mean_dev_m": 25.528771904931478,
+    "within_50m_pct": 94.73684210526315
+   },
+   "learned_safe": {
+    "mean_dev_m": 25.528771904931478,
+    "within_50m_pct": 94.73684210526315
+   },
+   "learned_safe_fold": 2,
+   "learned_no_rule": {
+    "mean_dev_m": 25.528771904931478,
+    "within_50m_pct": 94.73684210526315
+   },
+   "learned_no_rule_fold": 2
+  },
+  {
+   "order": 18,
+   "sols": [
+    402,
+    405
+   ],
+   "length_m": 500,
+   "straight_line": {
+    "mean_dev_m": 32.318994332842834,
+    "within_50m_pct": 78.94736842105263
+   },
+   "physics": {
+    "mean_dev_m": 16.643203792327025,
+    "within_50m_pct": 100.0
+   },
+   "learned_safe": {
+    "mean_dev_m": 16.643203792327025,
+    "within_50m_pct": 100.0
+   },
+   "learned_safe_fold": 2,
+   "learned_no_rule": {
+    "mean_dev_m": 16.643203792327025,
+    "within_50m_pct": 100.0
+   },
+   "learned_no_rule_fold": 2
+  },
+  {
+   "order": 19,
+   "sols": [
+    405,
+    408
+   ],
+   "length_m": 501,
+   "straight_line": {
+    "mean_dev_m": 63.2271440114235,
+    "within_50m_pct": 40.0
+   },
+   "physics": {
+    "mean_dev_m": 4.925000000000001,
+    "within_50m_pct": 100.0
+   },
+   "learned_safe": {
+    "mean_dev_m": 4.925000000000001,
+    "within_50m_pct": 100.0
+   },
+   "learned_safe_fold": 2,
+   "learned_no_rule": {
+    "mean_dev_m": 4.925000000000001,
+    "within_50m_pct": 100.0
+   },
+   "learned_no_rule_fold": 2
+  },
+  {
+   "order": 20,
+   "sols": [
+    408,
+    414
+   ],
+   "length_m": 501,
+   "straight_line": {
+    "mean_dev_m": 9.978216374269007,
+    "within_50m_pct": 100.0
+   },
+   "physics": {
+    "mean_dev_m": 11.846309498502691,
+    "within_50m_pct": 100.0
+   },
+   "learned_safe": {
+    "mean_dev_m": 11.846309498502691,
+    "within_50m_pct": 100.0
+   },
+   "learned_safe_fold": 2,
+   "learned_no_rule": {
+    "mean_dev_m": 11.846309498502691,
+    "within_50m_pct": 100.0
+   },
+   "learned_no_rule_fold": 2
+  },
+  {
+   "order": 21,
+   "sols": [
+    414,
+    419
+   ],
+   "length_m": 500,
+   "straight_line": {
+    "mean_dev_m": 45.77172934034583,
+    "within_50m_pct": 69.23076923076923
+   },
+   "physics": {
+    "mean_dev_m": 34.437409006293656,
+    "within_50m_pct": 76.92307692307693
+   },
+   "learned_safe": {
+    "mean_dev_m": 34.437409006293656,
+    "within_50m_pct": 76.92307692307693
+   },
+   "learned_safe_fold": 2,
+   "learned_no_rule": {
+    "mean_dev_m": 34.437409006293656,
+    "within_50m_pct": 76.92307692307693
+   },
+   "learned_no_rule_fold": 2
+  },
+  {
+   "order": 23,
+   "sols": [
+    432,
+    443
+   ],
+   "length_m": 500,
+   "straight_line": {
+    "mean_dev_m": 69.5978418127779,
+    "within_50m_pct": 33.33333333333333
+   },
+   "physics": {
+    "mean_dev_m": 34.918354351783805,
+    "within_50m_pct": 100.0
+   },
+   "learned_safe": {
+    "mean_dev_m": 34.918354351783805,
+    "within_50m_pct": 100.0
+   },
+   "learned_safe_fold": 3,
+   "learned_no_rule": {
+    "mean_dev_m": 34.918354351783805,
+    "within_50m_pct": 100.0
+   },
+   "learned_no_rule_fold": 3
+  },
+  {
+   "order": 25,
+   "sols": [
+    538,
+    543
+   ],
+   "length_m": 503,
+   "straight_line": {
+    "mean_dev_m": 19.70335755706149,
+    "within_50m_pct": 100.0
+   },
+   "physics": {
+    "mean_dev_m": 13.666666666666668,
+    "within_50m_pct": 100.0
+   },
+   "learned_safe": {
+    "mean_dev_m": 13.666666666666668,
+    "within_50m_pct": 100.0
+   },
+   "learned_safe_fold": 3,
+   "learned_no_rule": {
+    "mean_dev_m": 13.666666666666668,
+    "within_50m_pct": 100.0
+   },
+   "learned_no_rule_fold": 3
+  },
+  {
+   "order": 26,
+   "sols": [
+    543,
+    606
+   ],
+   "length_m": 500,
+   "straight_line": {
+    "mean_dev_m": 23.588274100911768,
+    "within_50m_pct": 100.0
+   },
+   "physics": {
+    "mean_dev_m": 21.10501621569881,
+    "within_50m_pct": 100.0
+   },
+   "learned_safe": {
+    "mean_dev_m": 21.10501621569881,
+    "within_50m_pct": 100.0
+   },
+   "learned_safe_fold": 3,
+   "learned_no_rule": {
+    "mean_dev_m": 21.10501621569881,
+    "within_50m_pct": 100.0
+   },
+   "learned_no_rule_fold": 3
+  },
+  {
+   "order": 28,
+   "sols": [
+    646,
+    684
+   ],
+   "length_m": 500,
+   "straight_line": {
+    "mean_dev_m": 19.023076304743675,
+    "within_50m_pct": 100.0
+   },
+   "physics": {
+    "mean_dev_m": 12.80321390293656,
+    "within_50m_pct": 100.0
+   },
+   "learned_safe": {
+    "mean_dev_m": 12.80321390293656,
+    "within_50m_pct": 100.0
+   },
+   "learned_safe_fold": 3,
+   "learned_no_rule": {
+    "mean_dev_m": 12.80321390293656,
+    "within_50m_pct": 100.0
+   },
+   "learned_no_rule_fold": 3
+  },
+  {
+   "order": 29,
+   "sols": [
+    684,
+    708
+   ],
+   "length_m": 501,
+   "straight_line": {
+    "mean_dev_m": 24.622360942428937,
+    "within_50m_pct": 93.75
+   },
+   "physics": {
+    "mean_dev_m": 27.78674387980015,
+    "within_50m_pct": 100.0
+   },
+   "learned_safe": {
+    "mean_dev_m": 27.78674387980015,
+    "within_50m_pct": 100.0
+   },
+   "learned_safe_fold": 3,
+   "learned_no_rule": {
+    "mean_dev_m": 27.78674387980015,
+    "within_50m_pct": 100.0
+   },
+   "learned_no_rule_fold": 3
+  },
+  {
+   "order": 30,
+   "sols": [
+    708,
+    714
+   ],
+   "length_m": 501,
+   "straight_line": {
+    "mean_dev_m": 10.783806953415269,
+    "within_50m_pct": 100.0
+   },
+   "physics": {
+    "mean_dev_m": 18.795151699073507,
+    "within_50m_pct": 100.0
+   },
+   "learned_safe": {
+    "mean_dev_m": 18.795151699073507,
+    "within_50m_pct": 100.0
+   },
+   "learned_safe_fold": 3,
+   "learned_no_rule": {
+    "mean_dev_m": 18.795151699073507,
+    "within_50m_pct": 100.0
+   },
+   "learned_no_rule_fold": 3
+  },
+  {
+   "order": 31,
+   "sols": [
+    714,
+    717
+   ],
+   "length_m": 501,
+   "straight_line": {
+    "mean_dev_m": 46.40150118522293,
+    "within_50m_pct": 65.0
+   },
+   "physics": {
+    "mean_dev_m": 12.813021801355337,
+    "within_50m_pct": 100.0
+   },
+   "learned_safe": {
+    "mean_dev_m": 12.813021801355337,
+    "within_50m_pct": 100.0
+   },
+   "learned_safe_fold": 4,
+   "learned_no_rule": {
+    "mean_dev_m": 12.813021801355337,
+    "within_50m_pct": 100.0
+   },
+   "learned_no_rule_fold": 4
+  },
+  {
+   "order": 32,
+   "sols": [
+    717,
+    719
+   ],
+   "length_m": 501,
+   "straight_line": {
+    "mean_dev_m": 44.657012977062095,
+    "within_50m_pct": 61.111111111111114
+   },
+   "physics": {
+    "mean_dev_m": 24.993725729545098,
+    "within_50m_pct": 100.0
+   },
+   "learned_safe": {
+    "mean_dev_m": 24.993725729545098,
+    "within_50m_pct": 100.0
+   },
+   "learned_safe_fold": 4,
+   "learned_no_rule": {
+    "mean_dev_m": 24.993725729545098,
+    "within_50m_pct": 100.0
+   },
+   "learned_no_rule_fold": 4
+  },
+  {
+   "order": 33,
+   "sols": [
+    719,
+    732
+   ],
+   "length_m": 500,
+   "straight_line": {
+    "mean_dev_m": 18.51814767972369,
+    "within_50m_pct": 100.0
+   },
+   "physics": {
+    "mean_dev_m": 18.518147679723686,
+    "within_50m_pct": 100.0
+   },
+   "learned_safe": {
+    "mean_dev_m": 18.518147679723686,
+    "within_50m_pct": 100.0
+   },
+   "learned_safe_fold": 4,
+   "learned_no_rule": {
+    "mean_dev_m": 18.518147679723686,
+    "within_50m_pct": 100.0
+   },
+   "learned_no_rule_fold": 4
+  },
+  {
+   "order": 34,
+   "sols": [
+    732,
+    753
+   ],
+   "length_m": 502,
+   "straight_line": {
+    "mean_dev_m": 51.848344497904236,
+    "within_50m_pct": 61.53846153846154
+   },
+   "physics": {
+    "mean_dev_m": 25.70602183218024,
+    "within_50m_pct": 92.3076923076923
+   },
+   "learned_safe": {
+    "mean_dev_m": 25.70602183218024,
+    "within_50m_pct": 92.3076923076923
+   },
+   "learned_safe_fold": 4,
+   "learned_no_rule": {
+    "mean_dev_m": 25.70602183218024,
+    "within_50m_pct": 92.3076923076923
+   },
+   "learned_no_rule_fold": 4
+  },
+  {
+   "order": 36,
+   "sols": [
+    762,
+    764
+   ],
+   "length_m": 501,
+   "straight_line": {
+    "mean_dev_m": 19.515628226740006,
+    "within_50m_pct": 100.0
+   },
+   "physics": {
+    "mean_dev_m": 8.216666666666667,
+    "within_50m_pct": 100.0
+   },
+   "learned_safe": {
+    "mean_dev_m": 8.216666666666667,
+    "within_50m_pct": 100.0
+   },
+   "learned_safe_fold": 4,
+   "learned_no_rule": {
+    "mean_dev_m": 8.216666666666667,
+    "within_50m_pct": 100.0
+   },
+   "learned_no_rule_fold": 4
+  },
+  {
+   "order": 37,
+   "sols": [
+    764,
+    770
+   ],
+   "length_m": 500,
+   "straight_line": {
+    "mean_dev_m": 46.764121296704616,
+    "within_50m_pct": 56.25
+   },
+   "physics": {
+    "mean_dev_m": 0.0,
+    "within_50m_pct": 100.0
+   },
+   "learned_safe": {
+    "mean_dev_m": 0.0,
+    "within_50m_pct": 100.0
+   },
+   "learned_safe_fold": 4,
+   "learned_no_rule": {
+    "mean_dev_m": 0.0,
+    "within_50m_pct": 100.0
+   },
+   "learned_no_rule_fold": 4
+  }
+ ]
+}

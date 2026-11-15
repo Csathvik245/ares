@@ -79,6 +79,10 @@ const homeField = dijkstraField(cost, habitatCell);
 const farPath = pathTo(homeField, farCell);
 const farLine = plan.legs[1].path;
 const budget = oxygenBudget(false);
+const routeModelRaw = JSON.parse(readFileSync(fileURLToPath(new URL("../../public/data/route-model.json", import.meta.url)), "utf8"));
+const routeModel = planner.loadRouteModel(routeModelRaw);
+const learnedGrid = planner.buildLearnedCostGrid(site, routeModel, CALM);
+const learnedPlan = planRoute(site, cost, site.habitat, stops, { routeGrid: learnedGrid });
 
 /** Median time in ms of `fn` over RUNS runs, after one warm-up run. */
 function medianMs(fn: () => unknown): number {
@@ -155,6 +159,12 @@ const CASES: Record<string, [string, () => unknown]> = {
   formatDose: ["1,000 calls", x1000((i) => planner.formatDose(i / 1000))],
   formatLmst: ["1,000 calls", x1000((i) => planner.formatLmst(i / 40))],
   formatMet: ["1,000 calls", x1000((i) => planner.formatMet(i * 31))],
+  // Learned route cost (off by default; docs/route-learning.md).
+  pathTimeSec: ["1,000 calls on a 2 km path", x1000(() => planner.pathTimeSec(cost, farPath))],
+  loadRouteModel: ["read route-model.json", () => planner.loadRouteModel(routeModelRaw)],
+  learnedCostRatio: ["all 76,800 cells", () => planner.learnedCostRatio(site, routeModel)],
+  buildLearnedCostGrid: ["all 76,800 cells", () => planner.buildLearnedCostGrid(site, routeModel, CALM)],
+  compareRoutes: ["fastest vs learned demo mission", () => planner.compareRoutes(site, routeModel, plan, learnedPlan)],
 };
 
 describe("every exported planner function is fast", () => {

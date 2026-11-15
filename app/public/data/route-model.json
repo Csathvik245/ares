@@ -1,0 +1,235 @@
+{
+ "name": "ARES learned route cost",
+ "version": 1,
+ "about": "Terrain cost learned from the routes Perseverance's drivers chose (maximum margin planning, Ratliff et al. 2006, 2009), with the safety rule: never less careful than the physics model. Off by default; used only if passed to planRoute as routeGrid. Changes route shape only: no-go cells stay no-go, and walking time, oxygen and status come from the Contract 2 model. Made by pipeline/learn_route_cost.py; results in docs/route-learning.md.",
+ "assumption": "Rover drivers' choices stand in for expert route choice. A rover is not an astronaut: its limits on slope, rocks and sand differ, so the learned preferences are a proxy.",
+ "source": {
+  "traverse": "https://mars.nasa.gov/mmgis-maps/M20/Layers/json/M20_traverse.json",
+  "credit": "NASA/JPL-Caltech",
+  "sols": [
+   105,
+   770
+  ],
+  "routes": 31,
+  "km": 15.38
+ },
+ "costRatio": "cost per meter / cost per meter on flat firm ground = walk_time^a x exp(sum of weight x feature), a = log_walk_time weight",
+ "nearNoGoRadiusCells": 2,
+ "looseTiHigh": 250,
+ "features": [
+  {
+   "id": "log_walk_time",
+   "about": "log of walking time per meter from the Contract 2 model divided by the time on flat firm ground; its weight a is a power: walk_time^a",
+   "weight": 1.0
+  },
+  {
+   "id": "slope_over_8",
+   "about": "Slope above 8 degrees: max(0, slope - 8) / 10",
+   "weight": 0.0
+  },
+  {
+   "id": "slope_over_15",
+   "about": "Slope above 15 degrees: max(0, slope - 15) / 10",
+   "weight": 0.0
+  },
+  {
+   "id": "roughness",
+   "about": "Ground roughness (rock layer) / 0.2",
+   "weight": 0.0
+  },
+  {
+   "id": "soft_sand",
+   "about": "1 if thermal inertia is under 175 (soft sand), else 0",
+   "weight": 0.0
+  },
+  {
+   "id": "loose_ground",
+   "about": "How loose the ground is: (250 - thermal inertia) / 75, clipped to 0..1",
+   "weight": 0.0
+  },
+  {
+   "id": "near_no_go",
+   "about": "1 if a no-go cell is within 2 cells (about 50 m), else 0",
+   "weight": 0.0
+  }
+ ],
+ "evaluation": {
+  "method": "Blocked 5-fold cross-validation in driving order; learned models never see the block they are scored on",
+  "routes": 31,
+  "metric_mean_dev_m": "Mean distance between the planned route and the rover's real route, measured both ways, meters (lower = closer to the experts)",
+  "straight_line": {
+   "mean_dev_m": {
+    "mean": 35.3,
+    "median": 35.3
+   },
+   "within_50m_pct": {
+    "mean": 76.7,
+    "median": 78.9
+   }
+  },
+  "physics": {
+   "mean_dev_m": {
+    "mean": 24.8,
+    "median": 25.0
+   },
+   "within_50m_pct": {
+    "mean": 89.9,
+    "median": 100.0
+   }
+  },
+  "learned_safe": {
+   "mean_dev_m": {
+    "mean": 24.8,
+    "median": 25.0
+   },
+   "within_50m_pct": {
+    "mean": 89.9,
+    "median": 100.0
+   }
+  },
+  "learned_no_rule": {
+   "mean_dev_m": {
+    "mean": 24.8,
+    "median": 25.0
+   },
+   "within_50m_pct": {
+    "mean": 89.9,
+    "median": 100.0
+   }
+  },
+  "learned_safe_vs_physics": {
+   "mean_gain_m": 0.0,
+   "gain_95ci_m": [
+    0.0,
+    0.0
+   ],
+   "closer": 0,
+   "further": 0,
+   "same": 31
+  },
+  "learned_no_rule_vs_physics": {
+   "mean_gain_m": 0.0,
+   "gain_95ci_m": [
+    0.0,
+    0.0
+   ],
+   "closer": 0,
+   "further": 0,
+   "same": 31
+  }
+ },
+ "checks": [
+  {
+   "index": 6289,
+   "ratio": 1.126836
+  },
+  {
+   "index": 42251,
+   "ratio": 1.35547
+  },
+  {
+   "index": 19539,
+   "ratio": 1.357826
+  },
+  {
+   "index": 59655,
+   "ratio": 1.154939
+  },
+  {
+   "index": 30983,
+   "ratio": 1.0892
+  },
+  {
+   "index": 58849,
+   "ratio": 1.223576
+  },
+  {
+   "index": 68500,
+   "ratio": 2.967101
+  },
+  {
+   "index": 4135,
+   "ratio": 1.457302
+  },
+  {
+   "index": 59268,
+   "ratio": 1.171989
+  },
+  {
+   "index": 51586,
+   "ratio": 3.018796
+  },
+  {
+   "index": 28813,
+   "ratio": 1.773463
+  },
+  {
+   "index": 46509,
+   "ratio": 4.705887
+  },
+  {
+   "index": 32478,
+   "ratio": 1.29902
+  },
+  {
+   "index": 72155,
+   "ratio": 1.113922
+  },
+  {
+   "index": 8958,
+   "ratio": 1.250505
+  },
+  {
+   "index": 65689,
+   "ratio": 1.449793
+  },
+  {
+   "index": 50864,
+   "ratio": 1.192487
+  },
+  {
+   "index": 5867,
+   "ratio": 1.274857
+  },
+  {
+   "index": 75195,
+   "ratio": 1.162228
+  },
+  {
+   "index": 5065,
+   "ratio": 1.143434
+  },
+  {
+   "index": 45910,
+   "ratio": 2.493269
+  },
+  {
+   "index": 48035,
+   "ratio": 1.43216
+  },
+  {
+   "index": 33126,
+   "ratio": 1.108101
+  },
+  {
+   "index": 28518,
+   "ratio": 2.866946
+  },
+  {
+   "index": 160,
+   "ratio": null
+  },
+  {
+   "index": 161,
+   "ratio": null
+  },
+  {
+   "index": 162,
+   "ratio": null
+  },
+  {
+   "index": 163,
+   "ratio": null
+  }
+ ]
+}

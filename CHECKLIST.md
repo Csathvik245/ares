@@ -68,6 +68,7 @@ Needs nothing from anyone. Your output is checked by your own `check_site.py`.
 - [x] 🟧 Layer PNGs for slides via `preview_site.py` → `docs/images/`
 - [x] 🟧 `pipeline/README.md` documents the real-data steps
 - [x] 🟧 Independent check against Perseverance's real traverse: `pipeline/validate_traverse.py` → `docs/validation.md` (99.8% of the rover's 20.6 km rated passable)
+- [x] 🟦 Learned route cost from the rover's real routes (maximum margin planning): `pipeline/learn_route_cost.py` → `docs/route-learning.md`. Held-out: physics 24.8 m from the drivers' routes, learned the same, straight line 35.3 m. Model in `route-model.json`, **off by default** (`planRoute` `routeGrid` option, no UI)
 - [ ] 🟦 ML boulder map merged into `rock` (only if you build it yourself in `pipeline/`)
 
 ---

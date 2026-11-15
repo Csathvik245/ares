@@ -3,9 +3,20 @@ import { SUN_CAUTION_DEG, lowSunDuring } from "./env";
 import { isLowMargin, oxygenBudget } from "./oxygen";
 import { groundProblem } from "./cost";
 import { smoothPath } from "./geom";
-import { aStar, pathLengthM, pathTo } from "./search";
+import { aStar, pathLengthM, pathTimeSec, pathTo } from "./search";
 import { cellIndexOf } from "./site";
 import type { CostGrid, LatLng, Leg, Plan, Site, Status, Stop } from "./types";
+
+export type PlanOptions = {
+  /**
+   * Grid used only to CHOOSE each leg's path (for example buildLearnedCostGrid's).
+   * Walking time, distance, oxygen and status are still worked out on `cost`, the
+   * Contract 2 grid. It must be the same size and have the same no-go cells as
+   * `cost`. Leave it out (the default) for the fastest route: the result is then
+   * exactly what planRoute gave before this option existed.
+   */
+  routeGrid?: CostGrid;
+};
 
 const minutes = (sec: number) => Math.round(sec / 60);
 /** Clock time such as "17:58" from hours. */
@@ -39,8 +50,22 @@ const degrees = (deg: number) => `${deg < 0 ? "−" : ""}${Math.abs(deg).toFixed
  * Emergencies (Contract 3): if conditions.storm or conditions.spe is true the EVA
  * is aborted, so the status is NO-GO with the reason "EVA aborted: active dust
  * storm" (or "... solar particle event"). The way home is abortRoute's job.
+ *
+ * options.routeGrid (additive, optional, off by default): choose each leg's path on
+ * that grid instead, then time it on `cost`. Same safety rules and the same numbers
+ * for the same path; only the choice of path changes.
  */
-export function planRoute(site: Site, cost: CostGrid, habitat: LatLng, stops: Stop[]): Plan {
+export function planRoute(
+  site: Site,
+  cost: CostGrid,
+  habitat: LatLng,
+  stops: Stop[],
+  options: PlanOptions = {},
+): Plan {
+  const routeGrid = options.routeGrid ?? cost;
+  if (routeGrid.width !== cost.width || routeGrid.height !== cost.height) {
+    throw new RangeError("planRoute: routeGrid must be the same size as cost");
+  }
   const { storm, spe } = cost.conditions;
   // name: how the waypoint is called in a sentence. problem: why nobody can stand there, or null.
   const waypoints: { name: string; at: LatLng; cell: number; problem: string | null }[] = [habitat, ...stops].map((p, i) => {
@@ -67,7 +92,7 @@ export function planRoute(site: Site, cost: CostGrid, habitat: LatLng, stops: St
     const from = waypoints[i - 1];
     const to = waypoints[i];
     // A leg that starts or ends somewhere impossible is not searched: its sentence is already written.
-    const result = from.problem || to.problem ? null : aStar(cost, from.cell, to.cell);
+    const result = from.problem || to.problem ? null : aStar(routeGrid, from.cell, to.cell);
     const cells = result ? pathTo(result, to.cell) : [];
 
     if (!result || cells.length === 0) {
@@ -76,13 +101,15 @@ export function planRoute(site: Site, cost: CostGrid, habitat: LatLng, stops: St
       }
       legs.push({ path: [], walkSec: 0, distM: 0, arriveSec: clock });
     } else {
-      const legWalk = result.cost[to.cell];
+      // Default: the search already timed the path on `cost`. With a routeGrid, time
+      // the chosen cells on `cost` (edge rule identical to the search).
+      const legWalk = routeGrid === cost ? result.cost[to.cell] : pathTimeSec(cost, cells);
       const legDist = pathLengthM(cost, cells);
       clock += legWalk;
       walkSec += legWalk;
       distM += legDist;
       legs.push({
-        path: smoothPath(site, cost, cells, from.at, to.at),
+        path: smoothPath(site, routeGrid, cells, from.at, to.at),
         walkSec: legWalk,
         distM: legDist,
         arriveSec: clock,
