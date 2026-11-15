@@ -20,6 +20,7 @@ import { distanceM } from "../geo";
 import { routeParts, shortStop } from "../lib/presentation";
 import type { Basemap } from "../lib/basemap";
 import { layerOpacity, raster, zoneBounds, zoneRaster, type OverlayName } from "../lib/layers";
+import { PROBE_SOURCES, probeVerdict } from "../lib/probe";
 /** Dark outline on each side of the planned route, in pixels, so the white line reads over amber terrain. */
 export const PLAN_OUTLINE_PX = 2;
 export const TREK_LAYER = "Mars_Viking_MDIM21_ClrMosaic_global_232m";
@@ -568,28 +569,46 @@ export function MissionMap({
         </span>
       </div>
       <div className="map-corners" aria-hidden="true" />
-      {hover && (
-        // Flips to the other side of the pointer near the right and bottom edges so it stays on the map.
-        <dl
-          className="map-probe"
-          aria-hidden="true"
-          style={{
-            left: hover.x > hover.w - 210 ? hover.x - 196 : hover.x + 16,
-            top: hover.y > hover.h - 150 ? hover.y - 132 : hover.y + 16,
-          }}
-        >
-          <dt>Elevation</dt>
-          <dd>{roundHalfUp(site.layers.elevation[hover.cell])} m</dd>
-          <dt>Slope</dt>
-          <dd>{roundHalfUp(site.layers.slope[hover.cell], 1)}°</dd>
-          <dt>Ground</dt>
-          <dd>{site.layers.thermalInertia[hover.cell] < SAND_TI_THRESHOLD ? "Soft sand risk" : "Firm ground proxy"}</dd>
-          <dt>Science signal</dt>
-          <dd>{roundHalfUp(site.layers.science[hover.cell], 2)}</dd>
-          <dt>Walk home</dt>
-          <dd>{formatDuration(walkHome?.[hover.cell] ?? Infinity)}</dd>
-        </dl>
-      )}
+      {hover &&
+        (() => {
+          // What the planner makes of this cell, in words (lib/probe.ts). The size is fixed, so the
+          // tooltip does not jump as the pointer moves. Near the right and bottom edges it flips
+          // to the other side of the pointer so it stays on the map.
+          const verdict = probeVerdict(site, hover.cell);
+          return (
+            <dl
+              className="map-probe"
+              aria-hidden="true"
+              style={{
+                left: hover.x > hover.w - 288 ? hover.x - 272 : hover.x + 16,
+                top: hover.y > hover.h - 182 ? hover.y - 166 : hover.y + 16,
+              }}
+            >
+              <dd className={`map-probe__verdict ${verdict.walkable ? "is-walkable" : "is-nogo"}`}>{verdict.text}</dd>
+              <dt>Elevation</dt>
+              <dd>
+                {roundHalfUp(site.layers.elevation[hover.cell])} m <small>{PROBE_SOURCES.elevation}</small>
+              </dd>
+              <dt>Slope</dt>
+              <dd>
+                {roundHalfUp(site.layers.slope[hover.cell], 1)}° <small>{PROBE_SOURCES.slope}</small>
+              </dd>
+              <dt>Ground</dt>
+              <dd>
+                {site.layers.thermalInertia[hover.cell] < SAND_TI_THRESHOLD ? "Soft sand risk" : "Firm ground proxy"}{" "}
+                <small>{PROBE_SOURCES.ground}</small>
+              </dd>
+              <dt>Science signal</dt>
+              <dd>
+                {roundHalfUp(site.layers.science[hover.cell], 2)} <small>{PROBE_SOURCES.science}</small>
+              </dd>
+              <dt>Walk home</dt>
+              <dd>
+                {formatDuration(walkHome?.[hover.cell] ?? Infinity)} <small>{PROBE_SOURCES.walkHome}</small>
+              </dd>
+            </dl>
+          );
+        })()}
       {children}
       <div className="mars-scale" style={{ width: scaleWidth }}>
         <span>500 m</span>

@@ -211,3 +211,37 @@ html[data-theme] .console-app .oxygen-range .jargon__tip {
   left: auto;
   right: 0;
 }
+
+/* ---------- Map probe: a verdict line on top, and a small source tag after each value ---------- */
+/* Fixed width and a two-line verdict area, so the tooltip keeps one size as the pointer moves. */
+html[data-theme] .console-app .map-probe {
+  width: 256px;
+  min-height: 156px;
+  gap: 2px 10px;
+  align-content: start;
+}
+html[data-theme] .console-app .map-probe dt {
+  white-space: nowrap;
+}
+html[data-theme] .console-app .map-probe .map-probe__verdict {
+  grid-column: 1 / -1;
+  min-height: 32px;
+  margin-bottom: 4px;
+  padding-bottom: 4px;
+  border-bottom: 1px solid var(--hairline);
+  font: 600 11px/16px var(--font-body);
+  text-align: left;
+  white-space: normal;
+}
+html[data-theme] .console-app .map-probe .map-probe__verdict.is-nogo {
+  color: var(--nogo);
+}
+html[data-theme] .console-app .map-probe .map-probe__verdict.is-walkable {
+  color: var(--go);
+}
+html[data-theme] .console-app .map-probe dd small {
+  margin-left: 2px;
+  color: var(--muted);
+  font: 400 9px/16px var(--font-mono);
+  letter-spacing: 0.02em;
+}
