@@ -188,8 +188,10 @@ export function MissionPanel({
           ],
           [
             stitch ? "Radiation Dose" : "Radiation dose",
-            formatDose(dose) + (SPE_IS_ILLUSTRATIVE && m.emergency?.kind === "spe" ? ` · illustrative · measured 2017 event x${SPE_MEASURED_2017_PEAK_MULTIPLIER}` : ""),
-            m.emergency?.kind === "spe" ? EVIDENCE_LABELS.spe : EVIDENCE_LABELS.radiation,
+            formatDose(dose),
+            SPE_IS_ILLUSTRATIVE && m.emergency?.kind === "spe"
+              ? `projected · illustrative SPE · measured 2017 event ×${roundHalfUp(SPE_MEASURED_2017_PEAK_MULTIPLIER, 1)}`
+              : "projected · RAD baseline",
           ],
             [
               stitch ? "Lowest Sun" : "Lowest sun",

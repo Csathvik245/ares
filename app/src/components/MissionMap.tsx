@@ -19,15 +19,23 @@ import type { Basemap } from "../lib/basemap";
 import { raster, type OverlayName } from "../lib/layers";
 export const TREK_LAYER = "Mars_Viking_MDIM21_ClrMosaic_global_232m";
 
-function fitMissionView(map: L.Map, site: Site, stops: Stop[]) {
+function fitMissionView(map: L.Map, site: Site, stops: Stop[], shelterTarget?: LatLng) {
   const bounds = L.latLngBounds(
-    [site.habitat, ...stops].map((p) => [p.lat, p.lng] as [number, number]),
+    [site.habitat, ...stops, ...(shelterTarget ? [shelterTarget] : [])]
+      .map((p) => [p.lat, p.lng] as [number, number]),
   );
   const size = map.getSize();
   const padX = Math.max(48, size.x * 0.12);
   const padY = Math.max(48, size.y * 0.12);
+  // Emergency guidance overlays the map. Keep fitted targets below its actual
+  // bottom edge, including when its text wraps on a tablet.
+  const container = map.getContainer();
+  const alert = container.parentElement?.querySelector(".storm-alert");
+  const alertBottom = alert
+    ? alert.getBoundingClientRect().bottom - container.getBoundingClientRect().top + 24
+    : 0;
   map.fitBounds(bounds, {
-    paddingTopLeft: [padX, padY],
+    paddingTopLeft: [padX, Math.max(padY, alertBottom)],
     paddingBottomRight: [padX, padY],
     maxZoom: 14,
   });
@@ -188,8 +196,8 @@ export function MissionMap({
   useEffect(() => {
     const m = map.current;
     if (!m) return;
-    fitMissionView(m, site, stops);
-  }, [site, basemap, viewRequest, stops]);
+    fitMissionView(m, site, stops, shelter?.target);
+  }, [site, basemap, viewRequest, stops, emergency, shelter?.target]);
   useEffect(() => {
     const m = map.current;
     if (!m) return;
