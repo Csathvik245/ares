@@ -197,3 +197,29 @@ Until that is done, an SPE gives `outcome.shelter = { checked: false }` and the 
 The components were tested by rendering them to HTML, not in a browser. Look at them once at 1440 × 900 after plugging in.
 
 The planner worker was tested by running its message handler in-process, with every message passed through `structuredClone`. Vite bundles it as its own chunk, but it has not been run as a real Web Worker in a browser yet.
+
+## 7. Mission reliability panel and evidence tag
+
+`ReliabilityPanel.tsx` is a collapsible "MISSION RELIABILITY" panel, closed by default. It runs the Monte Carlo simulator (`simulateMission`, 1,000 trials, seed 42) on the plan it is given and shows: trials and seed, the share that returned with the reserve, success and fail counts, low / middle / high oxygen at return, duration and margin, a margin histogram with the reserve line, the three inputs that move the margin most, and the disclaimer in small print.
+
+**One line to mount it** (in the mission panel, for example after the stats grid; hide it during an emergency):
+
+```tsx
+import { ReliabilityPanel } from "./ReliabilityPanel";
+
+{!m.emergency && <ReliabilityPanel site={m.site!} plan={plan} startLmst={m.conditions.startLmst} />}
+```
+
+- 1,000 trials take a few milliseconds, so it runs in the page; no worker is needed.
+- Styles are in `reliability.css` and use only the shared tokens.
+- The numbers are a simulation of our own assumptions. Never remove the disclaimer line.
+
+`EvidenceTag.tsx` is a small tag for the four evidence levels:
+
+```tsx
+import { EvidenceTag } from "./EvidenceTag";
+
+<EvidenceTag level={row.evidence} />   // OBSERVED / CALCULATED / INTERPRETED / ASSUMED
+```
+
+Use it next to any briefing row (`computeBriefing(...).rows[i].evidence`) and next to science values (`SCIENCE_EVIDENCE`).

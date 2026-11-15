@@ -147,6 +147,7 @@ const CASES: Record<string, [string, () => unknown]> = {
     "new SPE grid + shelter check at T+1:16 (cache miss)",
     () => planner.shelterRoute(site, buildCostGrid(site, { ...CALM, spe: true }), positionAt(plan, 4560), 0, { skyView: planner.readSkyView(raw)! }),
   ],
+  simulateMission: ["1,000 Monte Carlo trials of the demo mission", () => planner.simulateMission(site, plan)],
   scienceScore: ["the demo mission", () => planner.scienceScore(site, plan, { stops, cost })],
   // A fresh copy of the site each time, so its cached calm grid and fields are really rebuilt.
   // suggestStops searches the whole site, so it has its own, looser limit (see SLOW_LIMITS_MS).

@@ -72,3 +72,5 @@ export { computeBriefing, SCIENCE_EVIDENCE } from "./briefing";
 export type { Briefing, BriefingRow, BriefingStatus, Evidence } from "./briefing";
 export { scienceScore, suggestStops } from "./science";
 export type { StopScience, StopSuggestion, ScoreOptions, SuggestOptions } from "./science";
+export { simulateMission, PARAMS, MONTE_CARLO_DISCLAIMER, DEFAULT_TRIALS, DEFAULT_SEED } from "./montecarlo";
+export type { ReliabilityResult, SimulateOptions, UncertainParam, ParamName, Percentiles, SensitivityRow } from "./montecarlo";
