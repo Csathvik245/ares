@@ -1,0 +1,164 @@
+{
+  "source": {
+    "traverse": "https://mars.nasa.gov/mmgis-maps/M20/Layers/json/M20_traverse.json",
+    "waypoints": "https://mars.nasa.gov/mmgis-maps/M20/Layers/json/M20_waypoints.json",
+    "last_sol_in_file": 2022
+  },
+  "rover_path": {
+    "total_km_in_file": 46.05,
+    "km_inside_bounds": 20.57,
+    "sols_inside_bounds": [
+      14,
+      896
+    ],
+    "cells_touched": 755,
+    "step_m": 10.0
+  },
+  "passable": {
+    "path_length_pct": 99.8,
+    "path_cells_pct": 99.87,
+    "whole_site_cells_pct": 98.63,
+    "no_go_path_m": 41.7,
+    "no_go_cells_touched": 1
+  },
+  "no_go_cells_on_path": [
+    {
+      "lat": 18.45876,
+      "lng": 77.40599,
+      "path_m": 41.7,
+      "sols": [
+        464,
+        474,
+        477,
+        501
+      ],
+      "slope_deg": 25.84,
+      "rock": 0.53,
+      "why": "slope"
+    }
+  ],
+  "compare": {
+    "slope_deg": {
+      "path": {
+        "p50": 3.55,
+        "p90": 9.57,
+        "p99": 16.5,
+        "max": 25.84
+      },
+      "site": {
+        "p50": 4.31,
+        "p90": 11.55,
+        "p99": 25.57,
+        "max": 61.05
+      }
+    },
+    "rock": {
+      "path": {
+        "p50": 0.1,
+        "p90": 0.19,
+        "p99": 0.4,
+        "max": 0.58
+      },
+      "site": {
+        "p50": 0.13,
+        "p90": 0.29,
+        "p99": 0.63,
+        "max": 1.0
+      }
+    }
+  },
+  "soft_sand_pct": {
+    "path": 4.8,
+    "site": 9.2
+  },
+  "walking_difficulty_x_flat": {
+    "path_mean": 1.48,
+    "site_mean": 1.65
+  },
+  "waypoints": {
+    "count_inside_bounds": 313,
+    "on_passable_cells": 310,
+    "on_passable_pct": 99.04,
+    "rover_tilt_deg": {
+      "p50": 3.32,
+      "p90": 11.09,
+      "max": 20.33
+    },
+    "our_slope_deg_at_waypoints": {
+      "p50": 5.03,
+      "p90": 12.38,
+      "max": 25.84
+    },
+    "our_slope_at_least_rover_tilt_pct": 78.6,
+    "tilt_vs_our_slope_correlation": 0.82,
+    "elevation_abs_diff_m": {
+      "p50": 0.25,
+      "p99": 2.7
+    }
+  },
+  "sensitivity": [
+    {
+      "max_slope_deg": 20,
+      "rock_no_go": 0.65,
+      "path_passable_pct": 99.47,
+      "path_cells_passable_pct": 99.74,
+      "site_passable_pct": 97.18
+    },
+    {
+      "max_slope_deg": 20,
+      "rock_no_go": 0.75,
+      "path_passable_pct": 99.47,
+      "path_cells_passable_pct": 99.74,
+      "site_passable_pct": 97.38
+    },
+    {
+      "max_slope_deg": 20,
+      "rock_no_go": 0.85,
+      "path_passable_pct": 99.47,
+      "path_cells_passable_pct": 99.74,
+      "site_passable_pct": 97.49
+    },
+    {
+      "max_slope_deg": 25,
+      "rock_no_go": 0.65,
+      "path_passable_pct": 99.8,
+      "path_cells_passable_pct": 99.87,
+      "site_passable_pct": 98.36
+    },
+    {
+      "max_slope_deg": 25,
+      "rock_no_go": 0.75,
+      "path_passable_pct": 99.8,
+      "path_cells_passable_pct": 99.87,
+      "site_passable_pct": 98.63
+    },
+    {
+      "max_slope_deg": 25,
+      "rock_no_go": 0.85,
+      "path_passable_pct": 99.8,
+      "path_cells_passable_pct": 99.87,
+      "site_passable_pct": 98.78
+    },
+    {
+      "max_slope_deg": 30,
+      "rock_no_go": 0.65,
+      "path_passable_pct": 100.0,
+      "path_cells_passable_pct": 100.0,
+      "site_passable_pct": 98.89
+    },
+    {
+      "max_slope_deg": 30,
+      "rock_no_go": 0.75,
+      "path_passable_pct": 100.0,
+      "path_cells_passable_pct": 100.0,
+      "site_passable_pct": 99.19
+    },
+    {
+      "max_slope_deg": 30,
+      "rock_no_go": 0.85,
+      "path_passable_pct": 100.0,
+      "path_cells_passable_pct": 100.0,
+      "site_passable_pct": 99.38
+    }
+  ]
+}

@@ -21,15 +21,34 @@ export const SITE_LAT_DEG = 18.45;
  */
 export const DEMO_LS_DEG = 0;
 
-// PLACEHOLDER: replace with Perseverance MEDA values.
-/** Coldest air temperature of the sol, °C. */
-export const TEMP_MIN_C = -83;
-/** Local mean solar time (hours) of the coldest moment, just before dawn. */
-export const TEMP_MIN_LMST = 5.5;
-/** Warmest air temperature of the sol, °C. */
-export const TEMP_MAX_C = -23;
-/** Local mean solar time (hours) of the warmest moment, early afternoon. */
-export const TEMP_MAX_LMST = 14;
+// ---- Air temperature: measured by Perseverance's MEDA weather station at Jezero ----
+// Source: Munguira, A., et al. (2023). Near Surface Atmospheric Temperatures at Jezero
+// From Mars 2020 MEDA Measurements. JGR Planets 128, e2022JE007559,
+// doi:10.1029/2022JE007559. Table 1, air temperature at 1.45 m above the ground,
+// season Ls 25° (sols 34-40): Tmin 191 K, Tmax 243 K, time of Tmin 05:00 and time
+// of Tmax 15:00, where each time is the start of a 30-minute window in local TRUE
+// solar time (LTST).
+// Ls 25° is the season closest to our demo season (Ls 0°) that the table lists. The
+// paper says daily air temperatures "increased only slightly" over the first 280 sols.
+
+/** True: the temperature minimum, maximum and their times are measured values. */
+export const TEMP_IS_SOURCED = true;
+/** Season the temperature values were measured in (areocentric solar longitude, degrees). */
+export const TEMP_SOURCE_LS_DEG = 25;
+/** Daily minimum air temperature at 1.45 m, kelvin (Munguira et al. 2023, Table 1). */
+export const TEMP_MIN_K = 191;
+/** Daily maximum air temperature at 1.45 m, kelvin (Munguira et al. 2023, Table 1). */
+export const TEMP_MAX_K = 243;
+/** Middle of the 05:00-05:30 LTST window in which the minimum falls (hours, true solar time). */
+export const TEMP_MIN_LTST = 5.25;
+/** Middle of the 15:00-15:30 LTST window in which the maximum falls (hours, true solar time). */
+export const TEMP_MAX_LTST = 15.25;
+
+const KELVIN_TO_C = -273.15;
+/** Coldest air temperature of the sol, °C (191 K). */
+export const TEMP_MIN_C = TEMP_MIN_K + KELVIN_TO_C;
+/** Warmest air temperature of the sol, °C (243 K). */
+export const TEMP_MAX_C = TEMP_MAX_K + KELVIN_TO_C;
 
 const RAD = Math.PI / 180;
 const sinDeg = (deg: number) => Math.sin(deg * RAD);
@@ -133,9 +152,19 @@ const DEMO_EOT_DEG = equationOfTimeDeg(DEMO_LS_DEG);
 const DEMO_DECLINATION_DEG = solarDeclinationDeg(DEMO_LS_DEG);
 
 /**
- * Air temperature in °C over the sol: a smooth curve that bottoms out at
- * TEMP_MIN_C at TEMP_MIN_LMST, peaks at TEMP_MAX_C at TEMP_MAX_LMST, and never
- * leaves that range. PLACEHOLDER shape and values: replace with Perseverance MEDA data.
+ * The measured times are in true solar time (they follow the sun). The app's clock
+ * is local MEAN solar time, so they are converted with the demo season's equation of
+ * time (Mars24 C-4). At Ls 0° that makes them about 41 minutes later on the LMST clock.
+ */
+export const TEMP_MIN_LMST = wrap24(TEMP_MIN_LTST - DEMO_EOT_DEG / 15);
+export const TEMP_MAX_LMST = wrap24(TEMP_MAX_LTST - DEMO_EOT_DEG / 15);
+
+/**
+ * Air temperature in °C over the sol. The lowest and highest values and the times
+ * they happen are measured (see the constants above). BETWEEN them the curve is our
+ * own smooth interpolation (half a cosine up, half a cosine down): it passes through
+ * the measured minimum and maximum and never leaves that range, but its exact shape
+ * in between is an assumption.
  */
 export function temperatureC(lmstHours: number): number {
   const sinceMin = wrap24(lmstHours - TEMP_MIN_LMST);

@@ -1,0 +1,232 @@
+/* Styles for the standalone plug-in pieces: ElevationProfile and StopCard.
+   Everything uses the Contract 6 tokens from styles/tokens.css.
+   Hairlines only: no rounded cards, no shadows, no gradients. */
+
+/* ---- ElevationProfile ---- */
+.elevation-profile {
+  position: relative;
+  width: 100%;
+  height: 70px;
+  border-top: 1px solid var(--hairline);
+  border-bottom: 1px solid var(--hairline);
+  background: var(--console);
+  color: var(--muted);
+  font: 500 10px var(--font-mono);
+  overflow: hidden;
+}
+.elevation-profile svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+/* The SVG is stretched to the strip, so strokes are kept at their own pixel width. */
+.elevation-profile line,
+.elevation-profile polyline {
+  vector-effect: non-scaling-stroke;
+  fill: none;
+}
+.elevation-profile__line {
+  stroke: var(--mars);
+  stroke-width: 1.5;
+  stroke-linejoin: round;
+}
+.elevation-profile__fill {
+  fill: var(--mars);
+  fill-opacity: 0.1;
+  stroke: none;
+}
+.elevation-profile__stop {
+  stroke: var(--muted);
+  stroke-width: 1;
+  stroke-dasharray: 3 3;
+}
+.elevation-profile__cursor {
+  stroke: var(--safe);
+  stroke-width: 1.5;
+}
+.elevation-profile span {
+  position: absolute;
+  line-height: 1;
+  white-space: nowrap;
+  pointer-events: none;
+}
+.elevation-profile__stop-label {
+  top: 3px;
+  transform: translateX(-50%);
+  padding: 0 3px;
+  background: var(--console);
+  color: var(--mars);
+  font-weight: 600;
+}
+.elevation-profile__max,
+.elevation-profile__min,
+.elevation-profile__source {
+  padding: 1px 3px;
+  background: var(--console);
+  font-variant-numeric: tabular-nums;
+}
+.elevation-profile__max {
+  left: 4px;
+  top: 18px;
+  color: var(--text);
+}
+.elevation-profile__min {
+  left: 4px;
+  bottom: 4px;
+  color: var(--text);
+}
+.elevation-profile__source {
+  right: 4px;
+  bottom: 4px;
+}
+.elevation-profile--empty {
+  display: grid;
+  place-items: center;
+}
+.elevation-profile--empty span {
+  position: static;
+}
+
+/* ---- StopCard ---- */
+.stop-card-plugin {
+  width: min(560px, 100%);
+  border: 1px solid var(--hairline);
+  background: var(--console);
+  color: var(--text);
+  font: 13px/1.5 var(--font-body);
+}
+.stop-card-plugin__header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  border-bottom: 1px solid var(--hairline);
+}
+.stop-card-plugin__number {
+  color: var(--mars);
+  font: 600 20px var(--font-mono);
+  font-variant-numeric: tabular-nums;
+}
+.stop-card-plugin__header h2 {
+  flex: 1;
+  min-width: 0;
+  margin: 0;
+  font: 600 16px var(--font-heading);
+}
+.stop-card-plugin__sr {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+.stop-card-plugin__close {
+  min-width: var(--touch-target);
+  min-height: var(--touch-target);
+  padding: 0 var(--space-3);
+  border: 1px solid var(--hairline);
+  border-radius: 0;
+  background: transparent;
+  color: var(--text);
+  cursor: pointer;
+  font: 500 11px var(--font-mono);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.stop-card-plugin__close:hover {
+  border-color: var(--safe);
+}
+.stop-card-plugin__close:focus-visible {
+  outline: 2px solid var(--safe);
+  outline-offset: 2px;
+}
+.stop-card-plugin__view {
+  margin: 0;
+  border-bottom: 1px solid var(--hairline);
+}
+.stop-card-plugin__view img,
+.stop-card-plugin__orbital {
+  display: block;
+  width: 100%;
+  background-color: var(--void);
+}
+.stop-card-plugin__view img {
+  height: auto;
+  max-height: 46svh;
+  object-fit: cover;
+}
+/* Same 1.4 : 1 shape as basemap.png, so one zoom number fits both directions. */
+.stop-card-plugin__orbital {
+  position: relative;
+  aspect-ratio: 7 / 5;
+  max-height: 46svh;
+  background-repeat: no-repeat;
+  overflow: hidden;
+}
+.stop-card-plugin__orbital--missing {
+  display: grid;
+  place-items: center;
+  color: var(--muted);
+  font: 11px var(--font-mono);
+}
+/* Marks the stop itself on the orbital view: orange = the plan. */
+.stop-card-plugin__spot {
+  position: absolute;
+  width: 14px;
+  height: 14px;
+  margin: -7px 0 0 -7px;
+  border: 2px solid var(--mars);
+  border-radius: 50%;
+  background: transparent;
+}
+.stop-card-plugin__view figcaption {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: var(--space-1) var(--space-3);
+  padding: var(--space-2) var(--space-4);
+  color: var(--muted);
+  font: 10px var(--font-mono);
+  letter-spacing: 0.04em;
+}
+.stop-card-plugin__view figcaption > span:first-child {
+  color: var(--text);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+.stop-card-plugin__num {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+}
+.stop-card-plugin__why {
+  padding: var(--space-3) var(--space-4);
+  border-bottom: 1px solid var(--hairline);
+}
+.stop-card-plugin__why h3,
+.stop-card-plugin__facts dt {
+  margin: 0 0 var(--space-1);
+  color: var(--muted);
+  font: 500 10px var(--font-mono);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+.stop-card-plugin__why p {
+  margin: 0;
+}
+.stop-card-plugin__facts {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  margin: 0;
+}
+.stop-card-plugin__facts > div {
+  padding: var(--space-3) var(--space-4);
+}
+.stop-card-plugin__facts > div + div {
+  border-left: 1px solid var(--hairline);
+}
+.stop-card-plugin__facts dd {
+  margin: 0;
+  font: 500 18px var(--font-mono);
+  font-variant-numeric: tabular-nums;
+}

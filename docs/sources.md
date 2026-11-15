@@ -20,10 +20,10 @@ Credit images "NASA/JPL-Caltech" (+ instrument team). Model assumptions are in [
 | Thermal | THEMIS-derived Thermal Inertia of Jezero Crater, Mars (quantitative, 100 m/pixel). Edwards, C.S. & Buz, J. (2021), Zenodo, version 1, CC BY 4.0. doi:10.5281/zenodo.4931348 | Mars Odyssey THEMIS | https://zenodo.org/records/4931348 | ✅ (file downloaded, md5 checked) | Thermal-inertia layer: values under 175 are treated as soft sand | **Used** |
 | Thermal (not used) | THEMIS Thermal Inertia Mosaic Quantitative 00N060E 100mpp, USGS Astrogeology (2014); method Fergason, Christensen & Kieffer 2006 | Mars Odyssey THEMIS | https://astrogeology.usgs.gov/search/map/themis_thermal_inertia_mosaic_quantitative_00n060e_100mpp | ✅ (page opened; a few pixels read) | Cross-check only. Reads about 100 units higher than the Jezero-specific product over our window (mean ~314 vs ~215) | Not used |
 | Spectral | CRISM MTRDR observation HRL000040FF (36 m/pixel), refined summary parameters `hrl000040ff_07_sr183j_mtr3`: D2300, MIN2295_2480, MIN2345_2537. PDS Geosciences Node dataset MRO-M-CRISM-5-RDR-MPTARGETED-V1.0 | MRO CRISM | https://pds-geosciences.wustl.edu/mro/mro-m-crism-5-rdr-mptargeted-v1/mrocr_4001/mtrdr/2007/2007_029/hrl000040ff/ | ✅ (file opened and read) | Science-value layer: relative 0–1 clay/carbonate index | **Used** |
-| Atmospheric | MEDA weather data | Perseverance MEDA | ⬜ (PDS Atmospheres Node) | ⬜ | Will replace the placeholder temperature curve | Planned |
+| Atmospheric | MEDA air temperature at 1.45 m: daily minimum, maximum and their local times, from Munguira et al. 2023, Table 1 (see papers below) | Perseverance MEDA | https://doi.org/10.1029/2022JE007559 | ✅ (Table 1 read in the published article) | Daily temperature curve in `env.ts` (`TEMP_IS_SOURCED = true`) | **Used** |
 | Radiation | RAD surface dose | Curiosity RAD (Gale Crater) | See Hassler et al. 2014 below | ✅ (record) | Baseline dose rate, applied to Jezero | Used (`DOSE_MSV_PER_SOL`) |
 | Basemap tiles | NASA Mars Trek (JPL) | Several | https://trek.nasa.gov/mars/ | ✅ | Equirectangular basemap tiles in Leaflet | Used / testing |
-| Rover photos | Perseverance raw images (Mastcam-Z, Navcam) | Perseverance | ⬜ | ⬜ | Ground-view photo at each stop. Raw images are tagged by site/drive, not coordinates, so we place them by hand. | Planned |
+| Rover photos | Perseverance raw images (front Hazcam, Navcam), NASA Mars 2020 raw image gallery | Perseverance | https://mars.nasa.gov/mars2020/multimedia/raw-images/ | ✅ (seven images downloaded; see "Rover photos" below) | Ground-view photo at each rover sampling stop, `app/public/photos/`. Credit: NASA/JPL-Caltech | **Used** |
 | Rover traverse | NASA "Where is Perseverance" waypoints file | Perseverance | https://mars.nasa.gov/mmgis-maps/M20/Layers/json/M20_waypoints.json | ✅ | Landing-site coordinates for HAB-1 (first waypoint: 18.44462715 N, 77.45088572 E) | **Used** |
 | Rover samples | Mars 2020 Initial Reports, Volume 1 (Crater Floor Campaign), Farley, K. & Stack, K. (2022), doi:10.17189/68tf-re13; Volume 2 (Delta Front Campaign), Farley, K. & Stack, K. (2023), doi:10.17189/49zd-2k55. NASA PDS Sample Dossier | Perseverance | https://pds-geosciences.wustl.edu/m2020/urn-nasa-pds-mars2020_sample_dossier/initial_reports/ | ✅ (both PDFs opened; coordinates and rock descriptions extracted) | Coordinates and descriptions of the seven rover sampling sites used as POIs | **Used** |
 | Space weather | NASA DONKI space weather database | Several | ⬜ | ⬜ | Real solar particle event examples for the story | Planned |
@@ -54,7 +54,8 @@ Credit images "NASA/JPL-Caltech" (+ instrument team). Model assumptions are in [
 | Mangold, N., Gupta, S., Gasnault, O., Dromart, G., et al. (2021). Perseverance rover reveals an ancient delta-lake system and flood deposits at Jezero crater, Mars. *Science* 374. doi:10.1126/science.abl4051 | https://hal.archives-ouvertes.fr/hal-03375854/file/Mangold_Science_withFiguresHAL.pdf | 🔎 (search result and press summaries; PDF not opened) | Rover confirmation of the lake and delta, and flood boulders. Used in [`science-case.md`](science-case.md) |
 | Goudge, T.A., et al. (2015). Assessing the mineralogy of the watershed and fan deposits of the Jezero crater paleolake system, Mars. *JGR Planets* 120, 775–808. doi:10.1002/2014JE004782 | https://ui.adsabs.harvard.edu/abs/2015JGRE..120..775G | 🔎 (ADS abstract via search; author order to confirm on the DOI page) | Clay, carbonate and olivine in the delta, mostly carried in from the watershed. Used in [`science-case.md`](science-case.md) |
 | Horgan, Anderson, Dromart, Amador and Rice (2020). The mineral diversity of Jezero crater: Evidence for possible lacustrine carbonates on Mars. *Icarus* 339, 113526. doi:10.1016/j.icarus.2019.113526 | https://pubs.usgs.gov/publication/70211826 | 🔎 (page returned 403 to us) | Carbonate locations at Jezero; fallback for the science layer if CRISM processing is too slow |
-| Rodriguez-Manfredi, J.A., et al. (2023). The diverse meteorology of Jezero crater over the first 250 sols of Perseverance on Mars. *Nature Geoscience* 16, 19–28. doi:10.1038/s41561-022-01084-0 | Summary: https://phys.org/news/2023-01-rich-meteorology-mars-perseverance-rover.html | ✅ summary only (paper behind login) | Jezero temperatures (average ~−55 °C, 50–60 °C day/night swing). Context for the placeholder curve. |
+| Rodriguez-Manfredi, J.A., et al. (2023). The diverse meteorology of Jezero crater over the first 250 sols of Perseverance on Mars. *Nature Geoscience* 16, 19–28. doi:10.1038/s41561-022-01084-0 | https://www.nature.com/articles/s41561-022-01084-0 | ✅ (open-access article read) | Cross-check only: it gives a diurnal temperature half amplitude of 26 K at 1.45 m (text for Fig. 6d), matching the 52 K range we use. **It has no explicit daily minimum/maximum numbers**, so those come from Munguira et al. 2023. |
+| Munguira, A., et al. (2023). Near Surface Atmospheric Temperatures at Jezero From Mars 2020 MEDA Measurements. *JGR Planets* 128, e2022JE007559. doi:10.1029/2022JE007559 | https://doi.org/10.1029/2022JE007559 (article PDF read at https://presentations.copernicus.org/EGU23/EGU23-5885_presentation.pdf; the publisher page returned 403 to us) | ✅ (Table 1 read) | **Source of the temperature values.** Table 1, air temperature at 1.45 m, Ls 25° (sols 34–40): Tmin 191 K at 05:00, Tmax 243 K at 15:00 (30-minute windows, local true solar time) |
 | NASA Human Integration Design Handbook (NASA/SP-2010-3407, Rev. 1, 2014) | https://www.nasa.gov/sites/default/files/atoms/files/human_integration_design_handbook_revision_1.pdf | 🔎 | Planned source for suited metabolic rates to replace `WALK_BURN` / `WORK_BURN` |
 
 ## Notes on the terrain data
@@ -62,6 +63,36 @@ Credit images "NASA/JPL-Caltech" (+ instrument team). Model assumptions are in [
 - **Landing-site coordinates.** The often-quoted 18.4447 N, 77.4508 E appeared only on Wikipedia in our searches. NASA's own waypoints file gives 18.44462715 N, 77.45088572 E, so HAB-1 uses 18.4446 N, 77.4509 E (about 6 m different).
 - **"Octavia E. Butler Landing"** is an informal NASA name; it is not in the IAU/USGS Gazetteer of Planetary Nomenclature.
 - **Zenodo downloads.** The thermal inertia file downloads with a normal request; no account is needed.
+
+## Rover photos
+
+One real Perseverance raw image per rover sampling stop, in `app/public/photos/`. All are credited **NASA/JPL-Caltech** by NASA's raw image gallery. The only change we made is saving the PNG as a JPEG. The app reads the camera and sol from `app/src/lib/photoCredits.ts`, which holds the same facts as this table.
+
+**How each photo was checked.** Raw images carry a site/drive tag, not coordinates. Three things were checked for every photo:
+
+1. **Place.** NASA's waypoints file gives the lat/lng of each site/drive. The waypoint with the photo's site/drive tag is 0.2 to 2.6 m from the stop's coordinates ("Waypoint to stop" below).
+2. **Date.** The photo's sol is inside the sampling sols listed for that stop in `pipeline/data/site_meta.json` (from the Mars 2020 Initial Reports).
+3. **Content.** We looked at each image. "What the image shows" is our own description, not NASA's.
+
+| File | Stop | Camera | Photo sol (Earth date) | Sampling sols | Site / drive | Waypoint to stop | What the image shows | NASA image ID (source URL) |
+|---|---|---|---|---|---|---|---|---|
+| `seitah-brac.jpg` | Séítah outcrop (Brac) | Front Left Hazcam | 262 (15 Nov 2021) | 262–271 | 8 / 0 | 0.6 m | Arm and turret on a rock outcrop | [FLF_0262_0690210688_738ECM_N0080000FHAZ00206_01_295J](https://mars.nasa.gov/mars2020/multimedia/raw-images/FLF_0262_0690210688_738ECM_N0080000FHAZ00206_01_295J) |
+| `maaz-sid.jpg` | Máaz lava rock (Sid) | Front Left Hazcam | 371 (7 Mar 2022) | 371–377 | 11 / 108 | 2.6 m | Arm and turret on a single boulder | [FLF_0371_0699884867_862ECM_N0110108FHAZ00206_01_295J](https://mars.nasa.gov/mars2020/multimedia/raw-images/FLF_0371_0699884867_862ECM_N0110108FHAZ00206_01_295J) |
+| `maaz-rochette.jpg` | Rochette (Artuby ridge) | Left Navcam | 190 (1 Sep 2021) | 190–196 | 7 / 0 | 0.2 m | Arm raised over a field of flat rocks; **the cored rock is not picked out in the frame** | [NLF_0190_0683808901_487ECM_N0070000NCAM00209_01_295J](https://mars.nasa.gov/mars2020/multimedia/raw-images/NLF_0190_0683808901_487ECM_N0070000NCAM00209_01_295J) |
+| `seitah-issole.jpg` | Séítah outcrop (Issole) | Front Left Hazcam | 337 (31 Jan 2022) | 295–337 | 9 / 276 | 2.0 m | Arm and turret on a flat outcrop | [FLF_0337_0696864692_347ECM_N0090276FHAZ00206_01_295J](https://mars.nasa.gov/mars2020/multimedia/raw-images/FLF_0337_0696864692_347ECM_N0090276FHAZ00206_01_295J) |
+| `delta-wildcat-ridge.jpg` | Wildcat Ridge (Hawksbill Gap) | Front Left Hazcam | 509 (26 Jul 2022) | 509–516 | 26 / 1222 | 2.0 m | Arm and turret on layered rock | [FLF_0509_0712138514_736ECM_N0261222FHAZ00206_01_295J](https://mars.nasa.gov/mars2020/multimedia/raw-images/FLF_0509_0712138514_736ECM_N0261222FHAZ00206_01_295J) |
+| `delta-amalik.jpg` | Amalik (Cape Nukshak) | Front Left Hazcam | 575 (2 Oct 2022) | 575–579 | 29 / 0 | 2.2 m | Arm and turret on a fractured outcrop | [FLF_0575_0717995745_942ECM_N0290000FHAZ00206_01_295J](https://mars.nasa.gov/mars2020/multimedia/raw-images/FLF_0575_0717995745_942ECM_N0290000FHAZ00206_01_295J) |
+| `delta-hidden-harbor.jpg` | Hidden Harbor (Yori Pass) | Front Left Hazcam | 623 (20 Nov 2022) | 623 | 30 / 1172 | 2.5 m | Arm and turret on a flat outcrop | [FLF_0623_0722254512_006ECM_N0301172FHAZ00216_01_295J](https://mars.nasa.gov/mars2020/multimedia/raw-images/FLF_0623_0722254512_006ECM_N0301172FHAZ00216_01_295J) |
+
+**Confirmed for all seven:** the rover was parked at the stop (place) during its sampling work there (date).
+
+**Not confirmed (flagged):**
+
+- **Which rock is in the frame.** NASA's raw-image captions are generic ("acquired this image using its onboard Front Left Hazard Avoidance Camera") and do not name the rock. We have not matched any frame to a named, captioned NASA image of Brac, Sid, Rochette, Issole, Wildcat Ridge, Amalik or Hidden Harbor. So say "Perseverance at this sampling site", not "this is the Brac rock".
+- **`maaz-rochette.jpg`** is the weakest: it is a wide Navcam view with the arm raised, and we cannot tell which rock was cored.
+- **`seitah-issole.jpg`** was taken on sol 337, the last sampling sol at Issole, after the rover had left and come back (site 9 / drive 276; the first visit was site 9 / drive 0, 2.7 m from the stop).
+
+The delta front toe has no photo: Perseverance never went there. The app shows a HiRISE crop of the spot instead, labelled "No rover visit · orbital view".
 
 ## To do
 

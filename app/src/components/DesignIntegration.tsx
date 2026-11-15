@@ -7,6 +7,7 @@ import {
 import type { HelmetHudProps } from "./HelmetHud";
 import type { MissionBriefingProps } from "./MissionBriefing";
 import type { DemoStop } from "../lib/MissionContext";
+import { photoDetails } from "../lib/photos";
 import { WORK_BURN } from "../lib/planner";
 import { publicAssetUrl } from "../lib/assets";
 import { Dialog } from "./Dialog";
@@ -104,7 +105,7 @@ export function StopCard({
         <DesignStop
           stop={stop}
           photoUrl={publicAssetUrl(stop.photo)}
-          photoCredit={stop.photoCredit}
+          photoCredit={photoDetails(stop.photo)?.credit ?? stop.photoCredit}
           why={stop.why}
           dwellMin={stop.dwellMin}
           tools={stop.tools ?? []}

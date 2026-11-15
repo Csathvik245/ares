@@ -41,3 +41,30 @@ Emergency return can now be played or paused. This is frontend playback of the r
 H and Delete now work when ordinary buttons are focused; text inputs retain their normal editing keys. Escape closes HUD/dialogs. Space retains native focused-button activation and otherwise toggles mission/return playback. H, Escape, Space and Delete were exercised in Chrome. The local mosaic, credits, demo stop notes, missing-photo fallback and completed return playback were visually inspected. Exact responsive dimensions were explored in DevTools; a complete desktop/tablet visual review is still recommended.
 
 All 95 tests, TypeScript and production build passed. Changes are limited to frontend files under app/src and are not pushed by the agent. Production has the functional update; the last source-dialog attribution text refinement is local and will appear on the next deployment. Final design/AI components and rover photo assets are still teammate inputs.
+
+
+## Flight console presentation update (local, November 14)
+
+Implemented the supplied frontend plan in the console and fallback screens. The original checklist is preserved in FRONTEND-PLAN.md; boxes remain unchecked because these changes have not been pushed to main. No planner, pipeline, backend, public asset, design-module, or shared-token files were edited.
+
+- Desktop grid: 264 px layers, flexible map, 336 px mission rail, 56 px header, 96 px timeline. Internal panel scrolling; tablet Map/Plan/Layers tabs expose bottom sheets.
+- Fit habitat and mission stops on first load and demo load. Numbered markers above rover markers; short labels, outlined orange route, dimmed exterior of the safe zone with cyan edge, and a 500 m scale computed on the Mars sphere.
+- EVA status uses planRoute with current conditions; return status and reasons use abortRoute. Storm/SPE alert overlays the map. Walked/cancelled/return paths are distinct; return playback drives the marker and HUD.
+- Oxygen used/margin/reserve bar; projected arrival percentage; compact six-stat grid; editable/reorderable stops with arrival times; emergency controls; segmented, accessible scrub timeline.
+- Simpler HiRISE briefing and bar-based HUD, without gradients or glow. Reduced-motion rules cover route, status, oxygen and briefing motion.
+- Stop dialogs use supplied photos when available, otherwise credited HiRISE orbital context. Delta front toe explicitly states no rover visit. Temperature and burn-rate assumptions stay visible; source dialog reads site.json citations.
+
+Validation: TypeScript, production build, and 145 tests pass. New tests check route splitting against positionAt, preservation of route geometry, heading, clock formatting, and the actual T+1:16 demo emergency (EVA NO-GO, return CAUTION, 57 min home, 66% oxygen).
+
+Chrome local checks: responsive viewport set to 1440 × 900 for GO/storm/playback/HUD and 1024 × 768 for the tablet map and mission sheet. GO showed 4.97 km, 3:35, 49%, and 192 min margin. Orbital stop detail and opening briefing were inspected. Console showed React development advice and extension-generated Redirect Blocker messages, with no app runtime errors observed. The storm screenshot was scrubbed to 4531 seconds (rounded display T+1:16); exact 4560 seconds is verified by the regression test. Browser emulation used Fit to window, so final recording still needs a fresh production window at 100% zoom.
+
+Remaining: team target Figma canvas link for comparison, actual rover photos and credits.json, approved ARES branding, MEDA temperature data, owner-authorized GitHub/Vercel auto-deploy, and final production/video/source consistency review after the user's commit and push. No deployment or GitHub push was performed for this presentation update.
+
+
+## Rover-photo credit integration
+
+The seven supplied JPEGs now have credits.json metadata transcribed from the science team's docs/sources.md: NASA/JPL-Caltech credit, original NASA image link/ID, camera, sol, Earth date and stop context. Stop dialogs render this attribution alongside the actual photo; optional design integration receives the same credit. No science coordinates, descriptions or planner calculations changed.
+
+At 1440 × 900 in local Chrome, the demo remained GO at 4.97 km / 3:35 / 49%; Brac's rover image and attribution loaded correctly. Chrome became unavailable before the remaining photo dialogs could be visually checked. Automated checks verify all seven photo paths are real JPEGs with corresponding source metadata; 146 tests, TypeScript and build pass. Credits are sourced from the team's document, not independently re-researched. These additions require commit/push.
+
+Production CLI deployment of this photo-credit update succeeded. The public app shell, seven-entry credits.json and Brac/Sid JPEGs returned HTTP 200; downloaded JPEG signatures were verified. GitHub push was not performed. Fresh production-browser visual review remains pending.
