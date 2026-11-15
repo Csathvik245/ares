@@ -1,5 +1,5 @@
 import { ShelterGuidance } from "./components/ShelterGuidance";
-import { useEffect, useMemo, useState } from "react";
+import { lazy, Suspense, useEffect, useMemo, useState } from "react";
 import { Hud, OpeningScreen } from "./components/DesignIntegration";
 import { ElevationProfile } from "./components/ElevationProfile";
 import { StopCard as StopDetailCard } from "./components/StopCard";
@@ -17,6 +17,10 @@ import { FlightTimeline } from "./components/FlightTimeline";
 import { MissionPanel } from "./components/MissionPanel";
 import { LayerRail } from "./components/LayerRail";
 import { useMedia } from "./lib/useMedia";
+import { Map3DToggle } from "./components/Map3DToggle";
+
+// 3D terrain view (stretch feature). three.js loads only when someone opens it.
+const Terrain3D = lazy(() => import("./components/Terrain3D"));
 import "./console.css";
 import {
   AssistantIntegration,
@@ -46,6 +50,7 @@ function Console() {
     [sources, setSources] = useState(false),
     [assistant, setAssistant] = useState(false),
     [detail, setDetail] = useState("");
+  const [view3d, setView3d] = useState(false);
   // Desktop uses one consolidated left panel; tablet keeps the Map / Plan / Layers tabs.
   const desktop = useMedia("(min-width: 1025px)");
   // The consolidated layout belongs to the Deep Space / Mono themes; ?theme=classic keeps the three-column console.
@@ -203,6 +208,33 @@ function Console() {
             }}
             onProbe={setProbe}
           >
+            <Map3DToggle active={view3d} onToggle={() => setView3d((v) => !v)} />
+            {view3d && (
+              <Suspense
+                fallback={
+                  <div className="terrain-3d terrain-3d--loading" role="status">
+                    Loading 3D terrain…
+                  </div>
+                }
+              >
+                <Terrain3D
+                  site={site}
+                  cost={cost}
+                  zone={m.zone}
+                  active={active}
+                  basemapUrl={m.basemap?.url}
+                  plan={plan}
+                  stops={m.stops}
+                  position={position}
+                  abort={abort?.path ?? EMPTY_PATH}
+                  emergency={!!emergency}
+                  elapsedSec={m.elapsed}
+                  returnElapsedSec={m.returnElapsed}
+                  incidentAt={emergency?.at}
+                  abortSec={abort?.sec}
+                />
+              </Suspense>
+            )}
             {emergency && (
               <aside className="storm-alert" role="alert">
                 <div>

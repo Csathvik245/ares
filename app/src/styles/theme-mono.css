@@ -92,8 +92,9 @@
 [data-theme="mono"] .leaflet-image-layer {
   filter: grayscale(1) contrast(1.05);
 }
+/* Light blues in the zone raster become electric blue; see #ds-zone-blue in Map3DToggle.tsx. */
 [data-theme="mono"] .safe-zone {
-  filter: hue-rotate(24deg) saturate(1.5) brightness(1.15);
+  filter: url(#ds-zone-blue);
 }
 /* Planned route and the part already walked when an emergency starts. The red abort route is left alone. */
 [data-theme="mono"] .leaflet-routes-pane path[stroke="#ff6b35"] {
