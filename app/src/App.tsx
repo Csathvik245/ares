@@ -36,6 +36,8 @@ import { GuidedDemo } from "./components/GuidedDemo";
 import { SciencePage } from "./components/SciencePage";
 import { CONSOLE_TABS, hashOfTab, runDemo, tabFromHash, type AppTab } from "./lib/appTabs";
 import { demoBriefing } from "./lib/story";
+import { GuideButton, UserGuide } from "./components/UserGuide";
+import { hintNeeded, rememberHint } from "./lib/guide";
 const EMPTY_PATH: LatLng[] = [];
 function Console({ initialHash }: { initialHash?: string }) {
   const m = useMission();
@@ -73,6 +75,39 @@ function Console({ initialHash }: { initialHash?: string }) {
   const consolidated =
     desktop && document.documentElement.dataset.theme !== "classic";
   const { site, plan, cost, position, emergency, abort } = m;
+  // The user guide (a panel on the right, on every tab) and its first-visit hint on the Plan tab.
+  const [guideOpen, setGuideOpen] = useState(false);
+  const [guideHint, setGuideHint] = useState(false);
+  const dismissGuideHint = () => {
+    setGuideHint(false);
+    rememberHint();
+  };
+  const toggleGuide = () => {
+    setGuideOpen((open) => !open);
+    dismissGuideHint(); // opening the guide is what the hint asked for
+  };
+  // The first time the Plan tab is opened, point at the Guide button. Never again after that.
+  useEffect(() => {
+    if (screen === "plan" && hintNeeded()) setGuideHint(true);
+  }, [screen]);
+  // "?" opens the guide from any tab; Esc closes it.
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.ctrlKey || e.metaKey || e.altKey) return;
+      if (e.key === "Escape") {
+        setGuideOpen(false);
+        return;
+      }
+      const el = e.target as HTMLElement | null;
+      if (e.key !== "?" || el?.closest?.('input,textarea,select,[contenteditable="true"]')) return;
+      e.preventDefault();
+      setGuideOpen(true);
+      setGuideHint(false);
+      rememberHint();
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, []);
   // Open a tab and put it in the URL (#story, #plan, #science), so back and forward work.
   const go = (tab: AppTab) => {
     setScreen(tab);
@@ -128,10 +163,27 @@ function Console({ initialHash }: { initialHash?: string }) {
     window.addEventListener("keydown", handler);
     return () => window.removeEventListener("keydown", handler);
   });
+  // One Guide button and one panel, used by all three tabs. The hint is for the Plan tab only.
+  const guideButton = (
+    <GuideButton open={guideOpen} onToggle={toggleGuide} hint={guideHint && screen === "plan"} onDismissHint={dismissGuideHint} />
+  );
+  const guidePanel = (
+    <UserGuide
+      open={guideOpen}
+      onClose={() => setGuideOpen(false)}
+      onRunDemo={() => {
+        setGuideOpen(false); // out of the way of the demo's card
+        runDemo(go);
+      }}
+    />
+  );
   if (screen === "story")
     return (
       <div className="app-page app-page--story">
-        <AppBar current="story" onSelect={go} />
+        <AppBar current="story" onSelect={go}>
+          {guideButton}
+        </AppBar>
+        {guidePanel}
         <OpeningScreen
           onBeginPlanning={() => go("plan")}
           onRunDemo={() => runDemo(go)}
@@ -147,10 +199,12 @@ function Console({ initialHash }: { initialHash?: string }) {
     return (
       <div className="app-page app-page--science">
         <AppBar current="science" onSelect={go}>
+          {guideButton}
           <button type="button" className="app-run-demo" onClick={() => runDemo(go)}>
             Run the demo
           </button>
         </AppBar>
+        {guidePanel}
         <SciencePage />
       </div>
     );
@@ -398,12 +452,14 @@ function Console({ initialHash }: { initialHash?: string }) {
             </span>
           )}
           {!noPlan && <Jargon term={emergency ? "status" : "EVA"} />}
+          {guideButton}
           <button type="button" className="app-run-demo" onClick={() => runDemo(go)}>
             Run the demo
           </button>
           <ViewMenu items={viewItems} />
         </div>
       </header>
+      {guidePanel}
       <nav className="tablet-tabs" aria-label="Console panels">
         {CONSOLE_TABS.map((t) => (
           <button key={t.id} aria-pressed={tab === t.id} onClick={() => setTab(t.id)}>
