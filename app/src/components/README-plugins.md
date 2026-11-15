@@ -93,10 +93,41 @@ To add one where it is cheapest: `const next = [...m.stops]; next.splice(idea.in
 - It returns `[]` when the current plan is not GO, and during a storm or solar event.
 - The suggested spots are picked from orbital CRISM data only. Label them as suggestions: the planner suggests, the astronaut decides.
 
+## 5. Planner worker client
+
+Runs the planner in a Web Worker so the map and playback never wait for it. The worker (`planner/worker.ts`) loads `site.json` once; `lib/plannerClient.ts` is the typed promise API. **Not wired into the UI yet.** It is for replacing the direct planner calls in `MissionContext.tsx` (`planRoute`, `safeZone`, `abortRoute`, `positionAt`).
+
+```ts
+import { createPlannerClient, isCancelled } from "./plannerClient";
+```
+
+```ts
+const planner = createPlannerClient(); // once, e.g. in a useRef or at module level
+```
+
+Then, in place of the direct calls:
+
+```ts
+const plan = await planner.plan(stops, conditions);
+const zone = await planner.safeZone();                                   // zone of that plan
+const abort = await planner.abort(from, oxygenUsedSec, { ...conditions, storm: true });
+const here = await planner.positionAt(tSec);
+const ideas = await planner.suggestStops(3);
+const walkHomeSec = await planner.walkHome();                            // Float32Array, for the cursor probe
+```
+
+- **Latest wins.** A newer call of the same kind makes the older one reject with `PlannerCancelled`, and a new `plan()` also cancels pending `safeZone()`, `positionAt()`, `suggestStops()` and `walkHome()`. In an effect: `planner.plan(stops, conditions).then(setPlan).catch((e) => { if (!isCancelled(e)) throw e; })`.
+- `safeZone()`, `positionAt()` and `suggestStops()` use the plan from the last `plan()` call, so call `plan()` first.
+- `planner.ready` resolves with the site's name, bounds, size, habitat, POIs and sources. The big layers stay in the worker, so the map still needs its own `site.json` for drawing layers.
+- `positionAt` is cheap. During playback, calling the planner's own `positionAt(plan, t)` on the main thread with the plan you already have is simpler than a message per frame.
+- Plan + zone through the client takes about 30 ms in tests (worker code run in-process). Call `planner.close()` when done.
+
 ## Tests
 
-`npm test` runs `lib/zoneCleanup.test.ts`, `lib/profile.test.ts`, `planner/science.test.ts` and `components/plugins.test.tsx` (the components are rendered to HTML and checked on the real `site.json`).
+`npm test` runs `lib/zoneCleanup.test.ts`, `lib/profile.test.ts`, `planner/science.test.ts`, `lib/plannerClient.test.ts` and `components/plugins.test.tsx` (the components are rendered to HTML and checked on the real `site.json`).
 
 ## Not checked
 
 The components were tested by rendering them to HTML, not in a browser. Look at them once at 1440 × 900 after plugging in.
+
+The planner worker was tested by running its message handler in-process, with every message passed through `structuredClone`. Vite bundles it as its own chunk, but it has not been run as a real Web Worker in a browser yet.
