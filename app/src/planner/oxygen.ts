@@ -1,6 +1,6 @@
 // Oxygen budget helpers (Contracts 2 and 3). Shared by planRoute, safeZone and abortRoute.
 
-import { CONSUMABLE_HOURS, RESERVE_MIN, STORM_EXTRA_RESERVE_MIN } from "./constants";
+import { CONSUMABLE_HOURS, RESERVE_MIN, STORM_EXTRA_RESERVE_MIN, WALK_BURN, WORK_BURN } from "./constants";
 
 /** Contract 3: CAUTION when the margin is below this fraction of the usable budget. */
 export const CAUTION_MARGIN_FRACTION = 0.25;
@@ -18,6 +18,15 @@ export function oxygenBudget(storm: boolean): OxygenBudget {
   const budgetSec = CONSUMABLE_HOURS * 3600;
   const reserveSec = (RESERVE_MIN + (storm ? STORM_EXTRA_RESERVE_MIN : 0)) * 60;
   return { budgetSec, reserveSec, usableSec: budgetSec - reserveSec };
+}
+
+/**
+ * Oxygen used, in seconds of nominal life support (Contract 2):
+ * walkSec × WALK_BURN + scienceSec × WORK_BURN. The burn rates can be passed in, so
+ * the Monte Carlo simulator (montecarlo.ts) can vary them without a second formula.
+ */
+export function oxygenUsedSec(walkSec: number, scienceSec: number, walkBurn: number = WALK_BURN, workBurn: number = WORK_BURN): number {
+  return walkSec * walkBurn + scienceSec * workBurn;
 }
 
 /** True when the margin is positive but below 25% of the usable budget. */
