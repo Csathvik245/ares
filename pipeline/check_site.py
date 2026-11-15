@@ -60,6 +60,9 @@ EXPECTED_KEYS = {"name", "bounds", "width", "height", "cellSizeM", "layers",
                  "habitat", "pois", "sources"}
 OPTIONAL_KEYS = {"fake"}
 LAYER_KEYS = {"elevation", "slope", "rock", "thermalInertia", "science"}
+# Extra layer added by pipeline/build_shielding.py. The real file must have it; the
+# fake test fixture does not.
+SKY_VIEW = "skyView"
 # (min, max) allowed per layer. Missing values (null) are allowed by the contract.
 LAYER_RANGES = {
     "elevation": (-9000, 0),        # Jezero is ~ -2500 m; anything above 0 is suspicious
@@ -150,6 +153,32 @@ def check_against_dtm(site, elev, samples=400, tolerance_m=3.0):
           f"({len(diffs)} cells, median diff {np.median(diffs):.2f} m, 99th pct {np.percentile(diffs, 99):.2f} m)")
 
 
+def check_sky_view(site, layers, grids, n, is_fake):
+    """skyView (pipeline/build_shielding.py): the open fraction of the sky per cell, 0 to 1."""
+    print("\nSky view layer")
+    if SKY_VIEW not in layers:
+        if is_fake:
+            print("  [SKIP] the fake fixture has no skyView layer")
+        else:
+            check(False, "skyView layer exists (run python pipeline/build_shielding.py)")
+        return
+    arr = layers[SKY_VIEW]
+    if not check(len(arr) == n, f"skyView: length {len(arr)} (expected {n})"):
+        return
+    a = np.array([np.nan if v is None else v for v in arr], dtype=float)
+    vals = a[~np.isnan(a)]
+    check(vals.size > 0 and vals.min() >= 0 and vals.max() <= 1,
+          f"skyView: range {vals.min():.3f} .. {vals.max():.3f} within [0, 1]")
+    check(np.all(np.abs(vals * 1000 - np.round(vals * 1000)) < 1e-6), "skyView: rounded to 3 decimals")
+    if "elevation" in grids:
+        missing = int((np.isnan(a) & ~np.isnan(grids["elevation"].ravel())).sum())
+        check(missing == 0, f"skyView: no nulls where elevation exists ({missing} missing)")
+    src = str(site.get("sources", {}).get(SKY_VIEW, ""))
+    check("10.5066/P9REJ9JN" in src and "sky-view" in src, "skyView: source names the HiRISE DTM mosaic and the method")
+    # Open ground must see nearly the whole sky; a layer that is low everywhere is broken.
+    check(float(np.median(vals)) > 0.9, f"skyView: median {np.median(vals):.3f} > 0.9 (most of the site is open ground)")
+
+
 def main():
     path = sys.argv[1] if len(sys.argv) > 1 else os.path.join("app", "public", "data", "site.json")
     print(f"Checking {path}\n")
@@ -177,7 +206,7 @@ def main():
     check(b == {"south": 18.40, "north": 18.50, "west": 77.36, "east": 77.50}, f"bounds = {b}")
 
     layers = site.get("layers", {})
-    check(set(layers) == LAYER_KEYS, f"layer keys = {sorted(layers)}")
+    check(LAYER_KEYS <= set(layers) <= LAYER_KEYS | {SKY_VIEW}, f"layer keys = {sorted(layers)}")
     grids = {}
     for name in sorted(LAYER_KEYS & set(layers)):
         arr = layers[name]
@@ -216,7 +245,8 @@ def main():
     for p in [hab] + pois:
         inside = b["south"] <= p["lat"] <= b["north"] and b["west"] <= p["lng"] <= b["east"]
         check(inside, f"{p.get('id', p.get('name'))} inside bounds")
-    check(set(site.get("sources", {})) == LAYER_KEYS, "sources has one entry per layer")
+    check(set(site.get("sources", {})) == set(layers), "sources has one entry per layer")
+    check_sky_view(site, layers, grids, n, is_fake)
 
     if set(grids) != LAYER_KEYS:
         print("\nLayers malformed; skipping terrain checks.")
