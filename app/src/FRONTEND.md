@@ -1,5 +1,7 @@
 # Frontend handoff
 
+> **(old theme, superseded by the Mono theme)** The colors and fonts named in this file (orange, cyan, violet, Space Grotesk, Inter, JetBrains Mono) describe the earlier design. Current values: CLAUDE.md Contract 6 and `app/src/styles/theme-mono.css`.
+
 Run `npm ci`, then `npm run dev` from `app`. Use a supported Node release (22.12+, 24, or 26); the existing Vitest lockfile does not declare Node 25 support. Checks: `npm run typecheck`, `npm test`, `npm run build`.
 
 The application opens on the briefing; `?frontend` opens the planning console directly and hides the HUD entry point. Begin planning, click map cells or POI markers, edit stop cards, drag numbered markers, or load the demo mission. Dwell defaults to 30 min as a demonstration assumption. Drag cards or use arrow buttons to reorder them. H opens HUD, Escape closes it, Space toggles playback, and Delete removes the selected stop outside text inputs. Playback runs at 240× real time. Editing resets the playback and emergency state.

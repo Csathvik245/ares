@@ -87,7 +87,7 @@ Note: RAD is on Curiosity, not Perseverance. Label it "surface baseline measured
 
 1. **Layered map** — real Mars imagery + toggleable analysis layers (walking difficulty, slope, soft sand, boulders, science value), each labeled with data type and source mission.
 2. **Route planner** — click to add stops, set dwell time; fastest safe route habitat → stops → habitat.
-3. **Oxygen budget + safe-return zone** — gauge for oxygen at return; glowing cyan boundary that shrinks as stops are added.
+3. **Oxygen budget + safe-return zone** — gauge for oxygen at return; glowing electric-blue boundary that shrinks as stops are added.
 4. **Status light** — GO / CAUTION / NO-GO with the reason written out.
 5. **Sol timeline** — play/scrub; astronaut marker moves; sun, temperature, radiation update.
 6. **Emergencies** — Dust Storm and Solar Particle Event buttons: the **EVA** status goes NO-GO (the EVA is aborted), the zone collapses, and a red abort route home is drawn from the current position with its own **Return home** status (CAUTION if she can make it with the oxygen reserve intact, NO-GO if not). See Contract 3.
@@ -147,7 +147,7 @@ Note: RAD is on Curiosity, not Perseverance. Label it "surface baseline measured
 |---|---|
 | `/app` | React frontend |
 | `/app/src/planner` | Routing, oxygen, safe zone, abort, environment model |
-| `/app/src/styles` | `tokens.css` and global CSS |
+| `/app/src/styles` | `tokens.css`, global CSS and the theme files (`theme-deep-space.css`, `theme-mono.css`; Mono is the default, see Contract 6) |
 | `/app/public/data/site.json` | Terrain grid (Contract 1), built from real NASA data |
 | `/app/public/data/basemap.png` | HiRISE image of the site bounds (+ `basemap.json` with its source) |
 | `/app/src/planner/__fixtures__` | Fake terrain used **only** by planner unit tests |
@@ -331,26 +331,42 @@ Each tool calls a planner function; the model never calculates numbers itself.
 
 Tool loop: frontend sends message + plan summary to `/assistant`; model returns tool calls; **frontend runs them on the local planner**; results go back; model writes the answer. System prompt: brief, must call tools for every number, never declares a plan safe on its own.
 
-### Contract 6 — design tokens (`/app/src/styles/tokens.css`)
+### Contract 6 — design tokens (`/app/src/styles/theme-mono.css`)
 
-| Token | Hex | Use |
-|---|---|---|
-| `--void` | `#08090B` | App background |
-| `--console` | `#111318` | Panels |
-| `--console-2` | `#171A21` | Cards, inputs |
-| `--hairline` | `#242833` | Borders |
-| `--text` | `#ECEAE6` | Main text |
-| `--muted` | `#8A93A3` | Labels |
-| `--mars` | `#FF6B35` | Route, stops, main buttons |
-| `--safe` | `#4FD1FF` | Safe zone, astronaut, HUD |
-| `--go` | `#3DDC97` | GO |
-| `--caution` | `#FFB020` | CAUTION, soft sand |
-| `--nogo` | `#FF4D5A` | NO-GO / real danger only |
-| `--science` | `#A78BFA` | Mineral and science layers |
+Source of truth: app/src/styles/theme-mono.css. If they disagree, the CSS wins.
 
-Fonts: **Space Grotesk** (headings), **Inter** (body), **JetBrains Mono** (all numbers). Icons: **Lucide**. Spacing on a 4 px grid; radii 6 px cards, 10 px floating bars, full-round pills.
+The app runs in the **Mono theme** by default (`<html data-theme="mono">`, set in `main.tsx`): black, grey and white, with one electric-blue accent. Three files define the tokens, loaded in this order; a later file overrides an earlier one:
 
-Look: a real NASA flight instrument with modern polish — dark consoles, monospaced telemetry, one status light, faint topographic contour lines as texture, numbered stop cards inspired by Apollo cuff checklists. Map is the hero. Orange = plan, cyan = safety, red = danger only. Calm in GO, loud only in CAUTION/NO-GO. HUD text very large; touch targets ≥ 44 px; text contrast ≥ 4.5:1; respect reduced motion.
+1. `tokens.css`: token names, spacing, radii, the status colors and the base ("classic") palette, which is only shown with `?theme=classic`.
+2. `theme-deep-space.css`: the console layout, shared by the Deep Space and Mono themes (`?theme=deep-space` shows its navy palette).
+3. `theme-mono.css`: the Mono palette and fonts. This is what the demo shows.
+
+Values in effect in the Mono theme:
+
+| Token | Value | Use | Defined in |
+|---|---|---|---|
+| `--void` | `#0a0a0a` | App background | `theme-mono.css` |
+| `--void-deep` | `#050505` | Header bar | `theme-mono.css` |
+| `--console` | `#111111` | Panels | `theme-mono.css` |
+| `--console-2` | `#171717` | Cards, inputs | `theme-mono.css` |
+| `--hairline` | `rgba(255, 255, 255, 0.2)` | Borders (`rgba(var(--ds-tint), 0.2)`; the tint is white in Mono) | `theme-deep-space.css` + `theme-mono.css` |
+| `--text` | `#ededed` | Main text | `theme-mono.css` |
+| `--muted` | `#a3a3a3` | Labels | `theme-mono.css` |
+| `--mars` | `#ffffff` | The plan: route, stops, primary marks (the name is kept from the old palette) | `theme-mono.css` |
+| `--safe` | `#3d7bff` | Electric blue: safety, interaction and focus (safe zone, astronaut, habitat marker, HUD arrow, oxygen margin, playhead) | `theme-mono.css` |
+| `--ds-blue-fill` | `#2f6bff` | Filled main buttons (Play, Begin planning), so white text on them keeps 4.5:1 | `theme-mono.css` |
+| `--go` | `#3ddc97` | GO | `tokens.css` (not overridden) |
+| `--caution` | `#ffb020` | CAUTION, soft sand | `tokens.css` (not overridden) |
+| `--nogo` | `#ff4d5a` | NO-GO / real danger only | `tokens.css` (not overridden) |
+| `--science` | `#d4d4d4` | Science sites | `theme-mono.css` |
+
+Other Mono choices in the CSS: the map imagery is shown in greyscale; the timeline track is white for walking and `#7a7a7a` for science; rover sample-site markers are `#d4d4d4`. `theme-mono.css` also sets helper variables prefixed `--ds-` (label, line and tile shades); read them from the file.
+
+Fonts: **IBM Plex Sans** for body and headings (`--font-body`, `--font-heading`), **IBM Plex Mono** for all numbers and telemetry (`--font-mono`), both loaded from Google Fonts by `theme-mono.css`. Icons: **Lucide**. Spacing on a 4 px grid (`--space-1` 4 px to `--space-12` 48 px, in `tokens.css`). Radii: `tokens.css` still defines `--radius-card` 6 px, `--radius-floating` 10 px and `--radius-pill` 999 px, but the console layout (`theme-deep-space.css`, shared by Mono) sets `border-radius: 0` on the console's buttons and panels, so the Mono console has square corners. `--touch-target` is 44 px.
+
+Look: a real NASA flight instrument with modern polish — dark consoles, monospaced telemetry, one status light, faint topographic contour lines as texture, numbered stop cards inspired by Apollo cuff checklists. Map is the hero. White = plan, electric blue = safety and interaction, light grey = science, red = danger only. GO / CAUTION / NO-GO keep green / amber / red, and the abort route stays red: a safety status must not depend on grey shades alone. Calm in GO, loud only in CAUTION/NO-GO. HUD text very large; touch targets ≥ 44 px; text contrast ≥ 4.5:1; respect reduced motion. (Known gap: the Mono console's desktop buttons are compact, `min-height: 0` with 4 px × 10 px padding in `theme-deep-space.css`, which is under 44 px.)
+
+The 3D terrain view (Terrain3D, three.js) is optional, lazy-loaded and off by default; the demo runs in 2D.
 
 Motion: route draws in over 600 ms; safe zone pulses opacity 0.8→1 over 3 s; status color change 250 ms, NO-GO pulses; gauge animates 500 ms. Motion only explains a change.
 
@@ -390,11 +406,11 @@ Do **not** use the NASA logo in our branding. Credit images "NASA/JPL-Caltech" (
 
 - **Top bar:** logo, site name, objective, LMST clock, status pill.
 - **Left panel:** layer cards (toggle, name, data-type chip, source-mission chip, legend) + cursor probe (elevation, slope, sand risk, science value, walk-home time).
-- **Center:** map. Background = `basemap.png` (HiRISE) as an image overlay over the site bounds, hillshade as the fallback. Layers drawn once to a canvas → image overlay (cache; don't redraw per frame). Route = orange line; safe zone = cyan glow; habitat = cyan square; stops = numbered orange markers.
+- **Center:** map. Background = `basemap.png` (HiRISE) as an image overlay over the site bounds, hillshade as the fallback. Layers drawn once to a canvas → image overlay (cache; don't redraw per frame). Route = white line; safe zone = electric-blue edge; habitat = electric-blue square; stops = numbered white markers (Mono theme, Contract 6).
 - **Right panel:** oxygen ring gauge; stats (distance, duration, walk time, science time, margin, dose); status with reasons; stop cards (drag to reorder, set dwell, delete).
-- **Bottom (floating):** timeline — play/pause/scrub, start-time selector, track colored walking orange / science violet / reserve grey.
+- **Bottom (floating):** timeline — play/pause/scrub, start-time selector, track colored walking white / science grey (Mono theme, Contract 6).
 - **Emergency buttons:** Dust Storm, Solar Particle Event → alert banner, red abort route, and two labelled statuses: **EVA: NO-GO** and **Return home: CAUTION / NO-GO** with the abort route's reasons (Contract 3).
-- **Other screens:** opening briefing (slow pan over Jezero, "ARES-1 EVA, JEZERO DELTA FRONT", Begin planning), stop detail card (photo, why it matters, time, tools, oxygen cost), helmet HUD (visor vignette, big cyan heading arrow, NEXT stop + distance, oxygen / margin / dose, turns red in NO-GO), "Data sources" panel, tablet layout ≤ 1024 px (full map + bottom sheet with Plan / Layers / Conditions tabs).
+- **Other screens:** opening briefing (slow pan over Jezero, "ARES-1 EVA, JEZERO DELTA FRONT", Begin planning), stop detail card (photo, why it matters, time, tools, oxygen cost), helmet HUD (visor vignette, big electric-blue heading arrow, NEXT stop + distance, oxygen / margin / dose, turns red in NO-GO), "Data sources" panel, tablet layout ≤ 1024 px (full map + bottom sheet with Plan / Layers / Conditions tabs).
 - **"Load demo mission"** button with three preset stops.
 - **Shortcuts:** Space play/pause, H HUD, Delete removes selected stop.
 - Must work if Mars Trek tiles fail. No console errors.
@@ -441,7 +457,7 @@ No names, faces or voices of anyone under 18: screen recording and captions only
 
 ## 10. Build order and schedule
 
-**First milestone (by ~hour 6): a walking skeleton.** The terrain file loads in the app, click two stops, an orange route draws on the map. Everything after that improves something that already runs.
+**First milestone (by ~hour 6): a walking skeleton.** The terrain file loads in the app, click two stops, a route draws on the map. Everything after that improves something that already runs.
 
 1. Terrain file `site.json` ← **first** (now real NASA data from `pipeline/build_site.py`; the first stand-in survives only as the planner test fixture)
 2. `/app` scaffold + Vercel deploy + Mars Trek tile test in Leaflet

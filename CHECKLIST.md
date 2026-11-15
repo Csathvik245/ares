@@ -118,7 +118,7 @@ I3: adapters are ready; no `app/src/design` files exist. I4: parser and image ha
 **Setup**
 - [x] 🟥 React + Vite + TS in `/app`. **Keep** `src/planner/`, `public/data/`, and the existing deps in `package.json`
 - [x] 🟥 Temporary `src/styles/tokens.css` from Contract 6 (the designer replaces it later; the variable names stay the same)
-- [x] 🟥 Google Fonts: Space Grotesk, Inter, JetBrains Mono
+- [x] 🟥 Google Fonts: Space Grotesk, Inter, JetBrains Mono (old theme, superseded by the Mono theme); now IBM Plex Sans and IBM Plex Mono
 - [x] 🟥 Deploy to Vercel from `main` (root dir `app`); share the live link: https://ares-mission-console.vercel.app (deployed by CLI; automatic deploys from `main` are not connected yet, so redeploy after the last push)
 - [x] 🟥 One plan-state store (React context or Zustand)
 
@@ -132,11 +132,11 @@ I3: adapters are ready; no `app/src/design` files exist. I4: parser and image ha
 - [x] 🟥 Mars Trek basemap tiles; note which layer ID works in `CLAUDE.md` section 3 (`Mars_Viking_MDIM21_ClrMosaic_global_232m`, levels 0–7; the real HiRISE `basemap.png` is the main map, Mars Trek is the backup)
 - [x] 🟥 Hillshade fallback from `site.json` elevation (the app must work if tiles fail)
 - [x] 🟥 Canvas overlays: walking difficulty, slope, soft sand, boulders, science value (draw once, cache)
-- [x] 🟥 Habitat (cyan square), POIs, numbered orange stop markers
+- [x] 🟥 Habitat (cyan square), POIs, numbered orange stop markers (old theme, superseded by the Mono theme)
 
 **Planning**
 - [x] 🟥 Click to add a stop; drag to move; delete; set dwell time; reorder
-- [x] 🟥 Recompute plan + safe zone on every change; orange route line, cyan safe-zone glow
+- [x] 🟥 Recompute plan + safe zone on every change; orange route line, cyan safe-zone glow (old theme, superseded by the Mono theme)
 - [x] 🟥 Mission panel: oxygen ring gauge, distance, duration, walk/science time, margin, dose
 - [x] 🟥 Status pill GO / CAUTION / NO-GO **with reasons**
 - [x] 🟥 Layers panel: toggle, name, data-type chip, source chip (read from `site.json` `sources`), legend

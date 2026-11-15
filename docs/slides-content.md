@@ -41,7 +41,7 @@ The Ares Initiative · NASA Space Apps 2026 · *Interplanetary Survival Guide: M
 
 **Normal plan:** Brac → delta front toe → Sid → home
 - 4.97 km, 3 h 35 min, 49% oxygen at return, 192 min above reserve: **GO**
-- Cyan safe-return zone: everywhere she can still reach and walk home from.
+- Electric-blue safe-return zone: everywhere she can still reach and walk home from.
 
 **Dust storm at T+1:16 into the walk:**
 - **EVA: NO-GO**: the plan is aborted; the zone collapses.

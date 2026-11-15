@@ -25,8 +25,8 @@ This is the video we submit as the Space Apps **Link to Project Demo**.
 | 0:00–0:04 | Opening briefing screen: ARES patch, "2040 MISSION SCENARIO", Jezero, LIFE SUPPORT 8 HRS | **ARES · The Ares Initiative**<br>NASA Space Apps 2026 · Martian Map | 10 / 12 | Fresh load of the app URL. Hold still. |
 | 0:04–0:07 | Same screen; cursor moves to **BEGIN PLANNING** and clicks | **2040. Jezero Crater. 8 hours of oxygen.** | 7 / 9 | Click **BEGIN PLANNING** at the end of the shot. |
 | 0:07–0:12 | Console. Layers switch on fast: Slope → Soft sand risk → Science value. Layer cards show their NASA source. | **NASA HiRISE, THEMIS, CRISM data → one walking map** | 8 / 15 | In **Terrain layers** (left), tick **Slope**, **Soft sand risk**, **Science value**, one per second (cut to 2× speed if needed). |
-| 0:12–0:16 | **Load demo mission**: three numbered orange stops, orange route draws in | **Pick science stops. ARES plans the safest route.** | 8 / 12 | Click **Load demo mission** (right panel). Don't move the mouse while the route draws. |
-| 0:16–0:19 | Cyan safe-return zone, oxygen ring, status pill **GO** | **Cyan: everywhere she can still get home from. GO.** | 9 / 9 | Hover over the **GO** status. |
+| 0:12–0:16 | **Load demo mission**: three numbered white stops, white route draws in | **Pick science stops. ARES plans the safest route.** | 8 / 12 | Click **Load demo mission** (right panel). Don't move the mouse while the route draws. |
+| 0:16–0:19 | Electric-blue safe-return zone, oxygen ring, status pill **GO** | **Blue: everywhere she can still get home from. GO.** | 9 / 9 | Hover over the **GO** status. |
 | 0:19–0:22 | Playback: astronaut marker walking after stop 2; click **Simulate dust storm**; red banner **DUST STORM · ABORT EVA**; status **NO-GO** | **Dust storm. EVA aborted: NO-GO.** | 5 / 9 | Pre-set the slider (see checklist), press **Space** to play, then click **Simulate dust storm** (right panel, *Conditions*) after about 2 s. |
 | 0:22–0:26 | Zone collapses; red abort route home; banner shows `Walk home … · CAUTION` | **Safest way home: CAUTION, still inside the oxygen reserve.** | 9 / 12 | Hold still; hover over the banner's walk-home line. |
 | 0:26–0:28 | Helmet HUD (abort mode, red): ABORT / RETURN TO HABITAT, oxygen, margin, dose | **Same plan, in her helmet.** | 5 / 6 | Press **H**. |
@@ -34,7 +34,7 @@ This is the video we submit as the Space Apps **Link to Project Demo**.
 
 **Total: 30 seconds, 65 words of captions.**
 
-Caption style: Inter or Space Grotesk, white (`#ECEAE6`) on a dark bar (`#08090B` at 80% opacity), bottom centre, at least 36 px tall at 1440 × 900. Put status words in their colours: **GO** `#3DDC97`, **CAUTION** `#FFB020`, **NO-GO** `#FF4D5A`, always with the word (never colour alone).
+Caption style: IBM Plex Sans, white (`#ededed`) on a dark bar (`#0a0a0a` at 80% opacity), bottom centre, at least 36 px tall at 1440 × 900. Put status words in their colours: **GO** `#3DDC97`, **CAUTION** `#FFB020`, **NO-GO** `#FF4D5A`, always with the word (never colour alone).
 
 This order follows the guide's 30-second outline: team and challenge first, then the project name, how it works, and the payoff ([Project Submission Guide](https://www.spaceappschallenge.org/resources/project-submission-guide/), "Video Demo"). There's no time for a "future" line; it goes on the project page ([`project-page.md`](project-page.md)).
 
@@ -103,7 +103,7 @@ Record each shot as its own clip in a **1440 × 900** browser window, with 2 s o
 | 0:08–0:13 | Layers on: Slope, Soft sand risk | **Slope from HiRISE elevation. Soft sand from THEMIS.** | 8 / 15 | Tick **Slope**, **Soft sand risk** |
 | 0:13–0:18 | Layers on: Boulders, Science value | **Boulders from HiRISE roughness. Clays and carbonates from CRISM.** | 9 / 15 | Tick **Boulders**, **Science value** |
 | 0:18–0:23 | Load demo mission, route draws | **Three science stops. The fastest safe route around cliffs and sand.** | 11 / 15 | **Load demo mission** |
-| 0:23–0:28 | Safe zone, oxygen ring | **Cyan zone: everywhere she can reach and still get home.** | 10 / 15 | Hover oxygen ring |
+| 0:23–0:28 | Safe zone, oxygen ring | **Blue zone: everywhere she can reach and still get home.** | 10 / 15 | Hover oxygen ring |
 | 0:28–0:32 | Status GO with reasons | **Oxygen margin healthy. Status: GO.** | 5 / 12 | Hover **GO** |
 | 0:32–0:37 | Playback after stop 2, storm starts, NO-GO | **Dust storm hits. EVA aborted: NO-GO.** | 6 / 15 | **Space**, then **Simulate dust storm** |
 | 0:37–0:41 | Zone collapses, red abort route | **ARES plots the safest way home, instantly.** | 7 / 12 | Hold |

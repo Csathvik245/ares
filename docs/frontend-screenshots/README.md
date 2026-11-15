@@ -1,5 +1,7 @@
 # Frontend recording checks
 
+> **(old theme, superseded by the Mono theme)** The PNG screenshots in this folder were taken in the earlier orange and cyan theme. Retake them in the Mono theme before using them in slides or the project page. The numbers in the notes below are unchanged.
+
 Chrome responsive viewport: 1440 × 900 CSS pixels, device pixel ratio 1. Exported with DevTools Capture screenshot; each PNG is exactly 1440 × 900 and contains only the application.
 
 - go-plan.png: demo loaded, GO, 4.97 km, 3:35, 49% oxygen at return. HAB-1 and 03 have separate marker/label positions; a leader links the displaced 03 marker to its actual coordinate.

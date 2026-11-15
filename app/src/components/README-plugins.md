@@ -24,7 +24,7 @@ zone={removeSmallIslands(m.zone, site.width, site.height)}
 
 ## 2. Elevation profile
 
-A 70 px tall strip: orange elevation line for the whole walk, dashed markers labelled 01 / 02 / 03 at the stops, lowest and highest elevation, and a cyan cursor at the playback time.
+A 70 px tall strip: elevation line in the plan color (`--mars`, white in the Mono theme) for the whole walk, dashed markers labelled 01 / 02 / 03 at the stops, lowest and highest elevation, and a cursor in the safety color (`--safe`, electric blue in the Mono theme) at the playback time.
 
 ```tsx
 import { ElevationProfile } from "./components/ElevationProfile";

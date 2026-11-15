@@ -11,7 +11,7 @@ The guide asks a demo deck to show an image of the project, the user experience,
 - **Before export, check every slide:** no team names, no faces, no team photos, no likenesses; every NASA image credited. Images from other NASA centres keep their own credit (e.g. LRO: NASA/GSFC/Arizona State University).
 - Every number comes from the app or [`assumptions.md`](assumptions.md). Re-check numbers against the live app before exporting.
 - Any AI-generated image needs a visible watermark ([Project Submission Guide](https://www.spaceappschallenge.org/resources/project-submission-guide/), "Use of Super Intelligence (SI)"). The plan below uses only app screenshots and NASA imagery.
-- Few words per slide, readable font size (guide's advice). Style: Contract 6 tokens. Dark console background, orange = plan, cyan = safety, red = danger only; Space Grotesk headings, Inter body, JetBrains Mono numbers.
+- Few words per slide, readable font size (guide's advice). Style: Contract 6 tokens. Dark console background, white = plan, electric blue = safety, red = danger only; IBM Plex Sans text, IBM Plex Mono numbers (the Mono theme, CLAUDE.md Contract 6).
 
 ---
 
@@ -43,10 +43,10 @@ The guide asks a demo deck to show an image of the project, the user experience,
 ## 4. The plan and the safe-return zone
 
 - Click science stops; ARES plans the fastest safe route and adds up time, oxygen and dose.
-- The cyan safe-return zone shows everywhere she can still reach and walk home with the 45-minute reserve intact. It shrinks as stops are added.
+- The electric-blue safe-return zone shows everywhere she can still reach and walk home with the 45-minute reserve intact. It shrinks as stops are added.
 - One status light, always with the reason: GO / CAUTION / NO-GO. Demo mission: 4.97 km, about 3.5 hours, 49% oxygen at return, GO (check on screen). Stops: Brac (rover site), the delta front toe (a new clay target ARES selected from CRISM data), Sid (rover site).
 
-**Visual:** console screenshot with **Load demo mission**: three numbered orange stops, orange route, cyan zone, oxygen ring, **GO** pill with reasons. Small inset: the same map with no stops and a larger zone.
+**Visual:** console screenshot with **Load demo mission**: three numbered white stops, white route, electric-blue zone, oxygen ring, **GO** pill with reasons. Small inset: the same map with no stops and a larger zone.
 
 ## 5. Emergencies and the helmet HUD
 
@@ -115,11 +115,11 @@ The guide asks a demo deck to show an image of the project, the user experience,
 
 ### A5. The safe-return zone
 
-- A glowing cyan boundary: everywhere the astronaut can still reach after the last stop **and** walk home with the 45-minute reserve intact.
+- A glowing electric-blue boundary: everywhere the astronaut can still reach after the last stop **and** walk home with the 45-minute reserve intact.
 - Computed live over real terrain, not as a circle: cliffs and sand bend the boundary.
 - It shrinks as stops are added. It comes from aviation's "point of no return" and Apollo walkback limits.
 
-**Visual:** two console screenshots side by side. Left: no stops, large cyan zone. Right: demo mission loaded, smaller zone and orange route. Arrow labelled "add stops → zone shrinks".
+**Visual:** two console screenshots side by side. Left: no stops, large electric-blue zone. Right: demo mission loaded, smaller zone and white route. Arrow labelled "add stops → zone shrinks".
 
 ### A6. Emergencies: dust storm and solar particle event
 
@@ -136,7 +136,7 @@ The guide asks a demo deck to show an image of the project, the user experience,
 - Very large text and high contrast for use through a visor; turns red with "ABORT / RETURN TO HABITAT" in an emergency.
 - Same plan as the habitat console; nothing re-entered.
 
-**Visual:** two HUD screenshots: normal (cyan) and abort (red). Optional: a stop detail card with the Perseverance photo of stop 1 or 3 (credit NASA/JPL-Caltech plus the camera team if given). Not stop 2: the delta front toe has no rover photo.
+**Visual:** two HUD screenshots: normal (electric blue) and abort (red). Optional: a stop detail card with the Perseverance photo of stop 1 or 3 (credit NASA/JPL-Caltech plus the camera team if given). Not stop 2: the delta front toe has no rover photo.
 
 ### A8. What's new
 

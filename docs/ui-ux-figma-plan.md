@@ -1,5 +1,7 @@
 # ARES UI/UX Figma build plan
 
+> **(old theme, superseded by the Mono theme)** The colors and fonts named in this file (orange, cyan, violet, Space Grotesk, Inter, JetBrains Mono) describe the earlier design. Current values: CLAUDE.md Contract 6 and `app/src/styles/theme-mono.css`.
+
 Role 4 scope: establish the visual system, build the reusable instrument components, compose the mission screens, and connect them into the demo story. Keep the map visually dominant in planning screens; reserve red for active danger.
 
 ## Figma foundations

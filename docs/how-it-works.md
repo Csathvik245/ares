@@ -82,7 +82,7 @@ An impossible plan is explained in a sentence, for example "Stop 2 is on a slope
 
 ## 6. The safe-return zone
 
-The cyan zone is every cell the astronaut could still walk to after the last stop **and** get home from with the reserve intact:
+The electric-blue zone is every cell the astronaut could still walk to after the last stop **and** get home from with the reserve intact:
 
 ```
 (time from last stop to the cell + time from the cell home) × 1.3  ≤  oxygen left after the reserve

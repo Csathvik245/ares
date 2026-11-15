@@ -18,7 +18,7 @@ Tools like JPL's Mars Trek and the USGS-NASA geologic maps show Mars at a region
 - **Layered map**: Mars imagery with toggleable analysis layers (walking difficulty, slope, soft sand, boulders, science value). Each layer is labelled with its data type and the NASA mission it comes from.
 - **Route planner**: click to add science stops and set how long to stay. ARES finds the fastest safe route habitat → stops → habitat.
 - **Oxygen budget**: a gauge shows oxygen left at return and the margin above the required reserve.
-- **Safe-return zone**: a glowing cyan boundary around everywhere still reachable with a safe walk home. It shrinks as stops are added.
+- **Safe-return zone**: a glowing electric-blue boundary around everywhere still reachable with a safe walk home. It shrinks as stops are added.
 - **Status light**: GO / CAUTION / NO-GO, always with the word and the reason, never colour alone.
 - **Sol timeline**: play or scrub through the walk; the astronaut marker moves while sun elevation, temperature and radiation update.
 - **Emergencies**: Dust Storm and Solar Particle Event buttons turn the status red, collapse the zone, and draw an abort route home from the astronaut's current position.

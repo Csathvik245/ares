@@ -1,5 +1,7 @@
 # ARES UI/UX Designer Checklist and Roadmap
 
+> **(old theme, superseded by the Mono theme)** The colors and fonts named in this file (orange, cyan, violet, Space Grotesk, Inter, JetBrains Mono) describe the earlier design. Current values: CLAUDE.md Contract 6 and `app/src/styles/theme-mono.css`.
+
 **Role:** UI/UX Designer  
 **Product:** ARES-1 EVA planning system for Jezero Crater  
 **Design principle:** the map is the hero; panels frame it. Science first. Safety always.

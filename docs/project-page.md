@@ -33,7 +33,7 @@ ARES is a route planner for an astronaut walking on Mars. It is built for a sing
 
 - **Layered map** of the Jezero delta front (about 6 × 8 km) with toggleable layers: walking difficulty, slope, soft sand risk, boulders (terrain roughness) and science value. Each layer names its data type and NASA source.
 - **Route planner.** Click to add science stops and set how long to stay at each. ARES finds the fastest safe route from the habitat through every stop and back.
-- **Oxygen budget and safe-return zone.** A gauge shows oxygen left at return and the margin above a 45-minute reserve. A cyan boundary shows everywhere still reachable with a safe walk home; it shrinks as stops are added.
+- **Oxygen budget and safe-return zone.** A gauge shows oxygen left at return and the margin above a 45-minute reserve. An electric-blue boundary shows everywhere still reachable with a safe walk home; it shrinks as stops are added.
 - **Status light.** GO, CAUTION or NO-GO, always with the reason written out, never colour alone.
 - **Sol timeline.** Play or scrub the walk across the Martian day; the astronaut marker moves while sun elevation, temperature and radiation dose update.
 - **Emergencies.** A dust storm or solar particle event aborts the EVA (NO-GO), collapses the zone and draws an abort route home from the astronaut's current position. The walk home gets its own status, usually CAUTION.

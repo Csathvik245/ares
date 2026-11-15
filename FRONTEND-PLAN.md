@@ -1,4 +1,7 @@
 ARES frontend plan: from "works" to "looks like flight software"
+
+> **(old theme, superseded by the Mono theme)** The colors and fonts named in this file (orange, cyan, violet, Space Grotesk, Inter, JetBrains Mono) describe the earlier design. Current values: CLAUDE.md Contract 6 and `app/src/styles/theme-mono.css`.
+
 For: frontend. Put this file at the repo root; your Claude Code can read it.
  Target look: the design canvas "ARES console: target design" (2 screens: Planning GO, Dust storm abort). Ask the team for the link.
  Deadline: feature freeze Sunday 2 pm. Video recorded Sunday afternoon at 1440 × 900. Tick items only when they're pushed to main and checked at 1440 × 900.
