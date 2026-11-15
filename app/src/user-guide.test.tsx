@@ -326,7 +326,7 @@ describe("tab 3: What the colours mean", () => {
   });
 
   it("shows swatches for the route, the route home, the safe-return edge, slow ground and off-limits ground, in the map's colours", () => {
-    expect(GUIDE_SWATCHES.map((s) => s.label)).toEqual(["Planned route", "Route home in an emergency", "Safe-return edge", "Slow ground", "Off-limits ground"]);
+    expect(GUIDE_SWATCHES.map((s) => s.label)).toEqual(["Planned route", "Route home in an emergency", "Blue edge: where she could still detour after her last stop and get home with the reserve", "Slow ground", "Off-limits ground"]);
     for (const s of GUIDE_SWATCHES) {
       expect(html).toContain(`<i class="guide-swatch guide-swatch--${s.id}" aria-hidden="true"></i>${s.label}`);
     }

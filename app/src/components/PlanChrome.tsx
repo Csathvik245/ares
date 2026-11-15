@@ -173,7 +173,7 @@ export function EmptyPlanCard({
   );
 }
 
-export type LegendItem = { id: string; label: string; glyph: "line" | "dash" | "dot"; tone: "plan" | "safe" | "site" | "danger" | "muted" | "shelter" };
+export type LegendItem = { id: string; label: string; title?: string; glyph: "line" | "dash" | "dot"; tone: "plan" | "safe" | "site" | "danger" | "muted" | "shelter" };
 
 /** What the legend lists for the things drawn on the map right now. */
 export function legendItems(on: {
@@ -186,7 +186,13 @@ export function legendItems(on: {
 }): LegendItem[] {
   const items: LegendItem[] = [];
   if (on.route && !on.emergency) items.push({ id: "route", label: "Planned route", glyph: "line", tone: "plan" });
-  if (on.safeZone && !on.emergency) items.push({ id: "zone", label: "Edge of safe return", glyph: "line", tone: "safe" });
+  if (on.safeZone && !on.emergency) items.push({
+      id: "zone",
+      label: "Safe-return edge (after the last stop)",
+      title: "Blue edge: where she could still detour after her last stop and get home with the reserve.",
+      glyph: "line",
+      tone: "safe",
+    });
   if (on.emergency) {
     items.push({ id: "return", label: "Route to follow now", glyph: "line", tone: "danger" });
     items.push({ id: "cancelled", label: "Cancelled part of the plan", glyph: "dash", tone: "muted" });
@@ -212,7 +218,7 @@ export function MapLegend({ items, defaultOpen = false }: { items: LegendItem[];
       {/* Always in the page, so hovering the chip can show it; hidden by CSS until hover, focus or a click. */}
       <ul id={id}>
         {items.map((item) => (
-          <li key={item.id}>
+          <li key={item.id} title={item.title}>
             <em className={`legend-glyph legend-glyph--${item.tone}`} aria-hidden="true">
               {GLYPH[item.glyph]}
             </em>

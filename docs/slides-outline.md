@@ -43,7 +43,7 @@ The guide asks a demo deck to show an image of the project, the user experience,
 ## 4. The plan and the safe-return zone
 
 - Click science stops; ARES plans the fastest safe route and adds up time, oxygen and dose.
-- The electric-blue safe-return zone shows everywhere she can still reach and walk home with the 45-minute reserve intact. It shrinks as stops are added.
+- The electric-blue safe-return zone shows where she could still detour after her last stop and walk home with the 45-minute reserve intact. It shrinks as stops are added.
 - One status light, always with the reason: GO / CAUTION / NO-GO. Demo mission: 4.97 km, about 3.5 hours, 49% oxygen at return, GO (check on screen). Stops: Brac (rover site), the delta front toe (a new clay target ARES selected from CRISM data), Sid (rover site).
 
 **Visual:** console screenshot with **Load demo mission**: three numbered white stops, white route, electric-blue zone, oxygen ring, **GO** pill with reasons. Small inset: the same map with no stops and a larger zone.

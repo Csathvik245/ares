@@ -37,7 +37,7 @@ Open the [live app](https://ares-mars-alpha.vercel.app). It runs in the browser 
 
 - **Plans the route on real terrain.** The astronaut picks science stops. ARES finds the fastest safe walk from the habitat to each stop and home, around steep slopes, soft sand and rough ground.
 - **Keeps an oxygen budget and a reserve.** It adds up walking and science time, turns that into oxygen used, and shows the margin left above a 45 min reserve.
-- **Draws the safe-return zone.** A blue edge marks everywhere the astronaut can still reach and get home from with the reserve intact. It shrinks as stops are added.
+- **Draws the safe-return zone.** A blue edge marks where the astronaut could still detour after her last stop and get home with the reserve intact. It shrinks as stops are added.
 - **Gives one status with its reason.** GO, CAUTION or NO-GO, always as a word with the reason written out, never colour alone.
 - **Re-plans in five emergencies.** Dust storm, solar particle event (with a check for nearby shelter), oxygen loss, slower walking and a blocked path. Each one re-plans from where the astronaut is standing at that moment.
 - **Tests the plan many times.** A Monte Carlo run walks the same plan 1000 times with slightly different speeds and oxygen use, and reports how often the astronaut gets home with the reserve.
@@ -92,7 +92,7 @@ Sun position uses the Mars24 algorithm (NASA GISS; Allison & McEwen 2000).
 2. **Walking model.** Each cell gets a walking speed from a version of Tobler's hiking function: 3 km/h on flat firm ground, slower on slopes, in soft sand and on rough ground. Ground steeper than 25° or too rough is no-go.
 3. **Route.** Dijkstra and A* search find the fastest safe path between the habitat and each stop.
 4. **Oxygen and reserve.** Walking and science time become oxygen used. What is left above the reserve is the margin, and the margin sets the status.
-5. **Safe-return zone.** One search outward from the last stop and one from the habitat give, for every cell, whether the astronaut can go there and still get home with the reserve.
+5. **Safe-return zone.** One search outward from the last stop and one from the habitat give, for every cell, whether the astronaut could detour there after her last stop and still get home with the reserve.
 6. **Emergencies.** When something goes wrong, ARES re-plans from the astronaut's position with the new conditions. During a dust storm or solar particle event it shows two statuses: the EVA (aborted, NO-GO) and the walk home (CAUTION or NO-GO).
 
 The planner is deterministic. The same inputs always give the same route and the same numbers, and it has unit tests. No AI or machine-learning model makes or changes a route or a safety decision. A longer explanation is in [docs/how-it-works.md](docs/how-it-works.md).

@@ -292,7 +292,7 @@ export function SciencePage() {
           </p>
           <p>
             Walking time becomes oxygen. The plan is GO only if the astronaut is home with the reserve untouched. The
-            safe-return zone on the map is every place she could still walk to after her last stop and get home from
+            safe-return zone on the map is every place she could still detour to after her last stop and get home from
             with that reserve.
           </p>
           <table>

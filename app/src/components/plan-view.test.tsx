@@ -206,7 +206,7 @@ describe("4. map controls", () => {
     const none = { route: false, safeZone: false, sampleSites: false, emergency: false, shelter: false, blocked: false };
     expect(labels(none)).toEqual([]);
     expect(labels({ ...none, sampleSites: true })).toEqual(["Rover sample site"]);
-    expect(labels({ ...none, route: true, safeZone: true, sampleSites: true })).toEqual(["Planned route", "Edge of safe return", "Rover sample site"]);
+    expect(labels({ ...none, route: true, safeZone: true, sampleSites: true })).toEqual(["Planned route", "Safe-return edge (after the last stop)", "Rover sample site"]);
     expect(labels({ ...none, route: true, safeZone: true, sampleSites: true, emergency: true })).toEqual([
       "Route to follow now",
       "Cancelled part of the plan",

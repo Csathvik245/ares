@@ -181,7 +181,7 @@ We read the thesis abstract, the workshop paper's record and abstract, and the j
 These are differences in emphasis, not claims of being first:
 
 - **Mars, with thermal and mineral layers.** Routes at Jezero use THEMIS thermal inertia for soft sand and CRISM for science targets, on top of HiRISE terrain.
-- **A live, oxygen-aware safe-return zone.** Every change to the plan redraws where the astronaut can still go and get home with the reserve intact.
+- **A live, oxygen-aware safe-return zone.** Every change to the plan redraws where the astronaut could still detour after her last stop and get home with the reserve intact.
 - **Emergency re-planning with two statuses.** A dust storm or solar particle event aborts the plan ("EVA") and plans the walk back ("Return home") from wherever she is, each with its own status and reasons.
 - **Science per oxygen-minute.** Stops are scored, and suggested, by what they give for the oxygen they cost.
 - **A check against a real traverse.** The terrain model is compared with Perseverance's actual drive path, with the caveats written down.

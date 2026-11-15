@@ -16,7 +16,7 @@ ARES: Astronaut Route & EVA Safety system
 
 ## High-Level Project Summary
 
-ARES is a route planner for an astronaut walking on Mars. It is built for a single spacewalk at Jezero Crater's ancient river delta, where carbonate and clay layers may preserve signs of past life. The astronaut picks science stops. ARES combines NASA terrain, thermal, mineral and radiation data to plan the fastest safe walk around steep slopes, boulders and soft sand. It adds up walking time, oxygen and radiation dose, and draws a safe-return zone: everywhere the astronaut can still reach and get home from with the oxygen reserve intact. A GO / CAUTION / NO-GO status always states its reason. Dust storm and solar particle event simulations abort the EVA and give an instant route home. The challenge asks for a layered, hyperlocal map that helps a human explorer plan and carry out a Marswalk while doing science; ARES answers it at the scale of one EVA and puts astronaut safety first.
+ARES is a route planner for an astronaut walking on Mars. It is built for a single spacewalk at Jezero Crater's ancient river delta, where carbonate and clay layers may preserve signs of past life. The astronaut picks science stops. ARES combines NASA terrain, thermal, mineral and radiation data to plan the fastest safe walk around steep slopes, boulders and soft sand. It adds up walking time, oxygen and radiation dose, and draws a safe-return zone: where the astronaut could still detour after her last stop and get home with the oxygen reserve intact. A GO / CAUTION / NO-GO status always states its reason. Dust storm and solar particle event simulations abort the EVA and give an instant route home. The challenge asks for a layered, hyperlocal map that helps a human explorer plan and carry out a Marswalk while doing science; ARES answers it at the scale of one EVA and puts astronaut safety first.
 
 ## Who it helps
 
@@ -41,7 +41,7 @@ ARES is a student prototype built on real NASA data. The terrain is checked agai
 
 - **Layered map** of the Jezero delta front (about 6 × 8 km) with toggleable layers: walking difficulty, slope, soft sand risk, boulders (terrain roughness) and science value. Each layer names its data type and NASA source.
 - **Route planner.** Click to add science stops and set how long to stay at each. ARES finds the fastest safe route from the habitat through every stop and back.
-- **Oxygen budget and safe-return zone.** A gauge shows oxygen left at return and the margin above a 45-minute reserve. An electric-blue boundary shows everywhere still reachable with a safe walk home; it shrinks as stops are added.
+- **Oxygen budget and safe-return zone.** A gauge shows oxygen left at return and the margin above a 45-minute reserve. An electric-blue boundary shows where she could still detour after her last stop and get home with the reserve; it shrinks as stops are added.
 - **Status light.** GO, CAUTION or NO-GO, always with the reason written out, never colour alone.
 - **Sol timeline.** Play or scrub the walk across the Martian day; the astronaut marker moves while sun elevation, temperature and radiation dose update.
 - **Emergencies.** A dust storm or solar particle event aborts the EVA (NO-GO), collapses the zone and draws an abort route home from the astronaut's current position. The walk home gets its own status, usually CAUTION.
@@ -54,7 +54,7 @@ Demo mission on real terrain: three stops: Séítah outcrop "Brac" and Máaz lav
 1. **Data → grid.** Python scripts clip NASA and USGS datasets to the site, reproject them onto one Mars sphere (radius 3,396.19 km) and resample them to a 320 × 240 grid of 25 m cells.
 2. **Grid → cost.** Walking speed in each cell follows a version of Tobler's hiking function: 3 km/h on flat firm ground, slower on slopes, in soft sand (low thermal inertia) and over rough ground. Slopes over 25° and very rough cells are no-go.
 3. **Cost → route.** Dijkstra and A\* search find the fastest safe path between stops. The planner is deterministic, with no machine learning in safety decisions, so every route is predictable, explainable and tested.
-4. **Route → safety.** Walking and science time become oxygen use (walking burns more than standing work), then margin and status. A search from the habitat gives the walk-home time from every cell; that powers the safe-return zone and the abort route.
+4. **Route → safety.** Walking and science time become oxygen use (walking burns more than standing work), then margin and status. A search from the habitat gives the walk-home time from every cell; that powers the abort route and, with a second search from the last stop, the safe-return zone.
 5. **Environment.** Sun elevation uses NASA GISS's Mars24 algorithm. Radiation uses the Curiosity RAD surface baseline, applied to Jezero. A dust storm slows walking because of low visibility and dust on the visor, not wind: Mars air is about 1% as dense as Earth's.
 
 **Validation.**

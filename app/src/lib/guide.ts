@@ -63,7 +63,7 @@ export const TOUR_STOPS: TourStop[] = [
   { id: "stops", label: "Stops list", selector: '[data-tour="stops"]', consoleTab: "Plan", text: "The science stops in walking order, each with its arrival time and science value." },
   { id: "oxygen", label: "Oxygen", selector: '[data-tour="oxygen"]', consoleTab: "Plan", text: "The oxygen left when she gets home. The hatched end of the bar is the reserve. The tiles give distance, time, margin and dose." },
   { id: "route", label: "The route", selector: ".leaflet-routes-pane path.route-line", clip: '[data-tour="map"]', consoleTab: "Map", text: "The white line is the fastest safe route: from the habitat to each stop, and home." },
-  { id: "zone", label: "Safe-return edge", selector: ".safe-zone", clip: '[data-tour="map"]', consoleTab: "Map", text: "Inside the blue edge she can still walk on and get home with the reserve. Ground outside it is dimmed." },
+  { id: "zone", label: "Safe-return edge", selector: ".safe-zone", clip: '[data-tour="map"]', consoleTab: "Map", text: "The blue edge shows where she could still detour after her last stop and get home with the reserve. Ground outside it is dimmed." },
   { id: "probe", label: "Hover box", selector: '[data-tour="map"]', consoleTab: "Map", text: "Move your mouse over the map. A small box says whether the ground is walkable, and why not if it is off-limits." },
   { id: "emergency", label: "Emergencies", selector: '[data-tour="emergency"]', consoleTab: "Plan", text: "Pick an emergency and press Trigger. ARES re-plans from where she is standing." },
   { id: "timeline", label: "Timeline and Play", selector: '[data-tour="timeline"]', consoleTab: "Map", text: "Press Play to watch the walk. The track shows walking in white and science in grey." },
@@ -89,7 +89,7 @@ export const GUIDE_STATUSES: { status: Status; meaning: string }[] = [
 export const GUIDE_SWATCHES: { id: "route" | "home" | "zone" | "slow" | "nogo"; label: string }[] = [
   { id: "route", label: "Planned route" },
   { id: "home", label: "Route home in an emergency" },
-  { id: "zone", label: "Safe-return edge" },
+  { id: "zone", label: "Blue edge: where she could still detour after her last stop and get home with the reserve" },
   { id: "slow", label: "Slow ground" },
   { id: "nogo", label: "Off-limits ground" },
 ];
@@ -120,7 +120,7 @@ export const GUIDE_WORDS: { word: string; meaning: string }[] = [
   { word: "Reserve", meaning: `Oxygen kept back for emergencies (${GUIDE_RESERVE}).` },
   { word: "Margin", meaning: "Spare oxygen above the reserve." },
   { word: "No-go", meaning: "Ground too steep or rough to cross." },
-  { word: "Safe-return zone", meaning: "Everywhere she can go and still get home." },
+  { word: "Safe-return zone", meaning: "Where she could still detour after her last stop and get home with the reserve." },
 ];
 
 // ---- The first-visit hint: shown once, ever, if the browser lets us remember ----
