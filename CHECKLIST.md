@@ -197,8 +197,8 @@ Needs nothing from anyone. Research and docs stand alone. Use Mars Trek screensh
 - [x] 🟧 Perseverance photos for each stop in `app/public/photos/` with credits ("NASA/JPL-Caltech, …") (7 rover sampling sites; the delta front toe has none because Perseverance never went there)
 - [x] 🟧 MEDA temperature values posted in `docs/assumptions.md` (the planner swaps them in later) (Munguira et al. 2023; `TEMP_IS_SOURCED = true` in `env.ts`)
 - [ ] 🟧 Apollo traverse map / cuff checklist heritage slide
-- [x] 🟧 Demo video script + shot list (by hour 12) → `docs/video-script.md` (30 s caption-only script is the main one; 60 s in appendix, not for submission)
-- [ ] 🟧 Slides: problem, story, how it works, 6 data layers, safe zone, emergencies, HUD, novelty, assumptions, sources, team, next steps (outline: `docs/slides-outline.md`; exact text for 7 slides: `docs/slides-content.md`, numbers filled from `docs/demo-numbers.md`; deck not built)
+- [x] 🟧 Demo video script + shot list (by hour 12): 30 s caption-only script
+- [ ] 🟧 Slides: problem, story, how it works, 6 data layers, safe zone, emergencies, HUD, novelty, assumptions, sources, team, next steps (numbers from `docs/demo-numbers.md`; deck not built)
 - [x] 🟧 README + Space Apps project page text → `README.md`, `docs/project-page.md` (draft; fill its TODO links, then paste into the Project tab)
 - [x] 🟥 AI use disclosure → `docs/ai-disclosure.md`. No open questions: the mission patch is disclosed as AI-generated and marked
 - [x] 🟥 No team member names in README, docs or slides (under-18 rule); "The Ares Initiative" only

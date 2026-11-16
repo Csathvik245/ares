@@ -8,7 +8,7 @@ Space Apps 2026 uses the term **"Artificial Intelligence (AI)"** for AI tools, i
 
 **Did we use AI tools? Yes.**
 
-1. **Coding assistants.** The Ares Initiative used AI coding assistants, **Claude Code (Anthropic)** and **ChatGPT (OpenAI)**, to write and review code and documentation across the project: the route planner, the web app, the data-processing scripts, the unit tests, and the project docs (including this file, the README, the video script and the slides), and drafts of the project page summary and details. Team members gave the instructions, reviewed the output, ran the tests and decided what to keep.
+1. **Coding assistants.** The Ares Initiative used AI coding assistants, **Claude Code (Anthropic)** and **ChatGPT (OpenAI)**, to write and review code and documentation across the project: the route planner, the web app, the data-processing scripts, the unit tests, and the project docs (including this file and the README), and drafts of the project page summary and details. Team members gave the instructions, reviewed the output, ran the tests and decided what to keep.
 2. **Brainstorming.** Early on, we used an AI assistant to brainstorm options. The team chose and developed the ARES concept from a teammate's design document, and decided its scope, data, methods and validation.
 3. **Planning and review.** That design document is the source for our shared rules and contracts in the repo (`CLAUDE.md`). After the concept was chosen, an AI chat assistant (**Claude, by Anthropic**) helped with planning, breaking the work into tasks, code review and debugging.
 

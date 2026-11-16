@@ -171,7 +171,7 @@ Every team that submits by the deadline gets a participant certificate on their 
 Decide as a team:
 
 1. **Video length.** Cut the 60 s script in `CLAUDE.md` section 9 to ≤ 30 s, or switch to a ≤ 7-slide deck. Update `CLAUDE.md` and `CHECKLIST.md` after agreeing.
-2. **Names left outside the Science & story files.** Team names are removed from the README and docs. They still appear in `LICENSE` (copyright line), `CHECKLIST.md` role tables, `CLAUDE.md` and `app/src/FRONTEND.md` (the repo URL contains a username), and the git commit author history of the public repo. Decide whether to clean these before submitting; rewriting git history would need a force-push, which the team rules forbid.
+2. **Names left outside the Science & story files.** Team names are removed from the README and docs. They still appear in `LICENSE` (copyright line), `CHECKLIST.md` role tables and `CLAUDE.md`, and the git commit author history of the public repo. Decide whether to clean these before submitting; rewriting git history would need a force-push, which the team rules forbid.
 3. **AI disclosure wording** for the SI field and README.
 4. **Our Local Event and time zone**, written into the [Deadline](#deadline) section.
 

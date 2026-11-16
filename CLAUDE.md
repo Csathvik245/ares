@@ -155,7 +155,7 @@ Note: RAD is on Curiosity, not Perseverance. Label it "surface baseline measured
 | `/pipeline` | Python scripts that build `site.json` and `basemap.png` from NASA data + README |
 | `/backend` | AI assistant API (stretch) |
 | `/ml` | Boulder detection notebooks (stretch) |
-| `/docs` | `sources.md`, `assumptions.md`, slides, video script |
+| `/docs` | `sources.md`, `assumptions.md`, submission notes, project page text |
 
 `.gitignore` already covers Python (`.venv/`, `__pycache__/`), secrets (`.env`) and raw data downloads (`data/raw/`, `*.tif`, `*.IMG`, `*.zip`). Source data is never committed; the pipeline fetches it.
 
@@ -444,7 +444,7 @@ Temperature in `env.ts` now uses measured MEDA values (see section 6, `envAt`).
 
 ### Demo video (30 s or less)
 
-The full script, captions and shot list are in `docs/video-script.md`; that file is the one to follow. Outline:
+Outline:
 
 | Time | On screen |
 |---|---|

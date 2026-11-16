@@ -28,7 +28,7 @@ ARES is a student prototype built on real NASA data. The terrain is checked agai
 
 ## Link to Project Demo
 
-**TEAM: paste the public YouTube link** to the 30-second caption-only video once it is uploaded (script: [`video-script.md`](video-script.md)).
+**TEAM: paste the public YouTube link** to the 30-second caption-only video once it is uploaded.
 
 ## Link to Final Project
 
