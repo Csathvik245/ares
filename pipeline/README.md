@@ -1,7 +1,7 @@
 # pipeline/
 
 Python scripts that build and check the terrain file `app/public/data/site.json`
-(Contract 1 in `CLAUDE.md`) and the map background `app/public/data/basemap.png`.
+(Contract 1 in `docs/CLAUDE.md`) and the map background `app/public/data/basemap.png`.
 The planner and the frontend both read `site.json`.
 
 **The app uses only real NASA data.** Every layer in `site.json` names the real

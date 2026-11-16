@@ -305,6 +305,6 @@ describe("contrast: white text on the filled-button blue", () => {
     const [r, g, b] = [1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16));
     const luminance = 0.2126 * lin(r) + 0.7152 * lin(g) + 0.0722 * lin(b);
     expect(1.05 / (luminance + 0.05)).toBeGreaterThanOrEqual(4.5);
-    expect(read("../../../CLAUDE.md")).toContain(`| \`--ds-blue-fill\` | \`${hex}\` |`);
+    expect(read("../../../docs/CLAUDE.md")).toContain(`| \`--ds-blue-fill\` | \`${hex}\` |`);
   });
 });

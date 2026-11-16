@@ -1,6 +1,6 @@
 # CLAUDE.md — ARES project context
 
-> Put this file at the **repo root**. Claude Code reads `CLAUDE.md` automatically at the start of every session.
+> This file lives at `docs/CLAUDE.md`. Claude Code only reads a `CLAUDE.md` automatically when it is at the repo root, so point it at this file at the start of a session.
 
 ## Who we are
 
@@ -28,7 +28,7 @@
 
 ## Submission rules
 
-Full details and links to the official pages are in [`docs/submission.md`](docs/submission.md). These override anything older in this file.
+Full details and links to the official pages are in [`docs/submission.md`](submission.md). These override anything older in this file.
 
 - **Deadline:** Sunday Nov 15, 2026, 11:59 pm, local event time. Click "Submit for Judging" before then.
 - **Feature freeze:** Sunday 2 pm. After that: bug fixes, video, slides and the project page only.
