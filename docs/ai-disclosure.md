@@ -8,14 +8,14 @@ Space Apps 2026 uses the term **"Artificial Intelligence (AI)"** for AI tools, i
 
 **Did we use AI tools? Yes.**
 
-1. **Coding assistants.** The Ares Initiative used AI coding assistants, **Claude Code (Anthropic)** and **ChatGPT (OpenAI)**, to write and review code and documentation across the project: the route planner, the web app, the data-processing scripts, the unit tests, and the project docs (including this file, the README, the video script and the slides). Team members gave the instructions, reviewed the output, ran the tests and decided what to keep.
+1. **Coding assistants.** The Ares Initiative used AI coding assistants, **Claude Code (Anthropic)** and **ChatGPT (OpenAI)**, to write and review code and documentation across the project: the route planner, the web app, the data-processing scripts, the unit tests, and the project docs (including this file, the README, the video script and the slides), and drafts of the project page summary and details. Team members gave the instructions, reviewed the output, ran the tests and decided what to keep.
 2. **Brainstorming.** Early on, we used an AI assistant to brainstorm options. The team chose and developed the ARES concept from a teammate's design document, and decided its scope, data, methods and validation.
 3. **Planning and review.** That design document is the source for our shared rules and contracts in the repo (`CLAUDE.md`). After the concept was chosen, an AI chat assistant (**Claude, by Anthropic**) helped with planning, breaking the work into tasks, code review and debugging.
 
 4. **No AI in route or safety decisions.** Every route, oxygen number, safe-return zone, abort route and GO / CAUTION / NO-GO status in the app comes from **deterministic algorithms**: Dijkstra and A\* search on a terrain grid, with fixed formulas and constants documented in [`assumptions.md`](assumptions.md). No machine-learning model or AI service makes or changes these decisions. The same inputs always give the same answer, and the planner has unit tests.
    - **Our own trained model, trained on Perseverance drive data (separate from the AI chat tools).** We trained a small route-cost model ourselves: seven terrain weights, no neural network, no AI service. `pipeline/learn_route_cost.py` learns it from Perseverance's real drive routes (NASA's traverse file) with maximum margin planning. It is **off by default**. The planner only uses it if a caller passes it to `planRoute` as `routeGrid`, and the app has no button for it. Even then it can only change a route's shape: no-go ground stays no-go, its weights may never be less careful than the physics model, and time, oxygen and status are still worked out by the deterministic model. In testing it did not beat the physics model; the method and results are in [`route-learning.md`](route-learning.md). This is our own machine learning on NASA data. It is not generative AI, and it is separate from the AI coding and chat tools described in this file.
 5. **Data is NASA's, not AI-generated.** The terrain, thermal and mineral layers come from NASA and USGS datasets listed in [`sources.md`](sources.md). AI tools helped write the scripts that process this data; they did not create the data values.
-6. **Media.** Our demo video is a screen recording of the app with captions and no voice. Our rover and orbital images are NASA's, credited in [`sources.md`](sources.md).
+6. **Media.** Our demo video and its YouTube thumbnail were produced with help from an AI assistant (Claude, by Anthropic). The app footage is a real screen recording of ARES; the AI assistant scripted the recording, edited it, and added the captions and motion graphics. The background music is an original score synthesized in code with AI assistance (no copyrighted or sampled music). The thumbnail combines a screenshot of the app with text. Our rover and orbital images are NASA's, credited in [`sources.md`](sources.md).
    - **Mission patch (`app/public/brand/ares-patch.png`, also in `site/`).** Our mission patch is AI-generated, and it uses no NASA branding. In the app it carries a small "AI" mark in its corner. It was made with an AI image tool: the original file's content credentials name OpenAI's image service. The browser tab icon is not the patch: it is a plain letter "A" drawn by our own script (`pipeline/make_favicon.py`).
 7. **No NASA branding** (logos, flags, mission identifiers) was generated or modified with AI.
 
@@ -63,7 +63,8 @@ Space Apps 2026 uses the term **"Artificial Intelligence (AI)"** for AI tools, i
 | Question | Answer |
 |---|---|
 | Is the mission patch AI-generated? | Yes. In the app it carries a small "AI" mark in its corner (item 6 above) |
-| Which tools were used | Claude Code (Anthropic) and ChatGPT (OpenAI) for code and docs; Claude (Anthropic) for brainstorming and planning (items 1 to 3) |
+| Which tools were used | Claude Code (Anthropic) and ChatGPT (OpenAI) for code and docs; Claude (Anthropic) for brainstorming, planning, the demo video, its music and thumbnail, and drafting the project page text (items 1 to 3 and 6) |
+| Is there AI-generated audio? | Yes: the demo video's background music, synthesized in code with AI assistance (item 6) |
 | Is the in-app assistant in the submission? | No. Code only, not mounted, server not deployed |
 | `pipeline/` | AI-assisted scripts; NASA data values (table above) |
 | Our own machine learning | The route-cost model, trained by us on Perseverance drive data; off by default (item 4) |
@@ -79,6 +80,6 @@ From the NASA Space Apps [Project Submission Guide](https://www.spaceappschallen
 - **Generated content restriction:** AI-generated content may not use, contain, or modify any NASA branding or design elements. Our AI-generated patch uses none.
 - **Disclosure requirement:** teams must clearly indicate where and how AI tools were utilized in their project. That is this file.
 - **Images and video:** must include a visible watermark indicating AI generation. In the app our patch carries a small "AI" mark in its corner.
-- **Audio:** must acknowledge AI generation in descriptive text and metadata. We use no AI-generated audio.
+- **Audio:** must acknowledge AI generation in descriptive text and metadata. The demo video's background music was synthesized in code with AI assistance; this is stated here and in the YouTube video description.
 - **Code and data:** must acknowledge AI generation in descriptive text and metadata. See the folder table above.
 - **Judging note:** judges will consider originality, intent, and execution in the context of AI-assisted work.
